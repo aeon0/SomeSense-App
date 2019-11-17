@@ -1,5 +1,5 @@
 include_directories(
-  ${SOURCE_DIR}
+  ${INSTALL_INCLUDE_DIR}
   ${GTEST_INCLUDE_DIR}
 )
 

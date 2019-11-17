@@ -1,9 +1,7 @@
 # build and install the project lib
 SET(COMPONENT_NAME "frame")
 
-include_directories(
-  ${INSTALL_INCLUDE_DIR} 
-)
+include_directories(${INSTALL_INCLUDE_DIR})
 add_library(lib${COMPONENT_NAME} 
   adder.cpp 
 )
