@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
-#include "adder.h"
+#include "frame/adder.h"
 
 
-TEST(GTestSuiteAdder, add)
+TEST(FrameAdder, add)
 {
   Adder adder = Adder();
   int test_value = adder.add(2, 4);

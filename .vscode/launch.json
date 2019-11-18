@@ -8,6 +8,8 @@
             "name": "Src: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
+            // TODO: Create some global env variable for the project name (Ilona)
+            //       since it is also used in the tasks.json
             "program": "${workspaceFolder}/dist/bin/debug/Ilona",
             "args": [],
             "stopAtEntry": false,
@@ -29,7 +31,9 @@
             "name": "Test: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dist/bin/debug/testIlona",
+            // TODO: create some global env variable in an ini file or something like that
+            //       instead of testMYCOMPONENT...
+            "program": "${workspaceFolder}/dist/bin/debug/testframe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
