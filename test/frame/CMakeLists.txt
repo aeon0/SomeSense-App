@@ -1,4 +1,4 @@
-SET(COMPONENT_NAME "frame")
+SET(COMPONENT_NAME "Frame")
 
 include_directories(
   ${INSTALL_INCLUDE_DIR}
@@ -12,7 +12,7 @@ add_executable(test${COMPONENT_NAME}
 
 target_link_libraries(test${COMPONENT_NAME}
   lib${COMPONENT_NAME}
-  libexample
+  libExample
   ${GTEST_LIB_DIR}/libgtest.a
   pthread
 )

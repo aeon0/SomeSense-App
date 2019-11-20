@@ -15,6 +15,7 @@ set(INSTALL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist/include")
 include_directories(${COMPONENT_DIR})
 
 add_subdirectory(externals)
+add_subdirectory(components/data_reader)
 add_subdirectory(components/example)
 add_subdirectory(components/frame)
 

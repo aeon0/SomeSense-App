@@ -1,8 +1,7 @@
-# build and install the project lib
-SET(COMPONENT_NAME "Example")
+SET(COMPONENT_NAME "DataReader")
 
 add_library(lib${COMPONENT_NAME} 
-  example.cpp
+  cams/video_cam.cpp
 )
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")
 install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})

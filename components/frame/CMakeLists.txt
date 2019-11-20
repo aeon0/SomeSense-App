@@ -1,5 +1,5 @@
 # build and install the project lib
-SET(COMPONENT_NAME "frame")
+SET(COMPONENT_NAME "Frame")
 
 add_library(lib${COMPONENT_NAME} 
   adder.cpp 
@@ -10,5 +10,5 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR
 
 # link libs and create executable
 add_executable(${PROJECT_NAME} ${COMPONENT_DIR}/frame/main.cpp)
-target_link_libraries(${PROJECT_NAME} lib${COMPONENT_NAME} libexample)
+target_link_libraries(${PROJECT_NAME} lib${COMPONENT_NAME} libExample)
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})
