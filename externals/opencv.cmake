@@ -1,4 +1,4 @@
-IF (NOT EXISTS ${EXTERNAL_DIR}/install/opencv)
+IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/opencv)
   ExternalProject_Add(OpenCVDownload
     GIT_REPOSITORY "https://github.com/opencv/opencv.git"
     GIT_TAG "${OPENCV_VERSION}"
@@ -14,11 +14,9 @@ IF (NOT EXISTS ${EXTERNAL_DIR}/install/opencv)
       -DWITH_CUDA:BOOL=FALSE
       -DWITH_FFMPEG:BOOL=FALSE
       -DBUILD_PERF_TESTS:BOOL=FALSE
-      -DCMAKE_INSTALL_PREFIX=${EXTERNAL_DIR}/install/opencv
+      -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_DIR}/opencv
       -DCMAKE_BUILD_TYPE=Release
   )
 ENDIF()
 
-# Provide pathes to the installed dependency (thus need to use PARENT_SCOPE)
-SET(OPENCV_INCLUDE_DIR ${EXTERNAL_DIR}/install/opencv/include/opencv4 PARENT_SCOPE)
-SET(OPENCV_LIB_DIR ${EXTERNAL_DIR}/install/opencv/lib PARENT_SCOPE)
+# find_package is used in parent scope
