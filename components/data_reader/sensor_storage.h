@@ -10,6 +10,7 @@ namespace data_reader {
 
   private:
     std::map<std::string, const ICam&> _cams;
+    unsigned int _sensorCounter; // used to create unique sensor ids
   };
 }
 

@@ -1,0 +1,6 @@
+{
+  "cams": [{
+    "type": "video",
+    "file_source": "..."
+  }]
+}
