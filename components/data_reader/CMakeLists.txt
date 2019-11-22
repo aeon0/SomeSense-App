@@ -1,11 +1,11 @@
-SET(COMPONENT_NAME "DataReader")
+SET(COMPONENT_NAME "data_reader")
 
 include_directories(${OPENCV_INCLUDE_DIR})
 
 add_library(lib${COMPONENT_NAME} 
+  sensor_storage.cpp
   cams/video_cam.cpp
   cams/csi_cam.cpp
-  cams/usb_cam.cpp
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")

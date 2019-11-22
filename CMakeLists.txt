@@ -21,8 +21,8 @@ add_subdirectory(externals)
 find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
 include_directories(${COMPONENT_DIR} ${OpenCV_INCLUDE_DIRS} NO_DEFAULT_PATH)
 
+add_subdirectory(components/utilities)
 add_subdirectory(components/data_reader)
-add_subdirectory(components/example)
 add_subdirectory(components/frame)
 
 if(BUILD_TEST)

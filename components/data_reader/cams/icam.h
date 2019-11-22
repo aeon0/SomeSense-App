@@ -1,12 +1,13 @@
-#ifndef ICam_H
-#define ICam_H
+#ifndef icam_h
+#define icam_h
 
 #include "opencv2/opencv.hpp"
 
-
-class ICam {
-public:
-  virtual cv::Mat getFrame() = 0;
-};
+namespace data_reader {
+  class ICam {
+  public:
+    virtual cv::Mat getFrame() = 0;
+  };
+}
 
 #endif

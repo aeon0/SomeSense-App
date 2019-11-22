@@ -4,5 +4,9 @@
     "**/.git/subtree-cache/**": true,
     "**/build/**": true,
     "**/dist/**": true,
+  },
+  "files.associations": {
+    "*.tcc": "cpp",
+    "fstream": "cpp"
   }
 }
