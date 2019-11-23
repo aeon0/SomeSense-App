@@ -1,6 +1,8 @@
 #ifndef app_h
 #define app_h
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 #include "data_reader/sensor_storage.h"
 
 namespace frame {

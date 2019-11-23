@@ -1,4 +1,5 @@
 #include "video_cam.h"
+#include <iostream>
 
 data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filename) {
   _stream.open(_filename);

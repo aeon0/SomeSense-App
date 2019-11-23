@@ -2,17 +2,18 @@
 #define sensor_storage_h
 
 #include <map>
+#include <vector>
 #include "cams/icam.h"
 
 namespace data_reader {
   class SensorStorage {
   public:
-    typedef std::map<const std::string, const ICam&> CamMap;
+    typedef std::map<const std::string, std::unique_ptr<ICam>> CamMap;
 
     void initFromConfig(const std::string& filepath);
-    std::string addCam(const ICam& cam);
+    std::string addCam(std::unique_ptr<ICam>& cam);
 
-    const CamMap getCams() const { return _cams; };
+    const CamMap& getCams() const { return _cams; };
 
   private:
     CamMap _cams;
