@@ -9,6 +9,6 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/gtest)
   )
 ENDIF()
 
-# Provide pathes to the installed dependency (thus need to use PARENT_SCOPE)
-SET(GTEST_INCLUDE_DIR ${EXTERNAL_INSTALL_DIR}/gtest/include PARENT_SCOPE)
-SET(GTEST_LIB_DIR ${EXTERNAL_INSTALL_DIR}/gtest/lib PARENT_SCOPE)
+# Provide pathes to the installed dependency, these are available in root scope as there are only "include()" used for dependencies
+SET(GTEST_INCLUDE_DIR ${EXTERNAL_INSTALL_DIR}/gtest/include)
+SET(GTEST_LIB_DIR ${EXTERNAL_INSTALL_DIR}/gtest/lib)

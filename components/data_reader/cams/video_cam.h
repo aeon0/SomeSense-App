@@ -6,7 +6,7 @@
 namespace data_reader {
   class VideoCam : public ICam {
   public:
-    VideoCam(std::string filename);
+    VideoCam(const std::string& filename);
     cv::Mat getFrame();
 
   private:

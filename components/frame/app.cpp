@@ -1,21 +1,16 @@
-#include <fstream>
 #include "app.h"
-#include "utilities/json.hpp"
 
-void frame::App::init() {
-  // add cameras
-  std::string sensorConfigPath = "configs/sim_sensors.json";
-  std::ifstream ifs(sensorConfigPath);
-  if (!ifs.good()) {
-    throw std::runtime_error("Could not open sensor config file:" + sensorConfigPath );
-  }
-  nlohmann::json sensorConfig = nlohmann::json::parse(ifs);
-  // Loop over sensorConfig["cams"]
-  std::cout << sensorConfig["cams"] << std::endl;
+void frame::App::init(const std::string& sensorConfigPath) {
+  _sensorStorage.initFromConfig(sensorConfigPath);
 }
 
 void frame::App::start() {
-  for(;;) {
-    std::cout << "Run Frame" << std::endl;
+  data_reader::SensorStorage::CamMap cams = _sensorStorage.getCams();
+  for( auto const& [key, cam]: cams) {
+    //cv::Mat img = cam.getFrame();
   }
+
+  //for(;;) {
+  //  std::cout << "Run Frame" << std::endl;
+  //}
 }

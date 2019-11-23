@@ -1,6 +1,6 @@
 SET(COMPONENT_NAME "data_reader")
 
-include_directories(${OPENCV_INCLUDE_DIR})
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_library(lib${COMPONENT_NAME} 
   sensor_storage.cpp

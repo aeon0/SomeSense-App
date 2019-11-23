@@ -1,6 +1,6 @@
 {
   "cams": [{
     "type": "video",
-    "file_source": "..."
+    "filepath": "/home/jodo/Data/videos/test.mp4"
   }]
 }

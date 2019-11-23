@@ -6,11 +6,11 @@
 namespace frame {
   class App {
   public:
-    void init();
+    void init(const std::string& sensorConfigPath);
     void start();
 
   private:
-    data_reader::SensorStorage sensorStorage;
+    data_reader::SensorStorage _sensorStorage;
   };
 }
 

@@ -16,10 +16,9 @@ set(INSTALL_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist/lib/${CMAKE_BUILD_TYPE}")
 set(INSTALL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/dist/include")
 set(EXTERNAL_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externals/install")
 
+include_directories(${COMPONENT_DIR} NO_DEFAULT_PATH)
 
-add_subdirectory(externals)
-find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
-include_directories(${COMPONENT_DIR} ${OpenCV_INCLUDE_DIRS} NO_DEFAULT_PATH)
+include(externals/dependencies.cmake)
 
 add_subdirectory(components/utilities)
 add_subdirectory(components/data_reader)

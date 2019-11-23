@@ -1,6 +1,6 @@
 #include "video_cam.h"
 
-data_reader::VideoCam::VideoCam(std::string filename) : _filename(filename) {
+data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filename) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
