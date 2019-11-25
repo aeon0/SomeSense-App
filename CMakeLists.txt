@@ -23,6 +23,7 @@ include_directories(${COMPONENT_DIR} NO_DEFAULT_PATH)
 include(externals/dependencies.cmake)
 
 add_subdirectory(components/utilities)
+add_subdirectory(components/com_out)
 add_subdirectory(components/data_reader)
 add_subdirectory(components/frame)
 
