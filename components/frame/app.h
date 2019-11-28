@@ -1,9 +1,10 @@
-#ifndef app_h
-#define app_h
+#pragma once
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "data_reader/sensor_storage.h"
+#include "com_out/unix_server.h"
+
 
 namespace frame {
   class App {
@@ -13,7 +14,6 @@ namespace frame {
 
   private:
     data_reader::SensorStorage _sensorStorage;
+    com_out::UnixServer _server;
   };
 }
-
-#endif

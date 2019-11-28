@@ -1,5 +1,5 @@
 #include "app.h"
-#include "com_out/unix_socket_server.h"
+#include "com_out/unix_server.h"
 #include <iostream>
 
 
@@ -8,7 +8,7 @@ void frame::App::init(const std::string& sensorConfigPath) {
 }
 
 void frame::App::start() {
-  com_out::startServer();
+  _server.run();
 
   for(;;) {
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
