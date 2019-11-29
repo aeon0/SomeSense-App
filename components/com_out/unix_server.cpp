@@ -18,7 +18,7 @@ void com_out::UnixServer::create() {
   struct sockaddr_un serverAddr;
 
   // setup socket address structure
-  bzero(&serverAddr, sizeof(serverAddr));
+  memset(&serverAddr, 0, sizeof(serverAddr));
   serverAddr.sun_family = AF_UNIX;
   strncpy(serverAddr.sun_path, _socketName, sizeof(serverAddr.sun_path) - 1);
 
@@ -28,6 +28,8 @@ void com_out::UnixServer::create() {
     throw std::runtime_error("Error on socket creation");
   }
 
+  // Just to make sure the _socketName (e.g. if path exists) is not already linked
+  unlink(_socketName);
   // call bind to associate the socket with the UNIX file system
   if(bind(_server, (const struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
     throw std::runtime_error("Error on socket binding");

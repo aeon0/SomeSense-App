@@ -1,5 +1,6 @@
 #include "server.h"
 #include <iostream>
+#include <algorithm>
 
 
 com_out::Server::Server() {
@@ -23,6 +24,8 @@ void com_out::Server::serve() {
 
   // accept clients
   while((client = accept(_server, (struct sockaddr *)&clientAddr, &clientlen)) > 0) {
+    std::cout << "Add client: " << client << std::endl;
+    _clients.push_back(client);
     handle(client);
   }
 
@@ -40,11 +43,15 @@ void com_out::Server::handle(int client) {
     }
     // send response
     // TODO: actually do some routing here
-    if(!sendResponse(client, request)) {
+    std::string msg = "Hello World";
+    if(!sendToClient(client, msg)) {
       break;
     }
   }
+  // remove client
+  _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());
   close(client);
+  std::cout << "Remove client: " << client << std::endl;
 }
 
 std::string com_out::Server::getRequest(int client) {
@@ -73,10 +80,10 @@ std::string com_out::Server::getRequest(int client) {
   return request;
 }
 
-bool com_out::Server::sendResponse(int client, std::string response) {
+bool com_out::Server::sendToClient(int client, std::string msg) {
   // prepare to send response
-  const char* ptr = response.c_str();
-  int nleft = response.length();
+  const char* ptr = msg.c_str();
+  int nleft = msg.length();
   int nwritten;
   // loop to be sure it is all sent
   while(nleft) {
@@ -87,7 +94,7 @@ bool com_out::Server::sendResponse(int client, std::string response) {
       } 
       else {
         // an error occurred, so break out
-        throw std::runtime_error("Error on writing");
+        throw std::runtime_error("Error on writing message to client");
         return false;
       }
     } 

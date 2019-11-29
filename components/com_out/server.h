@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 #include <string>
+#include <vector>
 
 
 namespace com_out {
@@ -26,11 +27,12 @@ namespace com_out {
     void serve();
     void handle(int client);
     std::string getRequest(int client);
-    bool sendResponse(int client, std::string response);
+    bool sendToClient(int client, std::string msg);
 
     int _server;
     int _buflen;
     char* _buf;
+    std::vector<int> _clients;
   };
 }
 
