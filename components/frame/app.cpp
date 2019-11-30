@@ -1,6 +1,7 @@
 #include "app.h"
 #include "com_out/unix_server.h"
 #include <iostream>
+#include <thread>
 
 
 void frame::App::init(const std::string& sensorConfigPath) {
@@ -8,11 +9,12 @@ void frame::App::init(const std::string& sensorConfigPath) {
 }
 
 void frame::App::start() {
-  _server.run();
+  std::thread serverThread(&com_out::Server::run, &_server);
 
   for(;;) {
+    _server.broadcast("{\"type\": \"server.hello\", \"data\": \"hello world\"}\n");
+
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-    std::cout << "Run Frame" << std::endl;
     for(auto const& [key, cam]: _sensorStorage.getCams()) {
       cv::Mat img = cam->getFrame();
       // TODO: do the whole image processing stuff
@@ -21,8 +23,10 @@ void frame::App::start() {
     }
     // Loop through other sensor types if needed and do the processing
 
-    // TODO: start the fusion to start the object tracking
+    // TODO: input all data to tracker
 
     // TODO: send created environment + image to the visualization
   }
+
+  serverThread.join();
 }

@@ -4,8 +4,7 @@
 
 
 com_out::Server::Server() {
-  _buflen = 1024;
-  _buf = new char[_buflen+1];
+  _buf = new char[1024];
 }
 
 com_out::Server::~Server() {
@@ -37,13 +36,15 @@ void com_out::Server::handle(int client) {
   for(;;) {
     // get a request
     std::string request = getRequest(client);
+    std::cout << "Recived Request from: " << client << std::endl;
+    std::cout << "Request: " << request << std::endl;
     // break if client is done or an error occurred
     if(request.empty()) {
       break;
     }
     // send response
     // TODO: actually do some routing here
-    std::string msg = "Hello World";
+    std::string msg = "{\"type\": \"dummy_response\", \"data\": \"Hello World\"}\n";
     if(!sendToClient(client, msg)) {
       break;
     }
@@ -56,6 +57,7 @@ void com_out::Server::handle(int client) {
 
 std::string com_out::Server::getRequest(int client) {
   std::string request = "";
+
   // read until we get a newline
   while(request.find("\n") == std::string::npos) {
     int nread = recv(client,_buf, 1024, 0);
@@ -80,7 +82,9 @@ std::string com_out::Server::getRequest(int client) {
   return request;
 }
 
-bool com_out::Server::sendToClient(int client, std::string msg) {
+bool com_out::Server::sendToClient(int client, const std::string msg) {
+  // std::cout << "Send msg " << msg << " to client: " << client << std::endl;
+
   // prepare to send response
   const char* ptr = msg.c_str();
   int nleft = msg.length();
@@ -106,4 +110,10 @@ bool com_out::Server::sendToClient(int client, std::string msg) {
     ptr += nwritten;
   }
   return true;
+}
+
+bool com_out::Server::broadcast(const std::string msg) {
+  for(int client: _clients) {
+    sendToClient(client, msg);
+  }
 }
