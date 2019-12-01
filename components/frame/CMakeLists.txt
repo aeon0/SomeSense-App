@@ -16,6 +16,7 @@ target_link_libraries(${PROJECT_NAME}
   lib${COMPONENT_NAME}
   libdata_reader
   libcom_out
+  libutilities
   ${OpenCV_LIBS}
 )
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})

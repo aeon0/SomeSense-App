@@ -1,7 +1,9 @@
 SET(COMPONENT_NAME "utilities")
 
-#add_library(lib${COMPONENT_NAME} )
+add_library(lib${COMPONENT_NAME} 
+  base64.cpp
+  config.cpp
+)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")
-# no .cpp files yet so no need to create a lib yet
-# install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})
+install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})
