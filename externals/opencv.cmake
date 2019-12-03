@@ -1,5 +1,5 @@
 IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/opencv)
-  ExternalProject_Add(OpenCVDownload
+  ExternalProject_Add(OpenCVPrj
     GIT_REPOSITORY "https://github.com/opencv/opencv.git"
     GIT_TAG "${OPENCV_VERSION}"
     SOURCE_DIR opencv
