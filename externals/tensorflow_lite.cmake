@@ -1,6 +1,3 @@
-# 1) Download sources from the URL
-# 2) Download dependencies
-# 3) Install with shell script
 IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/tensorflow_lite)
   ExternalProject_Add(TensorflowLitePrj
     GIT_REPOSITORY "https://github.com/j-o-d-o/tensorflow_lite_lib"
