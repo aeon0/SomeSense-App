@@ -1,6 +1,10 @@
 SET(COMPONENT_NAME "object_detection")
 
-include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(
+  ${OpenCV_INCLUDE_DIRS}
+  ${TENSORFLOW_LITE_DEPENDENCIES_INCLUDE_DIR}
+  ${TENSORFLOW_LITE_INCLUDE_DIR}
+)
 
 add_library(lib${COMPONENT_NAME} 
   detector.cpp

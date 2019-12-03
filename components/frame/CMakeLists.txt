@@ -19,5 +19,7 @@ target_link_libraries(${PROJECT_NAME}
   libobject_detection
   libutilities
   ${OpenCV_LIBS}
+  ${TENSORFLOW_LITE_LIB_X86_DIR}/libtensorflow-lite.a
+  ${TENSORFLOW_LITE_LIB_X86_DIR}/benchmark-lib.a
 )
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})
