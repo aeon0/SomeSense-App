@@ -25,6 +25,7 @@ include(externals/dependencies.cmake)
 add_subdirectory(components/utilities)
 add_subdirectory(components/com_out)
 add_subdirectory(components/data_reader)
+add_subdirectory(components/object_detection)
 add_subdirectory(components/frame)
 
 if(BUILD_TEST)

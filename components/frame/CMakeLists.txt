@@ -16,6 +16,7 @@ target_link_libraries(${PROJECT_NAME}
   lib${COMPONENT_NAME}
   libdata_reader
   libcom_out
+  libobject_detection
   libutilities
   ${OpenCV_LIBS}
 )
