@@ -1,5 +1,4 @@
-#ifndef icam_h
-#define icam_h
+#pragma once
 
 #include "opencv2/opencv.hpp"
 
@@ -9,5 +8,3 @@ namespace data_reader {
     virtual cv::Mat getFrame() = 0;
   };
 }
-
-#endif

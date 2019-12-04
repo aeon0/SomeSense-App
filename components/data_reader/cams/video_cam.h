@@ -1,5 +1,4 @@
-#ifndef video_cam_h
-#define video_cam_h
+#pragma once
 
 #include "icam.h"
 
@@ -14,5 +13,3 @@ namespace data_reader {
     std::string _filename;
   };
 }
-
-#endif

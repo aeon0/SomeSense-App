@@ -1,47 +1,59 @@
 #include "detector.h"
+#include "tensorflow/lite/delegates/gpu/delegate.h"
+#include "tensorflow/lite/delegates/nnapi/nnapi_delegate.h"
+
+#include "tensorflow/lite/context.h"
 #include <iostream>
 
-#include <cstdio>
-#include "tensorflow/lite/interpreter.h"
-#include "tensorflow/lite/kernels/register.h"
-#include "tensorflow/lite/model.h"
-#include "tensorflow/lite/optional_debug_tools.h"
 
-
-#define TFLITE_MINIMAL_CHECK(x)                              \
-  if (!(x)) {                                                \
-    fprintf(stderr, "Error at %s:%d\n", __FILE__, __LINE__); \
-    exit(1);                                                 \
-  }
-
-
-void object_detection::Detector::test() {
-  std::cout << "Hello from Detector" << std::endl;
+void object_detection::Detector::loadModel(const char* path) {
+  std::cout << "Loading model for object detection..." << std::endl;
+  _isWarmedUp = false;
 
   // Load model
-  std::unique_ptr<tflite::FlatBufferModel> model = tflite::FlatBufferModel::BuildFromFile("/home/jodo/trained_models/kitti_mobile_ssd_18-11-2019-16-55-17/tf_model_23/model.tflite");
-  TFLITE_MINIMAL_CHECK(model != nullptr);
+  _model = tflite::FlatBufferModel::BuildFromFile(path);
+  if(_model == nullptr) {
+    throw std::runtime_error("Tensorflow Lite model not found");
+  }
 
   // Build the interpreter
   tflite::ops::builtin::BuiltinOpResolver resolver;
-  tflite::InterpreterBuilder builder(*model, resolver);
-  std::unique_ptr<tflite::Interpreter> interpreter;
-  builder(&interpreter);
-  TFLITE_MINIMAL_CHECK(interpreter != nullptr);
+  tflite::InterpreterBuilder builder(*_model, resolver);
+  builder(&_interpreter);
+
+  // Add GPU support
+  // Not working yet... probably have to rebuild tflite with gpu support or something like that
+  // auto* delegate = TfLiteGpuDelegateV2Create(nullptr);
+  // if(_interpreter->ModifyGraphWithDelegate(delegate) != kTfLiteOk) {
+  //   throw std::runtime_error("Error on adding GPU support");
+  // };
+}
+
+void object_detection::Detector::detect(const cv::Mat& img) {
+  std::cout << "Do some object detection!" << std::endl;
+
+  if(!_isWarmedUp) {
+    std::cout << "Warming up detector" << std::endl;
+    _isWarmedUp = true;
+    // Warm up by calling inference for some time
+    for(int i = 0; i < 12; ++i) {
+      detect(img);
+    }
+  }
 
   // Allocate tensor buffers.
-  TFLITE_MINIMAL_CHECK(interpreter->AllocateTensors() == kTfLiteOk);
-  printf("=== Pre-invoke Interpreter State ===\n");
-  tflite::PrintInterpreterState(interpreter.get());
+  if(_interpreter->AllocateTensors() != kTfLiteOk) {
+    throw std::runtime_error("Failed to allocate tensors");
+  }
 
-  // Fill input buffers
-  // TODO(user): Insert code to fill input tensors
+  // Fill input buffer with image
+  float* input = _interpreter->typed_input_tensor<float>(0.0f);
 
   // Run inference
-  TFLITE_MINIMAL_CHECK(interpreter->Invoke() == kTfLiteOk);
-  printf("\n\n=== Post-invoke Interpreter State ===\n");
-  tflite::PrintInterpreterState(interpreter.get());
+  if(_interpreter->Invoke() != kTfLiteOk) {
+    throw std::runtime_error("Invoke failed on Tensorflow Lite model");
+  }
 
-  // Read output buffers
-  // TODO(user): Insert getting data out code.
+  // Read result data
+  float* output = _interpreter->typed_output_tensor<float>(0.0f);
 }

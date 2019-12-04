@@ -9,6 +9,7 @@
 
 void frame::App::init(const std::string& sensorConfigPath) {
   _sensorStorage.initFromConfig(sensorConfigPath);
+  _detector.loadModel("assets/od_model/model.tflite");
 }
 
 void frame::App::start() {
@@ -21,6 +22,7 @@ void frame::App::start() {
     for(auto const& [key, cam]: _sensorStorage.getCams()) {
       cv::Mat img = cam->getFrame();
       // TODO: do the whole image processing stuff
+      _detector.detect(img);
 
       // Some test data to send
       std::vector<uchar> buf;
