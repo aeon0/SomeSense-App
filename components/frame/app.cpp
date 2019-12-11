@@ -9,15 +9,13 @@
 
 void frame::App::init(const std::string& sensorConfigPath) {
   _sensorStorage.initFromConfig(sensorConfigPath);
-  _detector.loadModel("assets/od_model/model.tflite");
+  _detector.loadModel("assets/od_model/model.tflite", "assets/od_model/prior_boxes.json");
 }
 
 void frame::App::start() {
   std::thread serverThread(&com_out::Server::run, &_server);
 
   for(;;) {
-    // _server.broadcast("{\"type\": \"server.hello\", \"data\": \"hello world\"}\n");
-
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
     for(auto const& [key, cam]: _sensorStorage.getCams()) {
       cv::Mat img = cam->getFrame();

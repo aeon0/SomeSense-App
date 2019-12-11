@@ -9,7 +9,7 @@
 void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   std::ifstream ifs(filepath);
   if (!ifs.good()) {
-    throw std::runtime_error("Could not open sensor config file:" + filepath);
+    throw std::runtime_error("Could not open sensor config file: " + filepath);
   }
 
   nlohmann::json jsonSensorConfig = nlohmann::json::parse(ifs);

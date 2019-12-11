@@ -2,16 +2,30 @@
 #include "tensorflow/lite/delegates/gpu/delegate.h"
 
 #include "tensorflow/lite/context.h"
-#include <iostream>
 #include <cassert>
+#include <fstream>
+#include "utilities/json.hpp"
 
 
-void object_detection::Detector::loadModel(const char* path) {
+void object_detection::Detector::loadModel(const char* modelPath, const std::string& boxConfigPath) {
   std::cout << "Loading model for object detection..." << std::endl;
   _isWarmedUp = false;
 
+  // Get prior box setup
+  std::ifstream ifs(boxConfigPath);
+  if (!ifs.good()) {
+    throw std::runtime_error("Could not open prior box config file: " + boxConfigPath);
+  }
+
+  nlohmann::json priorBoxConfig = nlohmann::json::parse(ifs);
+  for(const float it: priorBoxConfig) {
+    _priorBoxes.push_back(it);
+  }
+  // TODO: put this into the prior box json file
+  _numClasses = 7;
+
   // Load model
-  _model = tflite::FlatBufferModel::BuildFromFile(path);
+  _model = tflite::FlatBufferModel::BuildFromFile(modelPath);
   if(_model == nullptr) {
     throw std::runtime_error("Tensorflow Lite model not found");
   }
@@ -34,7 +48,6 @@ void object_detection::Detector::loadModel(const char* path) {
   }
 }
 
-
 void object_detection::Detector::detect(const cv::Mat& img) {
   // Apperently the c++ implementation needs a "warm up phase"
   // where it is just executed a few times in order to reach its best performance
@@ -51,10 +64,10 @@ void object_detection::Detector::detect(const cv::Mat& img) {
   assert(_interpreter->inputs().size() == 1 && "Only single inputs are supported");
   const int inputIndex = 0;
   int inputTensorId = _interpreter->inputs()[inputIndex];
-  TfLiteIntArray* dims = _interpreter->tensor(inputTensorId)->dims;
-  int input_height = dims->data[1];
-  int input_width = dims->data[2];
-  int input_channels = dims->data[3];
+  TfLiteIntArray* inDims = _interpreter->tensor(inputTensorId)->dims;
+  int input_height = inDims->data[1];
+  int input_width = inDims->data[2];
+  int input_channels = inDims->data[3];
 
   // TODO: resize img according to the input_width and input_channels
 
@@ -67,7 +80,6 @@ void object_detection::Detector::detect(const cv::Mat& img) {
   {
     for(int j = 0; j < input_width; j++)
     {
-      // You can now access the pixel value with cv::Vec3b
       cv::Vec3b vec = img.at<cv::Vec3b>(i, j);
       float b = static_cast<float>(vec[0]);
       float g = static_cast<float>(vec[1]);
@@ -84,7 +96,16 @@ void object_detection::Detector::detect(const cv::Mat& img) {
     throw std::runtime_error("Invoke failed on Tensorflow Lite model");
   }
 
-  // Read result data
-  float* output = _interpreter->typed_output_tensor<float>(0.0f);
+  // Read result data and convert to image boxes
+  assert(_interpreter->outputs().size() == 1 && "Only single outputs are supported");
+  const int outputIndex = 0;
+  int outputTensorId = _interpreter->outputs()[outputIndex];
+  TfLiteIntArray* outDims = _interpreter->tensor(outputTensorId)->dims;
+  int outSize = outDims->data[1];
+  int test = _priorBoxes.size();
+  // TODO: Why not same output size?? Check with python...
+  assert(outSize == _priorBoxes.size() && "Model output size and prior box size must be same!");
+
+  float* output = _interpreter->typed_output_tensor<float>(0);
   std::cout << *output << std::endl;
 }
