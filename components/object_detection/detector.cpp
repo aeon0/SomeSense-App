@@ -4,8 +4,8 @@
 #include "utilities/json.hpp"
 
 // #include <cuda_runtime_api.h>
-// #include "NvInfer.h"
-// #include "NvUffParser.h"
+#include "NvInfer.h"
+#include "NvUffParser.h"
 
 
 void object_detection::Detector::loadModel(const char* modelPath, const std::string& boxConfigPath) {
@@ -25,7 +25,7 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
   _numClasses = 7;
 
   // Load model
-  // auto builder = TRTUniquePtr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(_logger.getTRTLogger()));
+  auto builder = TRTUniquePtr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(_logger.getTRTLogger()));
 }
 
 void object_detection::Detector::detect(const cv::Mat& img) {

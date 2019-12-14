@@ -13,24 +13,20 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/tensorrt)
   )
 ENDIF()
 
-# SET(TENSORRT_LIBS
-#   ${EXTERNAL_INSTALL_DIR}/tensorrt/out/libnvcaffeparser_static.a
-#   ${EXTERNAL_INSTALL_DIR}/tensorrt/out/libnvinfer_plugin_static.a
-#   ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_runtime_static.a
-#   ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_static.a
+# Create targets for the shared libs
+add_library(libnvcaffeparser SHARED IMPORTED)
+add_library(libnvinfer_plugin SHARED IMPORTED)
+add_library(libnvonnxparser_runtime SHARED IMPORTED)
+add_library(libnvonnxparser SHARED IMPORTED)
+set_property(TARGET libnvcaffeparser PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvcaffeparser.so)
+set_property(TARGET libnvinfer_plugin PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvinfer_plugin.so)
+set_property(TARGET libnvonnxparser_runtime PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_runtime.so)
+set_property(TARGET libnvonnxparser PROPERTY IMPORTED_LOCATION ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser.so)
 
-#   $ENV{TRT_RELEASE}/lib/libprotobuf.a
-#   $ENV{TRT_RELEASE}/lib/libnvinfer_static.a
-#   $ENV{TRT_RELEASE}/lib/libnvparsers_static.a
+add_library(libnvinfer SHARED IMPORTED)
+add_library(libnvparsers SHARED IMPORTED)
+set_property(TARGET libnvinfer PROPERTY IMPORTED_LOCATION $ENV{TRT_RELEASE}/lib/libnvinfer.so)
+set_property(TARGET libnvparsers PROPERTY IMPORTED_LOCATION $ENV{TRT_RELEASE}/lib/libnvparsers.so)
 
-#   ${CUDART_LIB}
-#   ${CUBLAS_LIB}
-#   ${CUDNN_LIB}
-#   nvinfer
-#   ${RT_LIB}
-#   ${CMAKE_DL_LIBS}
-#   ${CMAKE_THREAD_LIBS_INIT}
-# )
-# SET(TENSORRT_INCLUDE_DIRS ${EXTERNAL_INSTALL_DIR}/tensorrt/include)
-
-# find_package(TensorRT REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/tensorrt)
+SET(TENSORRT_SHARED_LIBS libnvcaffeparser libnvinfer libnvinfer_plugin libnvonnxparser_runtime libnvonnxparser libnvparsers)
+SET(TENSORRT_INCLUDE_DIRS ${EXTERNAL_INSTALL_DIR}/tensorrt/include)

@@ -29,6 +29,6 @@ namespace object_detection {
     // In form of [..classes, ..offsets, ...] starting at lowest feature map and row by row (height, width)
     // offset in form of [cx, cy, width, height]
     std::vector<float> _priorBoxes;
-    // TRTLogger _logger;
+    TRTLogger _logger;
   };
 }
