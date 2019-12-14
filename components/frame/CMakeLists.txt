@@ -2,8 +2,6 @@ SET(COMPONENT_NAME "frame")
 
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
-  ${TENSORFLOW_LITE_DEPENDENCIES_INCLUDE_DIR}
-  ${TENSORFLOW_LITE_INCLUDE_DIR}
 )
 
 add_library(lib${COMPONENT_NAME} 
@@ -23,7 +21,5 @@ target_link_libraries(${PROJECT_NAME}
   libobject_detection
   libutilities
   ${OpenCV_LIBS}
-  ${TENSORFLOW_LITE_LIB_X86_DIR}/libtensorflow-lite.a
-  ${TENSORFLOW_LITE_LIB_X86_DIR}/benchmark-lib.a
 )
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})
