@@ -2,6 +2,7 @@ SET(COMPONENT_NAME "frame")
 
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
+  ${TENSORRT_INCLUDE_DIRS}
 )
 
 add_library(lib${COMPONENT_NAME} 
@@ -21,5 +22,6 @@ target_link_libraries(${PROJECT_NAME}
   libobject_detection
   libutilities
   ${OpenCV_LIBS}
+  ${TENSORRT_SHARED_LIBS}
 )
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})

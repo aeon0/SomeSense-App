@@ -4,7 +4,6 @@
 #include "opencv2/opencv.hpp"
 
 
-
 namespace object_detection {
   class Detector {
   public:

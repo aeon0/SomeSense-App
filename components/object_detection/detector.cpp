@@ -1,8 +1,11 @@
 #include "detector.h"
-
 #include <cassert>
 #include <fstream>
 #include "utilities/json.hpp"
+
+// #include <cuda_runtime_api.h>
+#include "NvInfer.h"
+
 
 
 void object_detection::Detector::loadModel(const char* modelPath, const std::string& boxConfigPath) {

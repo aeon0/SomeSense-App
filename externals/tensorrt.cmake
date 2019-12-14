@@ -1,9 +1,3 @@
-message("=================================")
-message($ENV{CUDA_HOME}/bin/nvcc)
-message($ENV{CUDA_HOME}/include)
-message($ENV{CUDA_HOME}/lib64/libcudnn.so)
-message("---------------------------------")
-
 IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/tensorrt)
   ExternalProject_Add(TensorRTPrj
     GIT_REPOSITORY "https://github.com/NVIDIA/TensorRT.git"
@@ -19,5 +13,10 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/tensorrt)
   )
 ENDIF()
 
-# creates ${OpenCV_LIBS} and ${OpenCV_INCLUDE_DIRS}
-# find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+SET(TENSORRT_SHARED_LIBS
+  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvcaffeparser.so
+  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvinfer_plugin.so
+  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_runtime.so
+  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser.so
+)
+SET(TENSORRT_INCLUDE_DIRS ${EXTERNAL_INSTALL_DIR}/tensorrt/include)
