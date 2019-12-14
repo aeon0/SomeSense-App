@@ -18,6 +18,7 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/opencv)
       -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui,video
       -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_DIR}/opencv
       -DCMAKE_BUILD_TYPE=Release
+    INSTALL_COMMAND make -j4 install
   )
 ENDIF()
 

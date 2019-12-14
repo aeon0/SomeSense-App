@@ -5,7 +5,7 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/gtest)
   ExternalProject_Add(GTestPrj
     URL https://github.com/google/googletest/archive/release-${GTEST_VERSION}.tar.gz
     CMAKE_ARGS -DBUILD_GTEST=ON -DBUILD_GMOCK=ON -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_DIR}/gtest
-    INSTALL_COMMAND make install
+    INSTALL_COMMAND make -j4 install
   )
 ENDIF()
 
