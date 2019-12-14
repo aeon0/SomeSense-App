@@ -22,5 +22,17 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/opencv)
   )
 ENDIF()
 
-# creates ${OpenCV_LIBS} and ${OpenCV_INCLUDE_DIRS}
-find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+# creates ${OpenCV_LIBS} and ${OpenCV_INCLUDE_DIRS} similar as find_package would do
+# Note: find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv) is not possible
+#       as opencv is not yet installed when the command is called
+
+SET(OpenCV_INCLUDE_DIRS ${EXTERNAL_INSTALL_DIR}/opencv/include/opencv4)
+SET(OpenCV_LIBS 
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_core.a
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_highgui.a
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_imgcodecs.a
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_imgproc.a
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_video.a
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_videoio.a
+  ${EXTERNAL_INSTALL_DIR}/opencv/lib/libopencv_core.a
+)
