@@ -13,10 +13,24 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/tensorrt)
   )
 ENDIF()
 
-SET(TENSORRT_SHARED_LIBS
-  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvcaffeparser.so
-  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvinfer_plugin.so
-  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_runtime.so
-  ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser.so
-)
-SET(TENSORRT_INCLUDE_DIRS ${EXTERNAL_INSTALL_DIR}/tensorrt/include)
+# SET(TENSORRT_LIBS
+#   ${EXTERNAL_INSTALL_DIR}/tensorrt/out/libnvcaffeparser_static.a
+#   ${EXTERNAL_INSTALL_DIR}/tensorrt/out/libnvinfer_plugin_static.a
+#   ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_runtime_static.a
+#   ${EXTERNAL_INSTALL_DIR}/tensorrt/lib/libnvonnxparser_static.a
+
+#   $ENV{TRT_RELEASE}/lib/libprotobuf.a
+#   $ENV{TRT_RELEASE}/lib/libnvinfer_static.a
+#   $ENV{TRT_RELEASE}/lib/libnvparsers_static.a
+
+#   ${CUDART_LIB}
+#   ${CUBLAS_LIB}
+#   ${CUDNN_LIB}
+#   nvinfer
+#   ${RT_LIB}
+#   ${CMAKE_DL_LIBS}
+#   ${CMAKE_THREAD_LIBS_INIT}
+# )
+# SET(TENSORRT_INCLUDE_DIRS ${EXTERNAL_INSTALL_DIR}/tensorrt/include)
+
+# find_package(TensorRT REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/tensorrt)
