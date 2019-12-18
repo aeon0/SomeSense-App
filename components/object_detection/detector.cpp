@@ -5,7 +5,6 @@
 
 // #include <cuda_runtime_api.h>
 #include "NvInfer.h"
-#include "NvUffParser.h"
 
 
 void object_detection::Detector::loadModel(const char* modelPath, const std::string& boxConfigPath) {
@@ -26,6 +25,35 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
 
   // Load model
   auto builder = TRTUniquePtr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(_logger.getTRTLogger()));
+  if(!builder) {
+    throw std::runtime_error("TensorRT: creating builder failed!");
+  }
+
+  auto network = TRTUniquePtr<nvinfer1::INetworkDefinition>(builder->createNetwork());
+  if(!network) {
+    throw std::runtime_error("TensorRT: creating network failed!");
+  }
+
+  auto config = TRTUniquePtr<nvinfer1::IBuilderConfig>(builder->createBuilderConfig());
+  if(!config) {
+    throw std::runtime_error("TensorRT: creating config failed!");
+  }
+
+  auto parser = TRTUniquePtr<nvonnxparser::IParser>(nvonnxparser::createParser(*network, _logger.getTRTLogger()));
+  if(!parser) {
+    throw std::runtime_error("TensorRT: creating parser failed!");
+  }
+
+  std::cout << NV_ONNX_PARSER_VERSION << std::endl;
+
+  // Construct the Network with an ONNX model
+  const int verbosityLevel = static_cast<int>(nvinfer1::ILogger::Severity::kVERBOSE);
+  bool parsed = parser->parseFromFile(modelPath, verbosityLevel);
+  if(!parsed) {
+    std::cout << "Failed : (" << std::endl;
+    // throw std::runtime_error("TensorRT: failed to parse onnx model!");
+  }
+
 }
 
 void object_detection::Detector::detect(const cv::Mat& img) {

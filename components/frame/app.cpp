@@ -9,7 +9,7 @@
 
 void frame::App::init(const std::string& sensorConfigPath) {
   _sensorStorage.initFromConfig(sensorConfigPath);
-  _detector.loadModel("assets/od_model/model.tflite", "assets/od_model/prior_boxes.json");
+  _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
 }
 
 void frame::App::start() {

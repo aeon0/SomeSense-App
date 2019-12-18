@@ -73,3 +73,19 @@ tar -xvzf TensorRT-6.0.1.5.Ubuntu-18.04.x86_64-gnu.cuda-10.1.cudnn7.6.tar.gz
 export TRT_RELEASE=`pwd`/TensorRT-6.0.1.5
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRT_RELEASE/lib
 ```
+
+## Protobuf
+ONNX-TensorRT does not include third party (as TensorRT or Tensorflow do), thus we need
+to install protobuf manually.
+Follow these instructions: https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
+```bash
+# Download latest protobuf-cpp-[VERSION].tar.gz from
+# https://github.com/protocolbuffers/protobuf/releases/lates
+
+# Run this within the extracted protobuf folder:
+./configure
+make
+make check
+sudo make install
+sudo ldconfig # refresh shared library cache.
+```

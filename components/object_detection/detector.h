@@ -2,8 +2,11 @@
 
 #include <iostream>
 #include <memory>
+#include "NvInfer.h"
+#include "NvOnnxConfig.h"
+#include "NvOnnxParser.h"
 #include "opencv2/opencv.hpp"
-#include "logger.h"
+#include "trt_logger.h"
 
 
 namespace object_detection {
@@ -25,10 +28,14 @@ namespace object_detection {
     void detect(const cv::Mat& img);
 
   private:
+    nvinfer1::Dims _inputDim;
+    nvinfer1::Dims _outputDim;
     int _numClasses;
     // In form of [..classes, ..offsets, ...] starting at lowest feature map and row by row (height, width)
     // offset in form of [cx, cy, width, height]
     std::vector<float> _priorBoxes;
     TRTLogger _logger;
+
+    std::shared_ptr<nvinfer1::ICudaEngine> _engine; // The TensorRT engine used to run the network
   };
 }
