@@ -1,11 +1,5 @@
 # C++ Starter Project for Linux using CMake
 
-Code for:</br>
-[Cross-Platform C++ dev environment— Part 1: Basic Setup, get it building](https://medium.com/@johannesdobler/cross-platform-c-dev-environment-part-1-basic-setup-get-it-building-bbd0883d0e13)</br>
-[Cross-Platform C++ dev environment— Part 2: Visual Studio Code to debug](https://medium.com/@johannesdobler/cross-platform-c-dev-environment-part-2-visual-studio-code-to-debug-e2628ed47e51)</br>
-[Cross-Platform C++ dev environment— Part 3: Testing with GoogleTest](https://medium.com/@johannesdobler/cross-platform-c-dev-environment-part-3-testing-with-googletest-7aca79ee0034)</br>
-
-
 ## Setup
 ``` bash
 # Run these commands to install cmake and compiler (g++)
@@ -68,13 +62,13 @@ Download the "cuDNN Library for Linux" version for the platform and the installe
 ```
 # First download the correct version here: https://developer.nvidia.com/nvidia-tensorrt-6x-download (need to sign up for that)
 cd ~/Downloads
-# Download TensorRT-6.0.1.5.Ubuntu-18.04.x86_64-gnu.cuda-10.1.cudnn7.6.tar.gz
-tar -xvzf TensorRT-6.0.1.5.Ubuntu-18.04.x86_64-gnu.cuda-10.1.cudnn7.6.tar.gz
-export TRT_RELEASE=`pwd`/TensorRT-6.0.1.5
+# Download TensorRT-7.0.0.11.Ubuntu-18.04.x86_64-gnu.cuda-10.2.cudnn7.6.tar.gz
+tar -xvzf TensorRT-7.0.0.11.Ubuntu-18.04.x86_64-gnu.cuda-10.2.cudnn7.6.tar.gz
+export TRT_RELEASE=`pwd`/TensorRT-7.0.0.11
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRT_RELEASE/lib
 ```
 
-## Protobuf
+## Protobuf (only needed for onnx-tensorrt standalone build)
 ONNX-TensorRT does not include third party (as TensorRT or Tensorflow do), thus we need
 to install protobuf manually.
 Follow these instructions: https://github.com/protocolbuffers/protobuf/blob/master/src/README.md

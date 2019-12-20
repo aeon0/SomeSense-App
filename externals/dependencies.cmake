@@ -4,7 +4,7 @@ include(ExternalProject)
 set(OPENCV_VERSION 4.1.2)
 include(externals/opencv.cmake)
 
-# Using the downloaded version (v6.0.1 currently)
+set(TENSORRT_VERSION v7.0.0)
 include(externals/tensorrt.cmake)
 
 if(BUILD_TEST)

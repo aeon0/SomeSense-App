@@ -3,6 +3,7 @@ SET(COMPONENT_NAME "frame")
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORRT_INCLUDE_DIRS}
+  # ${CUDA_INCLUDE_DIRS}
 )
 
 add_library(lib${COMPONENT_NAME}
