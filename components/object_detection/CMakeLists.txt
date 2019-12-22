@@ -1,7 +1,7 @@
 SET(COMPONENT_NAME "object_detection")
 
 
-include_directories(
+include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORRT_INCLUDE_DIRS}
   # ${CUDA_INCLUDE_DIRS}

@@ -13,9 +13,7 @@ constexpr long long int operator"" _MiB(long long unsigned int val)
 }
 
 void object_detection::Detector::loadModel(const char* modelPath, const std::string& boxConfigPath) {
-  std::cout << "Loading model for object detection..." << std::endl;
-
-  // Get prior box setup
+  // Get prior box info
   std::ifstream ifs(boxConfigPath);
   if (!ifs.good()) {
     throw std::runtime_error("Could not open prior box config file: " + boxConfigPath);
@@ -25,8 +23,7 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
   for(const float it: priorBoxConfig) {
     _priorBoxes.push_back(it);
   }
-  // TODO: put this into the prior box json file
-  _numClasses = 7;
+  _numClasses = 7; // TODO: put this into the prior box json file including class names for a cleaner interface
 
   // Load model
   auto builder = TRTUniquePtr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(_logger.getTRTLogger()));
@@ -51,8 +48,6 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
     throw std::runtime_error("TensorRT: creating parser failed!");
   }
 
-  std::cout << NV_ONNX_PARSER_VERSION << std::endl;
-
   // Construct the Network with an ONNX model
   const int verbosityLevel = static_cast<int>(nvinfer1::ILogger::Severity::kWARNING);
   bool parsed = parser->parseFromFile(modelPath, verbosityLevel);
@@ -61,10 +56,7 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
   }
   std::cout << "** Parsing done **" << std::endl;
 
-  builder->setMaxBatchSize(1);
-  builder->createOptimizationProfile();
-
-  config->setMaxWorkspaceSize(1024_MiB);
+  config->setMaxWorkspaceSize(16_MiB);
   config->setFlag(nvinfer1::BuilderFlag::kFP16);
   // I think kINT8 is a bit faster but not as precise?
   // config->setFlag(nvinfer1::BuilderFlag::kINT8);
@@ -81,6 +73,7 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
   // https://docs.nvidia.com/deeplearning/sdk/tensorrt-developer-guide/index.html#opt_profiles
   nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
   const nvinfer1::Dims4 profileDims(1, _inputDim.d[1], _inputDim.d[2], _inputDim.d[3]);
+  network->getInput(0)->setDimensions(profileDims);
   profile->setDimensions(network->getInput(0)->getName(), nvinfer1::OptProfileSelector::kMIN, profileDims);
   profile->setDimensions(network->getInput(0)->getName(), nvinfer1::OptProfileSelector::kOPT, profileDims);
   profile->setDimensions(network->getInput(0)->getName(), nvinfer1::OptProfileSelector::kMAX, profileDims);
@@ -93,7 +86,7 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
   _outputDim = network->getOutput(0)->getDimensions();
   assert(_outputDim.nbDims == 2); // (batch_size, classes + boxes)
 
-  _engine = std::shared_ptr<nvinfer1::ICudaEngine>(builder->buildEngineWithConfig(*network, *config), InferDeleter());
+  _engine = std::move(TRTUniquePtr<nvinfer1::ICudaEngine>(builder->buildEngineWithConfig(*network, *config)));
   if(!_engine) {
    throw std::runtime_error("TensorRT: failed to build engine!");
   }
@@ -103,6 +96,11 @@ void object_detection::Detector::loadModel(const char* modelPath, const std::str
 }
 
 void object_detection::Detector::detect(const cv::Mat& img) {
+  auto context = TRTUniquePtr<nvinfer1::IExecutionContext>(_engine->createExecutionContext());
+  if (!context) {
+    throw std::runtime_error("TensorRT: Creating inference context failed!");
+  }
+
   // Fill input buffer with image
   // TODO: resize img according to the input_width and input_channels
   const int inputHeight = _inputDim.d[1];

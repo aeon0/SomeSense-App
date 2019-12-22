@@ -36,6 +36,6 @@ namespace object_detection {
     std::vector<float> _priorBoxes;
     TRTLogger _logger;
 
-    std::shared_ptr<nvinfer1::ICudaEngine> _engine; // The TensorRT engine used to run the network
+    TRTUniquePtr<nvinfer1::ICudaEngine> _engine; // The TensorRT engine used to run the network
   };
 }
