@@ -24,7 +24,7 @@ namespace object_detection {
 
   class Detector {
   public:
-    void loadModel(const char* modelPath, const std::string& boxConfigPath);
+    void loadModel(const std::string& modelPath, const std::string& boxConfigPath);
     void detect(const cv::Mat& img);
 
   private:
