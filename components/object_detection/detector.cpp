@@ -4,6 +4,7 @@
 #include "utilities/json.hpp"
 
 #include <cuda_runtime_api.h>
+#include <chrono>
 #include "NvInfer.h"
 
 // Enables to write values such as 16_MiB
@@ -164,6 +165,8 @@ void object_detection::Detector::loadModelFromOnnx(const std::string& modelPath)
 }
 
 void object_detection::Detector::detect(const cv::Mat& img) {
+  auto startTime = std::chrono::high_resolution_clock::now();
+
   // Fill input buffer with image
   // TODO: preprocess input image e.g. resize img according to the input_width and input_channels etc.
 
@@ -175,6 +178,7 @@ void object_detection::Detector::detect(const cv::Mat& img) {
   //        img.channels() == inputChannels && 
   //        "Input image does not fit input layer size");
 
+  // Can this be done a bit quicker somehow?
   int memIdx = 0;
   for(int i = 0; i < inputHeight; i++) {
     for(int j = 0; j < inputWidth; j++) {
@@ -184,8 +188,6 @@ void object_detection::Detector::detect(const cv::Mat& img) {
       _inPtr[memIdx++] = static_cast<float>(vec[2]); // Red channel
     }
   }
-  // I think this is not needed as both ptr (cpu and gpu are pointing to the same memory block)
-  //cudaMemcpy(...);
 
   // Run inference
   auto context = TRTUniquePtr<nvinfer1::IExecutionContext>(_engine->createExecutionContext());
@@ -199,11 +201,16 @@ void object_detection::Detector::detect(const cv::Mat& img) {
     throw std::runtime_error("TensorRT: Failed to execute");
   }
 
-  float testOutput = _outPtr[8];
-  std::cout << testOutput << std::endl;
+  auto endTime = std::chrono::high_resolution_clock::now();
+  float totalTime = std::chrono::duration<float, std::milli>(endTime - startTime).count();
+
+  // float testOutput = _outPtr[8];
+  // std::cout << testOutput << std::endl;
 
   // TODO: Use Prior boxes to convert the result
 
   // Read result data and convert to image boxes
   int test = _priorBoxes.size();
+
+  std::cout << "Runtime [ms]: " << totalTime << std::endl;
 }
