@@ -112,6 +112,13 @@ docker rm -f dummy
 
 Finally copy the tensorrt folder to the Jetson Nano (e.g. include it on the SD Card) and set its path to $TRT_RELEASE in the .bashrc (`export TRT_RELEASE=/path/to/copied/tensorrt`).
 
+```bash
+# Cleaning the docker stuff once in a while is a good idea
+docker system df
+# remove images:
+sudo docker system prune -a
+```
+
 ## Build and Run
 The script folder contains all the scripts that are needed to automatically build (and run) the project with cmake
 ``` bash
