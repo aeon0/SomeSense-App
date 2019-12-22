@@ -28,14 +28,14 @@ namespace object_detection {
     void detect(const cv::Mat& img);
 
   private:
-    nvinfer1::Dims _inputDim;
-    nvinfer1::Dims _outputDim;
+    void loadModelFromOnnx(const std::string& modelPath);
+
     int _numClasses;
     // In form of [..classes, ..offsets, ...] starting at lowest feature map and row by row (height, width)
     // offset in form of [cx, cy, width, height]
     std::vector<float> _priorBoxes;
     TRTLogger _logger;
 
-    TRTUniquePtr<nvinfer1::ICudaEngine> _engine; // The TensorRT engine used to run the network
+    std::shared_ptr<nvinfer1::ICudaEngine> _engine; // The TensorRT engine used to run the network
   };
 }

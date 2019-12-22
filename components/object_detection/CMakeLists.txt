@@ -4,7 +4,7 @@ SET(COMPONENT_NAME "object_detection")
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORRT_INCLUDE_DIRS}
-  # ${CUDA_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIRS}
 )
 
 add_library(lib${COMPONENT_NAME} 

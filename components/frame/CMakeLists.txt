@@ -3,7 +3,7 @@ SET(COMPONENT_NAME "frame")
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORRT_INCLUDE_DIRS}
-  # ${CUDA_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIRS}
 )
 
 add_library(lib${COMPONENT_NAME}
@@ -23,6 +23,7 @@ target_link_libraries(${PROJECT_NAME}
   libutilities
   libobject_detection
   ${OpenCV_LIBS}
+  ${CUDA_LIBRARIES}
 
   # link shared libs
   ${TENSORRT_SHARED_LIBS}

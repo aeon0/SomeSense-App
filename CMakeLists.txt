@@ -21,7 +21,7 @@ set(EXTERNAL_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externals/install")
 include_directories(${COMPONENT_DIR} NO_DEFAULT_PATH)
 
 # Find pre installed packages
-# find_package(CUDA REQUIRED)
+find_package(CUDA REQUIRED)
 
 include(externals/dependencies.cmake)
 
