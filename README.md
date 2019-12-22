@@ -80,6 +80,16 @@ make -j4 install
 For the Jetson Nano some things can be skipped while others have to be added:
 - The CUDA + CUDNN are already installed, but the .bashrc edits need to be applied
 - TensorRT needs to be prebuilt on the host machine:
+
+Note: It might be that some adaptations to /path/to/git/tensorrt/docker/ubuntu-cross-aarch64.Dockerfile are needed:
+```bash
+# Wrong version of libcudnn, it should be:
+...
+RUN dpkg -x /pdk_files/libcudnn7_7.6.3.28-1+cuda10.0_arm64.deb /pdk_files/cudnn  \
+    && dpkg -x /pdk_files/libcudnn7-dev_7.6.3.28-1+cuda10.0_arm64.deb /pdk_files/cudnn \
+...
+```
+
 ```bash
 # Use SDKManager to download needed files
 export LSB_ETC_LSB_RELEASE=/etc/upstream-release/lsb-release
@@ -89,24 +99,18 @@ sdkmanager
 
 sudo apt-get install docker.io
 cd /path/to/git/tensorrt
+# this can take a while...
 sudo docker build -f docker/ubuntu-cross-aarch64.Dockerfile --build-arg UBUNTU_VERSION=18.04 --build-arg CUDA_VERSION=10.0 --tag tensorrt-ubuntu-aarch64 .
-```
-Note: It might be that some adaptations to /path/to/git/tensorrt/docker/ubuntu-cross-aarch64.Dockerfile are needed:
-```bash
-# Wrong version of libcudnn, it should be:
-...
-RUN dpkg -x /pdk_files/libcudnn7_7.6.3.28-1+cuda10.0_arm64.deb /pdk_files/cudnn  \
-    && dpkg -x /pdk_files/libcudnn7-dev_7.6.3.28-1+cuda10.0_arm64.deb /pdk_files/cudnn \
-...
 
-# Copy back to host system after compilation is done, add this at the end:
-...
-COPY /pdk_files/tensorrt docker/jetpack_files
-COPY /workspace/TensorRT docker/jetpack_files
-...
+# list all docker images
+docker image ls
+# Copy folders to host machine
+docker create -ti --name dummy IMAGE_ID bash
+docker cp dummy:/pdk_files/tensorrt ~/Downloads/tensorrt_arm
+docker rm -f dummy
 ```
 
-Finally copy the tensorrt folder copied to docker/jetpack_files to the Jetson Nano and set its path to $TRT_RELEASE in the .bashrc (`export TRT_RELEASE=/path/to/copied/tensorrt`). Done.
+Finally copy the tensorrt folder to the Jetson Nano (e.g. include it on the SD Card) and set its path to $TRT_RELEASE in the .bashrc (`export TRT_RELEASE=/path/to/copied/tensorrt`).
 
 ## Build and Run
 The script folder contains all the scripts that are needed to automatically build (and run) the project with cmake
