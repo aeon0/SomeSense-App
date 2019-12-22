@@ -11,6 +11,11 @@ constexpr long long int operator"" _MiB(long long unsigned int val) {
     return val * (1 << 20);
 }
 
+object_detection::Detector::~Detector() {
+  delete _inPtr;
+  delete _outPtr;
+}
+
 void object_detection::Detector::loadModel(const std::string& modelPath, const std::string& boxConfigPath) {
   // Get prior box info
   std::ifstream ifs(boxConfigPath);
@@ -58,6 +63,40 @@ void object_detection::Detector::loadModel(const std::string& modelPath, const s
     p.close();
     serializedModel->destroy();
   }
+
+  // Set up memory managment for input
+  const int inputIndex = _engine->getBindingIndex("input_1");
+  if(inputIndex == -1) {
+    throw std::runtime_error("Name for Input Layer is not found in model!");
+  }
+  _inputDim = _engine->getBindingDimensions(inputIndex);
+  assert(_inputDim.nbDims == 4); // (batch_size, height, width, channels)
+  const size_t inputSize = _inputDim.d[0] * _inputDim.d[1] * _inputDim.d[2] * _inputDim.d[3] * sizeof(float);
+
+  float* inCpuPtr;
+  float* inGpuPtr;
+  cudaHostAlloc((void**)&inCpuPtr, inputSize, cudaHostAllocMapped);
+  cudaHostGetDevicePointer((void**)&inGpuPtr, (void**)inCpuPtr, 0);
+  memset((void**)inCpuPtr, 0, inputSize);
+  assert(inGpuPtr == inCpuPtr); // In latest CUDA versions this always has to be true
+  _inPtr = inGpuPtr;
+
+  // Set up memory managment for output
+  const int outputIndex = _engine->getBindingIndex("concatenate");
+  if(outputIndex == -1) {
+    throw std::runtime_error("Name for Output Layer is not found in model!");
+  }
+  _outputDim = _engine->getBindingDimensions(outputIndex);
+  assert(_outputDim.nbDims == 2); // (batch_size, output_size)
+  const size_t outputSize = _outputDim.d[0] * _outputDim.d[1] * sizeof(float);
+
+  float* outCpuPtr;
+  float* outGpuPtr;
+  cudaHostAlloc((void**)&outCpuPtr, inputSize, cudaHostAllocMapped);
+  cudaHostGetDevicePointer((void**)&outGpuPtr, (void**)outCpuPtr, 0);
+  memset((void**)outCpuPtr, 0, outputSize);
+  assert(outGpuPtr == outGpuPtr); // In latest CUDA versions this always has to be true
+  _outPtr = outGpuPtr;
 }
 
 void object_detection::Detector::loadModelFromOnnx(const std::string& modelPath) {
@@ -125,74 +164,45 @@ void object_detection::Detector::loadModelFromOnnx(const std::string& modelPath)
 }
 
 void object_detection::Detector::detect(const cv::Mat& img) {
-  int inputIndex = _engine->getBindingIndex("input_1");
-  if(inputIndex == -1) {
-    throw std::runtime_error("Name for Input Layer is not found in model!");
-  }
-
-  nvinfer1::Dims inputDim = _engine->getBindingDimensions(inputIndex);
-  assert(inputDim.nbDims == 4); // (batch_size, height, width, channels)
-  const int batchSize = inputDim.d[0]; // should be 1
-  const int inputHeight = inputDim.d[1];
-  const int inputWidth = inputDim.d[2];
-  const int inputChannels = inputDim.d[3];
-
-  size_t inputSize = batchSize * inputHeight * inputWidth * inputChannels * sizeof(float);
-
-
-  int* cpuPtr;
-  int* gpuPtr;
-  cudaHostAlloc((void**)&cpuPtr, inputSize, cudaHostAllocMapped);
-
-	// if( !cpuPtr || !gpuPtr || size == 0 )
-	// 	return false;
-
-	// //CUDA(cudaSetDeviceFlags(cudaDeviceMapHost));
-
-	// if( CUDA_FAILED(cudaHostAlloc(cpuPtr, size, cudaHostAllocMapped)) )
-	// 	return false;
-
-	// if( CUDA_FAILED(cudaHostGetDevicePointer(gpuPtr, *cpuPtr, 0)) )
-	// 	return false;
-
-	// memset(*cpuPtr, 0, size);
-	// //printf(LOG_CUDA "cudaAllocMapped %zu bytes, CPU %p GPU %p\n", size, *cpuPtr, *gpuPtr);
-	// return true;
-
-  // Alloc cuda memory
-// 	if( !cudaAllocMapped((void**)&mInputCPU, (void**)&mInputCUDA, inputSize) )
-// 	{
-// 		printf("failed to alloc CUDA mapped memory for tensorNet input, %zu bytes\n", inputSize);
-// 		return false;
-// 	}
-
-  auto context = TRTUniquePtr<nvinfer1::IExecutionContext>(_engine->createExecutionContext());
-  if (!context) {
-    throw std::runtime_error("TensorRT: Creating inference context failed!");
-  }
-
-
-
   // Fill input buffer with image
-  // TODO: resize img according to the input_width and input_channels
-  // const int inputChannels = _inputDim.d[3];
+  // TODO: preprocess input image e.g. resize img according to the input_width and input_channels etc.
+
+  int inputHeight = _inputDim.d[1];
+  const int inputWidth = _inputDim.d[2];
+  const int inputChannels = _inputDim.d[3];
   // assert(img.size[0] == inputHeight && 
   //        img.size[1] == inputWidth && 
   //        img.channels() == inputChannels && 
   //        "Input image does not fit input layer size");
 
-  // for(int i = 0; i < inputHeight; i++)
-  // {
-  //   for(int j = 0; j < inputWidth; j++)
-  //   {
-  //     cv::Vec3b vec = img.at<cv::Vec3b>(i, j);
-  //     float b = static_cast<float>(vec[0]);
-  //     float g = static_cast<float>(vec[1]);
-  //     float r = static_cast<float>(vec[2]);
-  //   }
-  // }
+  int memIdx = 0;
+  for(int i = 0; i < inputHeight; i++) {
+    for(int j = 0; j < inputWidth; j++) {
+      cv::Vec3b vec = img.at<cv::Vec3b>(i, j);
+      _inPtr[memIdx++] = static_cast<float>(vec[0]); // Blue channel
+      _inPtr[memIdx++] = static_cast<float>(vec[1]); // Green channel
+      _inPtr[memIdx++] = static_cast<float>(vec[2]); // Red channel
+    }
+  }
+  // I think this is not needed as both ptr (cpu and gpu are pointing to the same memory block)
+  //cudaMemcpy(...);
 
   // Run inference
+  auto context = TRTUniquePtr<nvinfer1::IExecutionContext>(_engine->createExecutionContext());
+  if (!context) {
+    throw std::runtime_error("TensorRT: Creating inference context failed!");
+  }
+
+  void* bindBuffers[] = { _inPtr, _outPtr };
+  bool status = context->executeV2(bindBuffers);
+  if(!status) {
+    throw std::runtime_error("TensorRT: Failed to execute");
+  }
+
+  float testOutput = _outPtr[8];
+  std::cout << testOutput << std::endl;
+
+  // TODO: Use Prior boxes to convert the result
 
   // Read result data and convert to image boxes
   int test = _priorBoxes.size();

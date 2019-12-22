@@ -24,6 +24,7 @@ namespace object_detection {
 
   class Detector {
   public:
+    ~Detector();
     void loadModel(const std::string& modelPath, const std::string& boxConfigPath);
     void detect(const cv::Mat& img);
 
@@ -37,5 +38,10 @@ namespace object_detection {
     TRTLogger _logger;
 
     std::shared_ptr<nvinfer1::ICudaEngine> _engine; // The TensorRT engine used to run the network
+    float* _inPtr = NULL;
+    float* _outPtr = NULL;
+
+    nvinfer1::Dims _inputDim;
+    nvinfer1::Dims _outputDim;
   };
 }
