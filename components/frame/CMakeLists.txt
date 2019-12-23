@@ -8,6 +8,7 @@ include_directories(SYSTEM
 
 add_library(lib${COMPONENT_NAME}
   app.cpp
+  config.cpp
 )
 
 install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})

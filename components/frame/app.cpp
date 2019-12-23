@@ -16,9 +16,19 @@ void frame::App::start() {
   std::thread serverThread(&com_out::Server::run, &_server);
 
   for(;;) {
+    // Output State contains all data which is sent to the "outside" e.g. to visualize
+    nlohmann::json jsonOutputState = {
+      {"type", "server.frame"},
+      {"data", {
+        {"tracks", {}},
+        {"sensors", {}},
+      }}
+    };
+
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
     for(auto const& [key, cam]: _sensorStorage.getCams()) {
       cv::Mat img = cam->getFrame();
+
       // TODO: do the whole image processing stuff
       _detector.detect(img);
 
@@ -32,40 +42,38 @@ void frame::App::start() {
       const float fovHorizontal = M_PI * 0.33f;
       const float fovVertical = M_PI * 0.25f;
 
-      nlohmann::json j = {
-        {"type", "server.frame"},
-        {"data", {
-          {"tracks", {{
-            {"trackId", "0"},
-            {"class", 0},
-            {"position", {5.0, 0.0, 10.0}},
-            {"rotation", {0.0, 0.0, 0.0}},
-            {"height", 1.5},
-            {"width", 0.5},
-            {"depth", 3.0},
-            {"ttc", 1.0}
-          }}},
-          {"sensor", {
-            {"position", {0, 1.2, -0.5}},
-            {"rotation", {0, 0, 0}},
-            {"fovHorizontal", fovHorizontal},
-            {"fovVertical", fovVertical},
-            {"imageBase64", encodedBase64Img}
-          }}
-        }}
-      };
+      // Add current sensor to output state
+      jsonOutputState["data"]["sensors"].push_back({
+        {"id", key},
+        {"position", {0, 1.2, -0.5}},
+        {"rotation", {0, 0, 0}},
+        {"fovHorizontal", fovHorizontal},
+        {"fovVertical", fovVertical},
+        {"imageBase64", encodedBase64Img}
+      });
 
-      std::string outputState = j.dump();
-      _server.broadcast(outputState + "\n");
-
-      cv::imshow( "Display window", img );
-      cv::waitKey(0);
+      cv::imshow("Display window", img);
     }
     // Loop through other sensor types if needed and do the processing
 
     // TODO: input all data to tracker
 
-    // TODO: send created environment + image to the visualization
+    // example track for testing
+    jsonOutputState["data"]["tracks"].push_back({
+      {"trackId", "0"},
+      {"class", 0},
+      {"position", {5.0, 0.0, 10.0}},
+      {"rotation", {0.0, 0.0, 0.0}},
+      {"height", 1.5},
+      {"width", 0.5},
+      {"depth", 3.0},
+      {"ttc", 1.0}
+    });
+
+    std::string outputState = jsonOutputState.dump();
+    _server.broadcast(outputState + "\n");
+
+    cv::waitKey(0);
   }
 
   serverThread.join();
