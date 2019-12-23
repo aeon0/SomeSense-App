@@ -8,7 +8,7 @@ namespace object_detection {
   class TRTLogger: public nvinfer1::ILogger {
   public:
     void log(Severity severity, const char* msg) override {
-      if(severity <= Severity::kWARNING) {
+      if(severity <= Severity::kERROR) {
         std::cout << "[TRT]: " << msg << std::endl;
       }
     }

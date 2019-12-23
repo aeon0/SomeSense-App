@@ -212,5 +212,5 @@ void object_detection::Detector::detect(const cv::Mat& img) {
   // Read result data and convert to image boxes
   int test = _priorBoxes.size();
 
-  std::cout << "Runtime [ms]: " << totalTime << std::endl;
+  // std::cout << "Runtime [ms]: " << totalTime << std::endl;
 }
