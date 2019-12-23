@@ -76,6 +76,5 @@
     "filesystem": "cpp",
     "codecvt": "cpp",
     "cassert": "cpp"
-  },
-  "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
+  }
 }
