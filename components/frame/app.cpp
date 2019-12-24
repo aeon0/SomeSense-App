@@ -90,7 +90,7 @@ void frame::App::start() {
     auto frameDuration = std::chrono::duration<double, std::milli>(frameEndTime - frameStartTime);
     double deltaMsec = frameDuration.count() - Config::goalFrameLength;
     if (deltaMsec > 10.0) {
-      std::cout << "Frame too long: " << deltaMsec << " (Algo: " << algoDuration.count() << ")" << std::endl;
+      std::cout << "WARNING: Frame too long by " << deltaMsec << " ms, (Algo: " << algoDuration.count() << " ms)" << std::endl;
     }
   }
 
