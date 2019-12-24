@@ -39,8 +39,8 @@ void frame::App::start() {
       std::string encodedBase64Img = base64_encode(encMsg, buf.size());
       encodedBase64Img = "data:image/jpeg;base64," + encodedBase64Img;
 
-      const float fovHorizontal = M_PI * 0.33f;
-      const float fovVertical = M_PI * 0.25f;
+      const double fovHorizontal = M_PI * 0.33f;
+      const double fovVertical = M_PI * 0.25f;
 
       // Add current sensor to output state
       jsonOutputState["data"]["sensors"].push_back({

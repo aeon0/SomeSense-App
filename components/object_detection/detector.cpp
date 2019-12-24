@@ -25,7 +25,7 @@ void object_detection::Detector::loadModel(const std::string& modelPath, const s
   }
 
   nlohmann::json priorBoxConfig = nlohmann::json::parse(ifs);
-  for(const float it: priorBoxConfig) {
+  for(const double it: priorBoxConfig) {
     _priorBoxes.push_back(it);
   }
   // TODO: Put this into the prior box json file including class names for a cleaner interface

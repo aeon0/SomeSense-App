@@ -13,10 +13,13 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   }
 
   nlohmann::json jsonSensorConfig = nlohmann::json::parse(ifs);
-  for(const auto it: jsonSensorConfig["cams"]) {
+  for (const auto it: jsonSensorConfig["cams"]) {
     if (it["type"] == "video") {
       std::unique_ptr<ICam> videoCam(new VideoCam(it["filepath"]));
       addCam(videoCam);
+    }
+    else {
+      throw std::runtime_error(it["type"] + " is not supported yet!");
     }
   }
 }

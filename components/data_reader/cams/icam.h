@@ -6,5 +6,6 @@ namespace data_reader {
   class ICam {
   public:
     virtual cv::Mat getFrame() = 0;
+    virtual double getFrameRate() = 0;
   };
 }
