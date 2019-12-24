@@ -82,7 +82,7 @@ std::string com_out::Server::getRequest(int client) {
   return request;
 }
 
-bool com_out::Server::sendToClient(int client, const std::string msg) {
+bool com_out::Server::sendToClient(int client, const std::string msg) const {
   // std::cout << "Send msg " << msg << " to client: " << client << std::endl;
 
   // prepare to send response
@@ -112,7 +112,7 @@ bool com_out::Server::sendToClient(int client, const std::string msg) {
   return true;
 }
 
-bool com_out::Server::broadcast(const std::string msg) {
+bool com_out::Server::broadcast(const std::string msg) const {
   for(int client: _clients) {
     sendToClient(client, msg);
   }

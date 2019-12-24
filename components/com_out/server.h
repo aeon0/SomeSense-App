@@ -20,7 +20,8 @@ namespace com_out {
     ~Server();
 
     void run();
-    bool broadcast(const std::string msg);
+    void stop();
+    bool broadcast(const std::string msg) const;
 
   protected:
     virtual void create() = 0;
@@ -28,7 +29,7 @@ namespace com_out {
     void serve();
     void handle(int client);
     std::string getRequest(int client);
-    bool sendToClient(int client, const std::string msg);
+    bool sendToClient(int client, const std::string msg) const;
 
     int _server;
     char* _buf;
