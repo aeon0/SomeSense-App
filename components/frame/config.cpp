@@ -1,3 +1,3 @@
 #include "config.h"
 
-const double Config::goalFrameLength = 20.0; // 20 ms -> 50 fps
+const double Config::goalFrameLength = 50.0; // 50 ms -> 20 fps

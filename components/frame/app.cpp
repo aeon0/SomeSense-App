@@ -1,8 +1,10 @@
 #include "app.h"
+#include "config.h"
 #include "com_out/unix_server.h"
 #include <iostream>
 #include <thread>
 #include <cmath>
+#include <chrono>
 #include "utilities/base64.h"
 #include "utilities/json.hpp"
 
@@ -15,7 +17,9 @@ void frame::App::init(const std::string& sensorConfigPath) {
 void frame::App::start() {
   std::thread serverThread(&com_out::Server::run, &_server);
 
-  for(;;) {
+  for (;;) {
+    const auto frameStartTime = std::chrono::high_resolution_clock::now();
+
     // Output State contains all data which is sent to the "outside" e.g. to visualize
     nlohmann::json jsonOutputState = {
       {"type", "server.frame"},
@@ -25,8 +29,7 @@ void frame::App::start() {
       }}
     };
 
-    cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
-    for(auto const& [key, cam]: _sensorStorage.getCams()) {
+    for (auto const& [key, cam]: _sensorStorage.getCams()) {
       auto [ts, img] = cam->getFrame();
 
       // TODO: do the whole image processing stuff
@@ -73,7 +76,22 @@ void frame::App::start() {
     std::string outputState = jsonOutputState.dump();
     _server.broadcast(outputState + "\n");
 
-    cv::waitKey(0);
+    cv::waitKey(1);
+
+    // Do some timing stuff and in case algo was too fast, wait for a set amount of time
+    auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();
+    auto algoDuration = std::chrono::duration<double, std::milli>(frameAlgoEndTime - frameStartTime);
+    double waitTimeMsec = (Config::goalFrameLength - 1.0) - algoDuration.count();
+    if (waitTimeMsec > 0.0) {
+      auto waitTimeUsec = std::chrono::microseconds(static_cast<int>(waitTimeMsec * 1000.0));
+      std::this_thread::sleep_for(waitTimeUsec);
+    }
+    auto frameEndTime = std::chrono::high_resolution_clock::now();
+    auto frameDuration = std::chrono::duration<double, std::milli>(frameEndTime - frameStartTime);
+    double deltaMsec = frameDuration.count() - Config::goalFrameLength;
+    if (deltaMsec > 10.0) {
+      std::cout << "Frame too long: " << deltaMsec << " (Algo: " << algoDuration.count() << ")" << std::endl;
+    }
   }
 
   serverThread.join();

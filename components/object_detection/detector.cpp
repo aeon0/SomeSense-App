@@ -202,7 +202,7 @@ void object_detection::Detector::detect(const cv::Mat& img) {
   }
 
   auto endTime = std::chrono::high_resolution_clock::now();
-  float totalTime = std::chrono::duration<float, std::milli>(endTime - startTime).count();
+  double totalTime = std::chrono::duration<double, std::milli>(endTime - startTime).count();
 
   // float testOutput = _outPtr[8];
   // std::cout << testOutput << std::endl;
