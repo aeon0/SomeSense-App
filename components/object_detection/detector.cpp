@@ -12,11 +12,6 @@ constexpr long long int operator"" _MiB(long long unsigned int val) {
     return val * (1 << 20);
 }
 
-object_detection::Detector::~Detector() {
-  delete _inPtr;
-  delete _outPtr;
-}
-
 void object_detection::Detector::loadModel(const std::string& modelPath, const std::string& boxConfigPath) {
   // Get prior box info
   std::ifstream ifs(boxConfigPath);

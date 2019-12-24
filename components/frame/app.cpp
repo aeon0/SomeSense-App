@@ -1,6 +1,5 @@
 #include "app.h"
 #include "config.h"
-#include "com_out/unix_server.h"
 #include <iostream>
 #include <thread>
 #include <cmath>
@@ -14,10 +13,8 @@ void frame::App::init(const std::string& sensorConfigPath) {
   _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
 }
 
-void frame::App::start() {
-  std::thread serverThread(&com_out::Server::run, &_server);
-
-  for (;;) {
+void frame::App::run(const com_out::Server& server, const int& stop) {
+  while (!stop) {
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
 
     // Output State contains all data which is sent to the "outside" e.g. to visualize
@@ -55,7 +52,8 @@ void frame::App::start() {
         {"imageBase64", encodedBase64Img}
       });
 
-      cv::imshow("Display window", img);
+      // cv::imshow("Display window", img);
+      // cv::waitKey(0);
     }
     // Loop through other sensor types if needed and do the processing
 
@@ -74,9 +72,7 @@ void frame::App::start() {
     });
 
     std::string outputState = jsonOutputState.dump();
-    _server.broadcast(outputState + "\n");
-
-    cv::waitKey(1);
+    server.broadcast(outputState + "\n");
 
     // Do some timing stuff and in case algo was too fast, wait for a set amount of time
     auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();
@@ -93,6 +89,4 @@ void frame::App::start() {
       std::cout << "WARNING: Frame too long by " << deltaMsec << " ms, (Algo: " << algoDuration.count() << " ms)" << std::endl;
     }
   }
-
-  serverThread.join();
 }
