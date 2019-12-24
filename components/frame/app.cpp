@@ -82,11 +82,8 @@ void frame::App::run(const com_out::Server& server, const int& stop) {
       auto waitTimeUsec = std::chrono::microseconds(static_cast<int>(waitTimeMsec * 1000.0));
       std::this_thread::sleep_for(waitTimeUsec);
     }
-    auto frameEndTime = std::chrono::high_resolution_clock::now();
-    auto frameDuration = std::chrono::duration<double, std::milli>(frameEndTime - frameStartTime);
-    double deltaMsec = frameDuration.count() - Config::goalFrameLength;
-    if (deltaMsec > 10.0) {
-      std::cout << "WARNING: Frame too long by " << deltaMsec << " ms, (Algo: " << algoDuration.count() << " ms)" << std::endl;
-    }
+
+    auto frameDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - frameStartTime);
+    std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
   }
 }
