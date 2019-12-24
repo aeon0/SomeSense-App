@@ -49,7 +49,8 @@ void frame::App::run(const com_out::Server& server, const int& stop) {
         {"rotation", {0, 0, 0}},
         {"fovHorizontal", fovHorizontal},
         {"fovVertical", fovVertical},
-        {"imageBase64", encodedBase64Img}
+        {"imageBase64", encodedBase64Img},
+        {"isRecording", cam->isRecording()},
       });
 
       // cv::imshow("Display window", img);
@@ -68,11 +69,11 @@ void frame::App::run(const com_out::Server& server, const int& stop) {
       {"height", 1.5},
       {"width", 0.5},
       {"depth", 3.0},
-      {"ttc", 1.0}
+      {"ttc", 1.0},
     });
 
     std::string outputState = jsonOutputState.dump();
-    server.broadcast(outputState + "\n");
+    server.broadcast(outputState + "\n"); // new line character to show end of message
 
     // Do some timing stuff and in case algo was too fast, wait for a set amount of time
     auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();

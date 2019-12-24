@@ -9,5 +9,6 @@ namespace data_reader {
     // returns timestamp in [us] + image
     virtual std::tuple<const int64, cv::Mat> getFrame() = 0;
     virtual const double getFrameRate() const = 0;
+    virtual const bool isRecording() const = 0;
   };
 }
