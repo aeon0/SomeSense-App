@@ -27,7 +27,7 @@ void frame::App::start() {
 
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );
     for(auto const& [key, cam]: _sensorStorage.getCams()) {
-      cv::Mat img = cam->getFrame();
+      auto [ts, img] = cam->getFrame();
 
       // TODO: do the whole image processing stuff
       _detector.detect(img);

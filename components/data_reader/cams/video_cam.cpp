@@ -11,8 +11,10 @@ data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filenam
   }
 }
 
-cv::Mat data_reader::VideoCam::getFrame() {
+std::tuple<const int64, cv::Mat> data_reader::VideoCam::getFrame() {
+  const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
+  const int64 tsUsec = static_cast<int64>(tsMsec * 1000.0);
   cv::Mat frame;
   _stream.read(frame);
-  return frame;
+  return {tsUsec, frame};
 }

@@ -1,19 +1,19 @@
 #pragma once
 
+#include <tuple>
 #include "icam.h"
+
 
 namespace data_reader {
   class VideoCam : public ICam {
   public:
     VideoCam(const std::string& filename);
-    cv::Mat getFrame();
-
-    const double getFrameRate() const { return _frameRate; }
+    std::tuple<const int64, cv::Mat> getFrame() override;
+    const double getFrameRate() const override { return _frameRate; }
 
   private:
     cv::VideoCapture _stream;
-    std::string _filename;
-
+    const std::string _filename;
     double _frameRate;
   };
 }
