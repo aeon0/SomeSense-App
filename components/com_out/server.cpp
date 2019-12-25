@@ -1,6 +1,7 @@
 #include "server.h"
 #include <iostream>
 #include <algorithm>
+#include "utilities/json.hpp"
 
 
 com_out::Server::Server() {
@@ -33,19 +34,35 @@ void com_out::Server::serve() {
 
 void com_out::Server::handle(int client) {
   // loop to handle all requests
-  for(;;) {
+  for (;;) {
     // get a request
     std::string request = getRequest(client);
-    std::cout << "Recived Request from: " << client << std::endl;
-    std::cout << "Request: " << request << std::endl;
     // break if client is done or an error occurred
-    if(request.empty()) {
+    if (request.empty()) {
       break;
     }
-    // send response
-    // TODO: actually do some routing here
-    std::string msg = "{\"type\": \"dummy_response\", \"data\": \"Hello World\"}\n";
-    if(!sendToClient(client, msg)) {
+
+    auto jsonRequest = nlohmann::json::parse(request);
+    nlohmann::json jsonResponse = {
+      {"type", "server.callback"},
+      {"cbIndex", jsonRequest.value("cbIndex", -1)}, // in case cbIndex does not exist, default value of -1 is used
+      {"data", ""},
+    };
+
+    // Route Request
+    if (jsonRequest["type"] == "client.play_rec") {
+      // TODO: how do I pause the recording now?
+      std::cout << "Pause recording..." << std::endl;
+    }
+    else if(jsonRequest["type"] == "client.pause_rec") {
+      // TODO: how do I play the recording now?
+    }
+    else {
+      std::cout << "Unkown request: " << jsonRequest["type"] << std::endl;
+    }
+
+    std::string res = jsonResponse.dump() + "\n";
+    if (!sendToClient(client, res)) {
       break;
     }
   }
@@ -83,8 +100,6 @@ std::string com_out::Server::getRequest(int client) {
 }
 
 bool com_out::Server::sendToClient(int client, const std::string msg) const {
-  // std::cout << "Send msg " << msg << " to client: " << client << std::endl;
-
   // prepare to send response
   const char* ptr = msg.c_str();
   int nleft = msg.length();

@@ -23,11 +23,20 @@ void frame::App::run(const com_out::Server& server, const int& stop) {
       {"data", {
         {"tracks", {}},
         {"sensors", {}},
+        {"timestamp", 0},
+        {"isRecording", false},
+        {"recLength", 539900000},
       }}
     };
 
     for (auto const& [key, cam]: _sensorStorage.getCams()) {
+      // in case at least one camera is a recording, set it to true for the output state
+      if (cam->isRecording()) {
+        jsonOutputState["data"]["isRecording"] = true;
+      }
+
       auto [ts, img] = cam->getFrame();
+      jsonOutputState["data"]["timestamp"] = ts; // TODO: Remove this, but for now there is no algo info, lets use the image timestamp
 
       // TODO: do the whole image processing stuff
       _detector.detect(img);
@@ -50,7 +59,6 @@ void frame::App::run(const com_out::Server& server, const int& stop) {
         {"fovHorizontal", fovHorizontal},
         {"fovVertical", fovVertical},
         {"imageBase64", encodedBase64Img},
-        {"isRecording", cam->isRecording()},
       });
 
       // cv::imshow("Display window", img);
@@ -85,6 +93,6 @@ void frame::App::run(const com_out::Server& server, const int& stop) {
     }
 
     auto frameDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - frameStartTime);
-    std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
+    // std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
   }
 }
