@@ -13,8 +13,7 @@ namespace frame {
   class App: public com_out::IRequestListener {
   public:
     void init(const std::string& sensorConfigPath);
-    // TODO: passing a stop flag by reference is somewhat ugly and bad design...
-    void run(const com_out::Server& server, const int& stop);
+    void run(const com_out::Server& server);
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
 

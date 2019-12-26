@@ -7,8 +7,19 @@
 #include "utilities/base64.h"
 #include "utilities/json.hpp"
 
+#include <unistd.h>
+#include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
+
+volatile sig_atomic_t stopFromSignal = 0;
+void sighandler(int signum) { stopFromSignal = 1; }
+
 
 void frame::App::init(const std::string& sensorConfigPath) {
+  // Listen to SIGINT (usually ctrl + c on terminal), has to be after the server thread!
+  signal(SIGINT, &sighandler);
+
   _sensorStorage.initFromConfig(sensorConfigPath);
   _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
 }
@@ -24,8 +35,8 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
   }
 }
 
-void frame::App::run(const com_out::Server& server, const int& stop) {
-  while (!stop) {
+void frame::App::run(const com_out::Server& server) {
+  while (!stopFromSignal) {
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
 
     // Output State contains all data which is sent to the "outside" e.g. to visualize
