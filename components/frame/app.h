@@ -23,6 +23,17 @@ namespace frame {
 
     // Actions to take for recordings
     bool _pause;
+    bool _stepForward;
+    bool _stepBackward;
+    bool _updateTs;
+
+    int64 _jumpToTs;
+    bool _isRecording;
+    int64 _recLength;
+
+    // Current output state sent to the clients
     std::string _outputState;
+    int64 _ts; // algo timestamp of the current frame
+    int _frame; // current frame counter
   };
 }

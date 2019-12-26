@@ -8,7 +8,7 @@ namespace data_reader {
   class VideoCam : public ICam {
   public:
     VideoCam(const std::string& filename);
-    std::tuple<const int64, cv::Mat> getFrame() override;
+    std::tuple<const bool, const int64, cv::Mat> getFrame(const int64 jumpToTs = -1) override;
     const double getFrameRate() const override { return _frameRate; }
     const bool isRecording() const override { return true; }
     const int64 getRecLength() const override { return _recLength; }

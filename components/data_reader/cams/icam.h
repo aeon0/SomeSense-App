@@ -7,7 +7,7 @@ namespace data_reader {
   class ICam {
   public:
     // returns timestamp in [us] + image
-    virtual std::tuple<const int64, cv::Mat> getFrame() = 0;
+    virtual std::tuple<const bool, const int64, cv::Mat> getFrame(const int64 jumpToTs = -1) = 0;
     // Return the base (optimal) fps possible for this sensor
     virtual const double getFrameRate() const = 0;
     // Return if the camera is based on video data
