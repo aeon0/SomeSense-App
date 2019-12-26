@@ -20,6 +20,6 @@ int main() {
 
   serverThread.detach(); // Detach will terminate the server which is in accept mode
 
-  std::cout << "** Exit Program **" << std::endl;
+  std::cout << std::endl << "** Exit Program **" << std::endl;
   return 0;
 }

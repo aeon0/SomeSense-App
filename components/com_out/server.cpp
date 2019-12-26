@@ -54,8 +54,10 @@ void com_out::Server::handle(int client) {
     nlohmann::json jsonResponse = {
       {"type", "server.callback"},
       {"cbIndex", jsonRequest.value("cbIndex", -1)}, // in case cbIndex does not exist, default value of -1 is used
-      {"data", ""},
+      {"data", {}},
     };
+
+    std::cout << request << std::endl;
 
     // pass to every request listener and collect responses
     for(auto const& listener: _requestListeners) {
