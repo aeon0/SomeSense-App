@@ -110,11 +110,10 @@ void frame::App::run(const com_out::Server& server) {
           {"timestamp", _ts},
           {"isRecording", _isRecording},
           {"recLength", _recLength},
-          {"isPlaying", _pause},
+          {"isPlaying", !_pause},
         }}
       };
 
-      bool recReachedEnd = false;
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
         int64 getFrameFromTs = -1;
         if (_isRecording && _updateTs) {
@@ -154,7 +153,7 @@ void frame::App::run(const com_out::Server& server) {
         // Check if end of recording
         if (_isRecording && (_ts >= _recLength)) {
           _pause = true; // pause in case the end of the recording is reached
-          recReachedEnd = true;
+          jsonOutputState["data"]["isPlaying"] = false;
         }
       }
       // Loop through other sensor types if needed and do the processing
