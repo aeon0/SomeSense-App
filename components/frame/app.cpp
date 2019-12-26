@@ -43,11 +43,14 @@ void frame::App::run(const com_out::Server& server) {
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
 
     bool isRecording = false;
+    int64 recLength = 0;
     // Check if any of the sensors is playing from a recording
     for (auto const& [key, cam]: _sensorStorage.getCams()) {
       if (cam->isRecording()) {
         isRecording = true;
-        break;
+        if (cam->getRecLength() > recLength) {
+          recLength = cam->getRecLength();
+        }
       }
     }
 
@@ -61,7 +64,7 @@ void frame::App::run(const com_out::Server& server) {
           {"sensors", {}},
           {"timestamp", 0},
           {"isRecording", isRecording},
-          {"recLength", 539900000},
+          {"recLength", recLength},
           {"isPlaying", _pause},
         }}
       };

@@ -7,6 +7,8 @@ data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filenam
     throw std::runtime_error("VideoCam could not open file: " + _filename);
   }
   _frameRate = _stream.get(cv::CAP_PROP_FPS);
+  double frameCount = _stream.get(cv::CAP_PROP_FRAME_COUNT);
+  _recLength = static_cast<int64>((frameCount/_frameRate) * 1000000);
 }
 
 std::tuple<const int64, cv::Mat> data_reader::VideoCam::getFrame() {

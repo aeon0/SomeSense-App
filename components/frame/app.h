@@ -20,7 +20,7 @@ namespace frame {
   private:
     data_reader::SensorStorage _sensorStorage;
     object_detection::Detector _detector;
-    
+
     // Actions to take for recordings
     bool _pause;
     std::string _outputState;
