@@ -16,8 +16,7 @@ data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filenam
 std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getFrame(const int64 jumpToTs) {
   if (jumpToTs > -1) {
     double newTs = static_cast<double>(jumpToTs) / 1000; // in [ms]
-    // Stop 3 frames before the end, otherwise it seems opencv tends to get seg faults on .read()
-    const double lastPossibleTs = (static_cast<double>(_recLength) / 1000.0) - ((1000.0 / _frameRate));
+    const double lastPossibleTs = _recLength / 1000.0;
     newTs = std::clamp<double>(newTs, 0.0, lastPossibleTs);
     _stream.set(cv::CAP_PROP_POS_MSEC, newTs);
   }

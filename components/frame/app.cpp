@@ -85,6 +85,8 @@ void frame::App::run(const com_out::Server& server) {
         // depending on the commands from the player change frame and its according algo _ts
         if (_stepBackward) {
           _frame--;
+          // Backward is not the standard way to fetch video frames, thus use timestamp to get the frame
+          _updateTs = true;
         }
         else if (_updateTs) {
           _frame = static_cast<int>(static_cast<double>(_jumpToTs) / (Config::goalFrameLength * 1000.0));
@@ -115,15 +117,12 @@ void frame::App::run(const com_out::Server& server) {
       bool recReachedEnd = false;
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
         int64 getFrameFromTs = -1;
-        if (_isRecording) {
+        if (_isRecording && _updateTs) {
+          // we can not always just use the ts as this is quite performance heavy
           getFrameFromTs = _ts;
         }
 
         auto [success, sensorTs, img] = cam->getFrame(getFrameFromTs);
-
-        auto someTs = std::chrono::high_resolution_clock::now();
-        auto getFrameDuration = std::chrono::duration<double, std::milli>(someTs - frameStartTime);
-        std::cout << std::fixed << std::setprecision(2) << getFrameDuration.count() << std::endl;
 
         if (success) {
           _detector.detect(img);
