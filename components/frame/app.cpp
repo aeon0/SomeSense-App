@@ -13,6 +13,17 @@ void frame::App::init(const std::string& sensorConfigPath) {
   _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
 }
 
+void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+  if (requestType == "client.rec_pause") {
+    std::cout << "Pausing Recording in App" << std::endl;
+    responseData["success"] = true;
+  }
+  else if (requestType == "client.rec_play") {
+    std::cout << "Play Recording in App" << std::endl;
+    responseData["success"] = true;
+  }
+}
+
 void frame::App::run(const com_out::Server& server, const int& stop) {
   while (!stop) {
     const auto frameStartTime = std::chrono::high_resolution_clock::now();

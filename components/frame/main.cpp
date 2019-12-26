@@ -31,9 +31,11 @@ int main() {
   // by just exiting out of the loop used within start() and reinitialize its objects
   while (!stop) {
     std::cout << "** Start Application **" << std::endl;
-    frame::App app;
-    app.init(sensorConfigPath);
-    app.run(unixServer, stop);
+    auto app = std::make_shared<frame::App>();
+    unixServer.registerRequestListener(app);
+    app->init(sensorConfigPath);
+    app->run(unixServer, stop);
+    unixServer.deleteRequestListener(app);
   }
 
   serverThread.detach(); // Detach will terminate the server which is in accept mode
