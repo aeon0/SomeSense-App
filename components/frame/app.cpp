@@ -44,7 +44,7 @@ void frame::App::init(const std::string& sensorConfigPath) {
   _jumpToTs = -1;
 
   _outputState = "";
-  _frame = 0;
+  _frame = -1;
 }
 
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
@@ -83,6 +83,7 @@ void frame::App::run(const com_out::Server& server) {
       if (_isRecording) {
         // For recordings artifically set timestamp according to frame count and desired algo fps
         // depending on the commands from the player change frame and its according algo _ts
+        const int maxFrames = static_cast<int>(_recLength / (Config::goalFrameLength * 1000.0));
         if (_stepBackward) {
           _frame--;
           // Backward is not the standard way to fetch video frames, thus use timestamp to get the frame
@@ -93,8 +94,13 @@ void frame::App::run(const com_out::Server& server) {
         }
         else {
           _frame++;
+          if (_frame > maxFrames) {
+            // In case we have more frames than the max frames, also use the ts to get the last frame
+            // otherwise fetching frames will not be successfull
+            _updateTs = true;
+          }
         }
-        _frame = std::clamp<int>(_frame, 0, static_cast<int>(_recLength / (Config::goalFrameLength * 1000.0)));
+        _frame = std::clamp<int>(_frame, 0, maxFrames);
         _ts = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
       }
       else {
