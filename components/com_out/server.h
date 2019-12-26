@@ -1,5 +1,6 @@
 #pragma once
 
+#include "irequest_listener.h"
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -11,6 +12,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 
 namespace com_out {
@@ -23,6 +25,9 @@ namespace com_out {
     void stop();
     bool broadcast(const std::string msg) const;
 
+    void registerRequestListener(std::shared_ptr<IRequestListener> listener);
+    void deleteRequestListener(std::shared_ptr<IRequestListener> listener);
+
   protected:
     virtual void create() = 0;
     virtual void closeSocket() = 0;
@@ -34,6 +39,8 @@ namespace com_out {
     int _server;
     char* _buf;
     std::vector<int> _clients;
+
+    std::vector<std::shared_ptr<IRequestListener>> _requestListeners;
   };
 }
 

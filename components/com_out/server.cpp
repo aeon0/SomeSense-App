@@ -17,6 +17,14 @@ void com_out::Server::run() {
   serve();
 }
 
+void com_out::Server::registerRequestListener(std::shared_ptr<IRequestListener> listener) {
+  _requestListeners.push_back(listener);
+}
+
+void com_out::Server::deleteRequestListener(std::shared_ptr<IRequestListener> listener) {
+  _requestListeners.erase(std::remove(_requestListeners.begin(), _requestListeners.end(), listener), _requestListeners.end());
+}
+
 void com_out::Server::serve() {
   int client;
   struct sockaddr_in clientAddr;
@@ -49,16 +57,9 @@ void com_out::Server::handle(int client) {
       {"data", ""},
     };
 
-    // Route Request
-    if (jsonRequest["type"] == "client.play_rec") {
-      // TODO: how do I pause the recording now?
-      std::cout << "Pause recording..." << std::endl;
-    }
-    else if(jsonRequest["type"] == "client.pause_rec") {
-      // TODO: how do I play the recording now?
-    }
-    else {
-      std::cout << "Unkown request: " << jsonRequest["type"] << std::endl;
+    // pass to every request listener and collect responses
+    for(auto const& listener: _requestListeners) {
+      void(listener->handleRequest(jsonRequest["type"], jsonRequest, jsonResponse["data"]));
     }
 
     std::string res = jsonResponse.dump() + "\n";
@@ -66,6 +67,7 @@ void com_out::Server::handle(int client) {
       break;
     }
   }
+
   // remove client
   _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());
   close(client);
