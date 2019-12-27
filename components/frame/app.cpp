@@ -127,7 +127,7 @@ void frame::App::run(const com_out::Server& server) {
           getFrameFromTs = _ts;
         }
 
-        auto [success, sensorTs, img] = cam->getFrame(getFrameFromTs);
+        auto [success, sensorTs, img] = cam->getFrame(algoStartTime, getFrameFromTs);
 
         if (success) {
           _detector.detect(img);
@@ -192,7 +192,7 @@ void frame::App::run(const com_out::Server& server) {
     // Do some timing stuff and in case algo was too fast, wait for a set amount of time
     auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();
     auto algoDuration = std::chrono::duration<double, std::milli>(frameAlgoEndTime - frameStartTime);
-    double waitTimeMsec = (Config::goalFrameLength - 1.0) - algoDuration.count();
+    double waitTimeMsec = (Config::goalFrameLength - 0.02) - algoDuration.count();
     if (waitTimeMsec > 0.0) {
       auto waitTimeUsec = std::chrono::microseconds(static_cast<int>(waitTimeMsec * 1000.0));
       std::this_thread::sleep_for(waitTimeUsec);
