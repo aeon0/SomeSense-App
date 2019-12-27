@@ -14,17 +14,33 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
     throw std::runtime_error("Could not open sensor config file: " + filepath);
   }
 
-  nlohmann::json jsonSensorConfig = nlohmann::json::parse(ifs);
+  nlohmann::json timestampsJson;
+  auto jsonSensorConfig = nlohmann::json::parse(ifs);
+  if (jsonSensorConfig.contains("timestamps")) {
+    // Load timestamps file
+    std::ifstream ifsTs(jsonSensorConfig["basepath"].get<std::string>() + "/" + jsonSensorConfig["timestamps"].get<std::string>());
+    if (!ifsTs.good()) {
+      throw std::runtime_error("Could not open timestamp file, please check its path in the json config");
+    }
+    timestampsJson = nlohmann::json::parse(ifsTs);
+  }
   for (const auto it: jsonSensorConfig["cams"]) {
-    const std::string typeName = static_cast<std::string>(it["type"]);
+    const auto typeName = it["type"].get<std::string>();
     if (typeName == "video") {
       const std::string sensorKey = it["name"];
-      const std::string filePath = static_cast<std::string>(jsonSensorConfig["basepath"]) + "/" + sensorKey + ".mp4";
-      std::unique_ptr<ICam> videoCam(new VideoCam(filePath, sensorKey));
-      addCam(videoCam);
+      const std::string filePath = jsonSensorConfig["basepath"].get<std::string>() + "/" + sensorKey + ".mp4";
+      if (timestampsJson.contains(sensorKey)) {
+        auto timestamps = timestampsJson[sensorKey].get<std::vector<int64>>();
+        std::unique_ptr<ICam> videoCam(new VideoCam(filePath, sensorKey, timestamps));
+        addCam(videoCam);
+      }
+      else {
+        std::unique_ptr<ICam> videoCam(new VideoCam(filePath, sensorKey));
+        addCam(videoCam);
+      }
     }
     else if (typeName == "usb") {
-      std::unique_ptr<ICam> usbCam(new UsbCam(static_cast<int>(it["deviceIdx"]), it["name"]));
+      std::unique_ptr<ICam> usbCam(new UsbCam(it["deviceIdx"].get<int>(), it["name"]));
       addCam(usbCam);
     }
     else {

@@ -1,8 +1,8 @@
 {
-  "basepath": "/home/jodo/Data/videos",
+  "basepath": "/home/jodo/ILONA/app-frame/storage_data/2019-12-27T21:11:13.134689566",
   "timestamps": "timestamps.json",
   "cams": [{
     "type": "video",
-    "name": "test"
+    "name": "UsbTestCam_0"
   }]
 }

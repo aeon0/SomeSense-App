@@ -3,8 +3,8 @@
 #include <algorithm>
 
 
-data_reader::VideoCam::VideoCam(const std::string& filename, const std::string name) :
-    _filename(filename), _name(name), _currTs(-1), _validFrame(false) {
+data_reader::VideoCam::VideoCam(const std::string& filename, const std::string name, const std::vector<int64> timestamps) :
+    _filename(filename), _name(name), _timestamps(timestamps), _currTs(-1), _validFrame(false) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
