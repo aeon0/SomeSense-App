@@ -21,6 +21,12 @@ std::string data_reader::RecStorage::formatTimePoint(std::chrono::system_clock::
     return out;
 }
 
+bool data_reader::RecStorage::isStoring() const {
+  // Normaly this should not be needed for returning a bool, but better save than sorry
+  std::lock_guard<std::mutex> lockGuard(recStorageLock);
+  return _isStoring;
+}
+
 void data_reader::RecStorage::startStoring() {
   if (!_isStoring) {
     std::lock_guard<std::mutex> lockGuard(recStorageLock);
@@ -58,7 +64,7 @@ void data_reader::RecStorage::stopStoring() {
       writer.release();
     }
     _videoWriters.clear();
-    
+
     // Save timestamps to file
     std::ofstream timestampFile(_currentStoragePath + "/timestamps.json");
     timestampFile << _timestamps.dump();
@@ -82,6 +88,7 @@ void data_reader::RecStorage::saveFrame() {
       }
     }
 
+    // Store frame for all the cameras and store a relative timestamp to the json object
     for (auto& [key, writer]: _videoWriters) {
       auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
       if (success) {
