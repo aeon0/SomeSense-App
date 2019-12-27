@@ -175,11 +175,11 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       jsonOutputState["data"]["tracks"].push_back({
         {"trackId", "0"},
         {"class", 0},
-        {"position", {5.0, 0.0, 10.0}},
+        {"position", {-5.0, 0.0, 25.0}},
         {"rotation", {0.0, 0.0, 0.0}},
         {"height", 1.5},
-        {"width", 0.5},
-        {"depth", 3.0},
+        {"width", 2.5},
+        {"depth", 3.5},
         {"ttc", 1.0},
       });
 

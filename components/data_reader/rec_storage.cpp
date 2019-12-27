@@ -32,8 +32,6 @@ void data_reader::RecStorage::startStoring() {
       const cv::Size frameSize = cam->getFrameSize();
       const std::string videoFilePath = _currentStoragePath + cam->getName() + "_" + key + ".mp4";
 
-      // .mp4 => 'm','p','4','v' || 'F','M','P','4' || 'X','2','6','4' || 'H','2','6','4'
-      // .avi => 'M','J','P','G'
       auto writer = cv::VideoWriter(videoFilePath, cv::VideoWriter::fourcc('m','p','4','v'), fps, frameSize);
       _videoWriters.insert({key, writer});
     }
