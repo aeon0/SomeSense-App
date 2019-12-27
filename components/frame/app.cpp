@@ -20,7 +20,7 @@ void sighandler(int signum) { stopFromSignal = 1; }
 frame::App::App(const std::string& sensorConfigPath) :
     _isRecording(false), _recLength(0), _pause(true), _stepBackward(false), _ts(0),
     _stepForward(false), _updateTs(false), _jumpToTs(-1), _outputState(""), _frame(-1),
-    _recStorage(Config::storagePath, _sensorStorage) {
+    _storageService(Config::storagePath, _sensorStorage) {
 
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
@@ -62,11 +62,11 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
     responseData["success"] = true;
   }
   else if (requestType == "client.start_storing") {
-    _recStorage.startStoring();
+    _storageService.startStoring();
     responseData["success"] = true;
   }
   else if (requestType == "client.stop_storing") {
-    _recStorage.stopStoring();
+    _storageService.stopStoring();
     responseData["success"] = true;
   }
 }
@@ -120,7 +120,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           {"isRecording", _isRecording},
           {"recLength", _recLength},
           {"isPlaying", !_pause},
-          {"isStoring", _recStorage.isStoring()},
+          {"isStoring", _storageService.isStoring()},
         }}
       };
 
@@ -163,7 +163,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           });
 
           // If storage is currently in "saving mode" it will save the frame, otherwise do nothing
-          _recStorage.saveFrame();
+          _storageService.saveFrame();
 
           // cv::imshow("Display window", img);
           // cv::waitKey(0);

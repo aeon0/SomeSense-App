@@ -3,7 +3,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "data_reader/sensor_storage.h"
-#include "data_reader/rec_storage.h"
+#include "data_reader/storage_service.h"
 #include "com_out/ibroadcast.h"
 #include "com_out/irequest_listener.h"
 #include "object_detection/detector.h"
@@ -19,7 +19,7 @@ namespace frame {
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
 
   private:
-    data_reader::RecStorage _recStorage;
+    data_reader::StorageService _storageService;
     data_reader::SensorStorage _sensorStorage;
     object_detection::Detector _detector;
 

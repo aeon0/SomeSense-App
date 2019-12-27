@@ -1,17 +1,17 @@
-#include "rec_storage.h"
+#include "storage_service.h"
 #include <chrono>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fstream>
 
 // Mutex needed because user interactions can fire startStoring(), stopStoring() at any time from the server thread
-std::mutex recStorageLock;
+std::mutex storageServiceLock;
 
 
-data_reader::RecStorage::RecStorage(const std::string storageBasePath, const SensorStorage& sensorStorage) :
+data_reader::StorageService::StorageService(const std::string storageBasePath, const SensorStorage& sensorStorage) :
   _isStoring(false), _storageBasePath(storageBasePath), _sensorStorage(sensorStorage), _startTs(-1) {}
 
-std::string data_reader::RecStorage::formatTimePoint(std::chrono::system_clock::time_point point) {
+std::string data_reader::StorageService::formatTimePoint(std::chrono::system_clock::time_point point) {
     static_assert(std::chrono::system_clock::time_point::period::den == 1000000000 && std::chrono::system_clock::time_point::period::num == 1);
     std::string out(29, '0');
     char* buf = &out[0];
@@ -21,15 +21,15 @@ std::string data_reader::RecStorage::formatTimePoint(std::chrono::system_clock::
     return out;
 }
 
-bool data_reader::RecStorage::isStoring() const {
+bool data_reader::StorageService::isStoring() const {
   // Normaly this should not be needed for returning a bool, but better save than sorry
-  std::lock_guard<std::mutex> lockGuard(recStorageLock);
+  std::lock_guard<std::mutex> lockGuard(storageServiceLock);
   return _isStoring;
 }
 
-void data_reader::RecStorage::startStoring() {
+void data_reader::StorageService::startStoring() {
   if (!_isStoring) {
-    std::lock_guard<std::mutex> lockGuard(recStorageLock);
+    std::lock_guard<std::mutex> lockGuard(storageServiceLock);
     _isStoring = true;
 
     // Create a new folder for storing the data based on the current date + time
@@ -55,9 +55,9 @@ void data_reader::RecStorage::startStoring() {
   }
 }
 
-void data_reader::RecStorage::stopStoring() {
+void data_reader::StorageService::stopStoring() {
   if (_isStoring) {
-    std::lock_guard<std::mutex> lockGuard(recStorageLock);
+    std::lock_guard<std::mutex> lockGuard(storageServiceLock);
     _isStoring = false;
 
     for (auto& [key, writer]: _videoWriters) {
@@ -73,9 +73,9 @@ void data_reader::RecStorage::stopStoring() {
   }
 }
 
-void data_reader::RecStorage::saveFrame() {
+void data_reader::StorageService::saveFrame() {
   if (_isStoring) {
-    std::lock_guard<std::mutex> lockGuard(recStorageLock);
+    std::lock_guard<std::mutex> lockGuard(storageServiceLock);
 
     // If the _startTs is not yet set (== -1), we need to find the smallest ts of the current frame
     // and set it as a reference to calculate a relative ts for all comming frames

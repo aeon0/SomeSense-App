@@ -15,9 +15,9 @@ namespace data_reader {
   // The timestamp information is in a .json file were each sensor (key == _sensorSotrage key)
   // has a index parallel timestamp array. E.g. frame 5 in the mp4 of the "FrontCam0" has its
   // exact timestamp in _timestamps["FrontCam0"][5].
-  class RecStorage {
+  class StorageService {
   public:
-    RecStorage(const std::string storageBasePath, const SensorStorage& sensorStorage);
+    StorageService(const std::string storageBasePath, const SensorStorage& sensorStorage);
 
     void startStoring();
     void saveFrame();
