@@ -13,7 +13,9 @@ namespace data_reader {
     typedef std::map<const std::string, std::unique_ptr<ICam>> CamMap;
 
     void initFromConfig(const std::string& filepath);
-    std::string addCam(std::unique_ptr<ICam>& cam);
+    // If key is left empty, a unique key will be generated
+    // otherwise the user must guarantee the uniqueness of the key
+    std::string addCam(std::unique_ptr<ICam>& cam, std::string camKey = "");
 
     const CamMap& getCams() const { return _cams; };
 

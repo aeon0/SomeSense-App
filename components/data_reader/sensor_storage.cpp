@@ -18,7 +18,9 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   for (const auto it: jsonSensorConfig["cams"]) {
     const std::string typeName = static_cast<std::string>(it["type"]);
     if (typeName == "video") {
-      std::unique_ptr<ICam> videoCam(new VideoCam(it["filepath"], it["name"]));
+      const std::string sensorKey = it["name"];
+      const std::string filePath = static_cast<std::string>(jsonSensorConfig["basepath"]) + "/" + sensorKey + ".mp4";
+      std::unique_ptr<ICam> videoCam(new VideoCam(filePath, sensorKey));
       addCam(videoCam);
     }
     else if (typeName == "usb") {
@@ -31,8 +33,11 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   }
 }
 
-std::string data_reader::SensorStorage::addCam(std::unique_ptr<ICam>& cam) {
-  const std::string camKey = cam->getName() + "_" + std::to_string(_sensorCounter++);
+std::string data_reader::SensorStorage::addCam(std::unique_ptr<ICam>& cam, std::string camKey) {
+  if (camKey != "") {
+    camKey = cam->getName() + "_" + std::to_string(_sensorCounter);
+  }
   _cams.insert({camKey, std::move(cam)});
+  _sensorCounter++;
   return camKey;
 }

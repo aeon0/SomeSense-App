@@ -75,6 +75,7 @@
     "typeindex": "cpp",
     "filesystem": "cpp",
     "codecvt": "cpp",
-    "cassert": "cpp"
+    "cassert": "cpp",
+    "*.cuh": "cpp"
   }
 }
