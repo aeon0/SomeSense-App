@@ -1,6 +1,7 @@
 {
   "cams": [{
     "type": "video",
-    "filepath": "/home/jodo/Data/videos/test.mp4"
+    "filepath": "/home/jodo/Data/videos/test.mp4",
+    "name": "FrontCam"
   }]
 }
