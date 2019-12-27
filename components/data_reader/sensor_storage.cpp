@@ -4,6 +4,7 @@
 #include <iostream>
 #include "sensor_storage.h"
 #include "cams/video_cam.h"
+#include "cams/usb_cam.h"
 
 
 void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
@@ -18,6 +19,10 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
     if (typeName == "video") {
       std::unique_ptr<ICam> videoCam(new VideoCam(it["filepath"]));
       addCam(videoCam);
+    }
+    else if (typeName == "usb") {
+      std::unique_ptr<ICam> usbCam(new UsbCam(static_cast<int>(it["deviceIdx"])));
+      addCam(usbCam);
     }
     else {
       throw std::runtime_error("Type " + typeName + " is not supported yet!");

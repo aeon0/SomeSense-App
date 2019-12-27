@@ -1,1 +1,6 @@
-{}
+{
+  "cams": [{
+    "type": "usb",
+    "deviceIdx": 0
+  }]
+}
