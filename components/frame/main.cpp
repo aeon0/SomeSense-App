@@ -12,9 +12,8 @@ int main() {
   const std::string sensorConfigPath = "configs/sim_sensors.json";
 
   std::cout << "** Start Application **" << std::endl;
-  auto app = std::make_shared<frame::App>();
+  auto app = std::make_shared<frame::App>(sensorConfigPath);
   unixServer.registerRequestListener(app);
-  app->init(sensorConfigPath);
   app->run(unixServer);
   unixServer.deleteRequestListener(app);
 

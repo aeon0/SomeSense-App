@@ -2,12 +2,13 @@
 
 ## Setup and Dependencies
 
-### CMake + Compilers
+### CMake + Compilers + Video codecs
 ``` bash
 # Run these commands to install cmake and compiler (g++)
 sudo apt-get update
 sudo apt-get install cmake
 sudo apt-get install g++
+sudo apt-get install ffmpeg x264 libx264-dev
 ```
 
 ### CUDA + CUDNN

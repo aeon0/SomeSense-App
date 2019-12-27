@@ -3,7 +3,8 @@
 #include <algorithm>
 
 
-data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filename) {
+data_reader::VideoCam::VideoCam(const std::string& filename, const std::string name) :
+    _filename(filename), _name(name), _currTs(-1), _validFrame(false) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
@@ -13,7 +14,7 @@ data_reader::VideoCam::VideoCam(const std::string& filename) : _filename(filenam
   _recLength = static_cast<int64>(((frameCount - 1)/_frameRate) * 1000000);
 }
 
-std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getFrame(
+std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
     const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
     const int64 jumpToTs) {
   static_cast<void>(algoStartTime);
@@ -24,8 +25,15 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getFrame(
     _stream.set(cv::CAP_PROP_POS_MSEC, newTs);
   }
   const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
-  const int64 tsUsec = static_cast<int64>(tsMsec * 1000.0);
-  cv::Mat frame;
-  const bool success = _stream.read(frame);
-  return {success, tsUsec, frame};
+  _currTs = static_cast<int64>(tsMsec * 1000.0);
+  _validFrame = _stream.read(_currFrame);
+  return {_validFrame, _currTs, _currFrame};
+}
+
+std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getFrame() {
+  bool success = false;
+  if (_currTs >= 0 && _validFrame) {
+    success = true;
+  }
+  return {success, _currTs, _currFrame};
 }

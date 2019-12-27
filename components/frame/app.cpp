@@ -17,16 +17,17 @@ volatile sig_atomic_t stopFromSignal = 0;
 void sighandler(int signum) { stopFromSignal = 1; }
 
 
-void frame::App::init(const std::string& sensorConfigPath) {
+frame::App::App(const std::string& sensorConfigPath) :
+    _isRecording(false), _recLength(0), _pause(true), _stepBackward(false), _ts(0),
+    _stepForward(false), _updateTs(false), _jumpToTs(-1), _outputState(""), _frame(-1),
+    _recStorage(Config::storagePath, _sensorStorage) {
+
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 
   _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
   _sensorStorage.initFromConfig(sensorConfigPath);
 
-  // Check if sensor data is from recordings in set some meta data in that case
-  _isRecording = false;
-  _recLength = 0;
   // Check if any of the sensors is playing from a recording
   for (auto const& [key, cam]: _sensorStorage.getCams()) {
     if (cam->isRecording()) {
@@ -36,16 +37,6 @@ void frame::App::init(const std::string& sensorConfigPath) {
       }
     }
   }
-
-  _pause = true;
-  _stepBackward = false;
-  _stepForward = false;
-  _record = false;
-  _updateTs = false;
-  _jumpToTs = -1;
-
-  _outputState = "";
-  _frame = -1;
 }
 
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
@@ -70,12 +61,12 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
     _updateTs = true;
     responseData["success"] = true;
   }
-  else if (requestType == "client.start_recording") {
-    _record = true;
+  else if (requestType == "client.start_storing") {
+    _recStorage.startStoring();
     responseData["success"] = true;
   }
-  else if (requestType == "client.stop_recording") {
-    _record = true;
+  else if (requestType == "client.stop_storing") {
+    _recStorage.stopStoring();
     responseData["success"] = true;
   }
 }
@@ -129,6 +120,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           {"isRecording", _isRecording},
           {"recLength", _recLength},
           {"isPlaying", !_pause},
+          {"isStoring", _recStorage.isStoring()},
         }}
       };
 
@@ -137,13 +129,17 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           // we can not always just use the ts as this is quite performance heavy
           getFrameFromTs = -1;
         }
-        auto [success, sensorTs, img] = cam->getFrame(algoStartTime, getFrameFromTs);
+        else {
+          _ts = 0; // otherwise ts would not be updated
+        }
+        auto [success, sensorTs, img] = cam->getNewFrame(algoStartTime, getFrameFromTs);
         if (sensorTs > _ts) {
           _ts = sensorTs; // algo algo ts will be the latest sensorTs
         }
 
         if (success) {
-          _detector.detect(img);
+          // TODO: do processing per image
+          // _detector.detect(img);
 
           // Some test data to send
           std::vector<uchar> buf;
@@ -166,13 +162,14 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"imageBase64", encodedBase64Img},
           });
 
+          // If storage is currently in "saving mode" it will save the frame, otherwise do nothing
+          _recStorage.saveFrame();
+
           // cv::imshow("Display window", img);
           // cv::waitKey(0);
         }
       }
-      // Loop through other sensor types if needed and do the processing
-
-      // TODO: input all data to tracker
+      // TODO: do the processing for tracks
 
       // example track for testing
       jsonOutputState["data"]["tracks"].push_back({

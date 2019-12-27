@@ -1,5 +1,6 @@
 build
 dist
 externals/install
+storage_data
 
 *.engine

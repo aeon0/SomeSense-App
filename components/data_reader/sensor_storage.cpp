@@ -6,6 +6,7 @@
 #include "cams/video_cam.h"
 #include "cams/usb_cam.h"
 
+data_reader::SensorStorage::SensorStorage() : _sensorCounter(0) {}
 
 void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   std::ifstream ifs(filepath);
@@ -17,11 +18,11 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   for (const auto it: jsonSensorConfig["cams"]) {
     const std::string typeName = static_cast<std::string>(it["type"]);
     if (typeName == "video") {
-      std::unique_ptr<ICam> videoCam(new VideoCam(it["filepath"]));
+      std::unique_ptr<ICam> videoCam(new VideoCam(it["filepath"], it["name"]));
       addCam(videoCam);
     }
     else if (typeName == "usb") {
-      std::unique_ptr<ICam> usbCam(new UsbCam(static_cast<int>(it["deviceIdx"])));
+      std::unique_ptr<ICam> usbCam(new UsbCam(static_cast<int>(it["deviceIdx"]), it["name"]));
       addCam(usbCam);
     }
     else {
