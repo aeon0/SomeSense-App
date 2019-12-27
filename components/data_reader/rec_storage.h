@@ -4,7 +4,9 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include "sensor_storage.h"
+#include "utilities/json.hpp"
 
 
 namespace data_reader {
@@ -22,9 +24,11 @@ namespace data_reader {
     static std::string formatTimePoint(std::chrono::system_clock::time_point point);
 
     bool _isStoring;
+    int64 _startTs; // reference TS to start
     std::string _currentStoragePath;
     const std::string _storageBasePath;
     const SensorStorage& _sensorStorage;
     std::map<const std::string, cv::VideoWriter> _videoWriters; // key corresponds to _sensorStorage.getCams()
+    nlohmann::json _timestamps;
   };
 }
