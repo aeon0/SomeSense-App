@@ -26,6 +26,7 @@ namespace frame {
     bool _stepForward;
     bool _stepBackward;
     bool _updateTs;
+    bool _record;
 
     int64 _jumpToTs;
     bool _isRecording;

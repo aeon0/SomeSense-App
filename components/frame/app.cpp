@@ -18,7 +18,7 @@ void sighandler(int signum) { stopFromSignal = 1; }
 
 
 void frame::App::init(const std::string& sensorConfigPath) {
-  // Listen to SIGINT (usually ctrl + c on terminal), has to be after the server thread!
+  // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 
   _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
@@ -40,6 +40,7 @@ void frame::App::init(const std::string& sensorConfigPath) {
   _pause = true;
   _stepBackward = false;
   _stepForward = false;
+  _record = false;
   _updateTs = false;
   _jumpToTs = -1;
 
@@ -69,6 +70,14 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
     _updateTs = true;
     responseData["success"] = true;
   }
+  else if (requestType == "client.start_recording") {
+    _record = true;
+    responseData["success"] = true;
+  }
+  else if (requestType == "client.stop_recording") {
+    _record = true;
+    responseData["success"] = true;
+  }
 }
 
 void frame::App::run(const com_out::IBroadcast& broadCaster) {
@@ -76,8 +85,8 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
   while (!stopFromSignal) {
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
-    _ts = std::chrono::duration<double, std::micro>(frameStartTime - algoStartTime).count();
 
+    int64 getFrameFromTs = -1;
     // Check if a new frame should be created, note that pausing and stepping is only possible with recordings
     if (_outputState == "" || !_pause || !_isRecording || _stepForward || _stepBackward || _updateTs) {
       if (_isRecording) {
@@ -101,7 +110,11 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           }
         }
         _frame = std::clamp<int>(_frame, 0, maxFrames);
-        _ts = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
+        getFrameFromTs = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
+
+        if (getFrameFromTs >= _recLength) {
+          _pause = true; // pause in case the end of the recording is reached
+        }
       }
       else {
         _frame++;
@@ -113,7 +126,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
         {"data", {
           {"tracks", {}},
           {"sensors", {}},
-          {"timestamp", _ts},
           {"isRecording", _isRecording},
           {"recLength", _recLength},
           {"isPlaying", !_pause},
@@ -121,13 +133,14 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       };
 
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
-        int64 getFrameFromTs = -1;
-        if (_isRecording && _updateTs) {
+        if (!_updateTs) {
           // we can not always just use the ts as this is quite performance heavy
-          getFrameFromTs = _ts;
+          getFrameFromTs = -1;
         }
-
         auto [success, sensorTs, img] = cam->getFrame(algoStartTime, getFrameFromTs);
+        if (sensorTs > _ts) {
+          _ts = sensorTs; // algo algo ts will be the latest sensorTs
+        }
 
         if (success) {
           _detector.detect(img);
@@ -149,17 +162,12 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"rotation", {0, 0, 0}},
             {"fovHorizontal", fovHorizontal},
             {"fovVertical", fovVertical},
+            {"sensorTimestamp", sensorTs},
             {"imageBase64", encodedBase64Img},
           });
 
           // cv::imshow("Display window", img);
           // cv::waitKey(0);
-        }
-
-        // Check if end of recording
-        if (_isRecording && (_ts >= _recLength)) {
-          _pause = true; // pause in case the end of the recording is reached
-          jsonOutputState["data"]["isPlaying"] = false;
         }
       }
       // Loop through other sensor types if needed and do the processing
@@ -177,6 +185,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
         {"depth", 3.0},
         {"ttc", 1.0},
       });
+
+      // Finally set the algo timestamp to the output data
+      jsonOutputState["data"]["timestamp"] = _ts;
 
       _outputState = jsonOutputState.dump();
 

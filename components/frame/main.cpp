@@ -9,7 +9,7 @@ int main() {
   com_out::UnixServer unixServer;
   std::thread serverThread(&com_out::Server::run, &unixServer);
 
-  const std::string sensorConfigPath = "configs/live_sensors.json";
+  const std::string sensorConfigPath = "configs/sim_sensors.json";
 
   std::cout << "** Start Application **" << std::endl;
   auto app = std::make_shared<frame::App>();
