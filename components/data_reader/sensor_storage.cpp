@@ -32,7 +32,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
 }
 
 std::string data_reader::SensorStorage::addCam(std::unique_ptr<ICam>& cam) {
-  std::string camId = std::to_string(_sensorCounter++);
-  _cams.insert({camId, std::move(cam)});
-  return camId;
+  const std::string camKey = cam->getName() + "_" + std::to_string(_sensorCounter++);
+  _cams.insert({camKey, std::move(cam)});
+  return camKey;
 }
