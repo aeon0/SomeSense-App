@@ -71,7 +71,7 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
   }
 }
 
-void frame::App::run(const com_out::Server& server) {
+void frame::App::run(const com_out::IBroadcast& broadCaster) {
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
   while (!stopFromSignal) {
@@ -187,7 +187,7 @@ void frame::App::run(const com_out::Server& server) {
       _jumpToTs = -1;
     }
 
-    server.broadcast(_outputState + "\n"); // new line character to show end of message
+    broadCaster.broadcast(_outputState + "\n"); // new line character to show end of message
 
     // Do some timing stuff and in case algo was too fast, wait for a set amount of time
     auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();

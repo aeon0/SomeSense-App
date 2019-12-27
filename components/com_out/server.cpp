@@ -135,4 +135,5 @@ bool com_out::Server::broadcast(const std::string msg) const {
   for(int client: _clients) {
     sendToClient(client, msg);
   }
+  return true;
 }

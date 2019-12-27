@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ibroadcast.h"
 #include "irequest_listener.h"
 #include <errno.h>
 #include <netinet/in.h>
@@ -16,14 +17,14 @@
 
 
 namespace com_out {
-  class Server {
+  class Server : public IBroadcast {
   public:
     Server();
     ~Server();
 
     void run();
     void stop();
-    bool broadcast(const std::string msg) const;
+    bool broadcast(const std::string msg) const override;
 
     void registerRequestListener(std::shared_ptr<IRequestListener> listener);
     void deleteRequestListener(std::shared_ptr<IRequestListener> listener);
