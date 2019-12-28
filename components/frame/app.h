@@ -33,6 +33,7 @@ namespace frame {
     int64 _jumpToTs;
     bool _isRecording;
     int64 _recLength;
+    int _maxFrames;
 
     // Current output state sent to the clients
     std::string _outputState;

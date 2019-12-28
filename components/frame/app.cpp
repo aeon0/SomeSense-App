@@ -34,6 +34,7 @@ frame::App::App(const std::string& sensorConfigPath) :
       _isRecording = true;
       if (cam->getRecLength() > _recLength) {
         _recLength = cam->getRecLength();
+        _maxFrames = static_cast<int>(_recLength / (Config::goalFrameLength * 1000.0));
       }
     }
   }
@@ -79,13 +80,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
     // Check if a new frame should be created, note that pausing and stepping is only possible with recordings
     if (_outputState == "" || !_pause || !_isRecording || _stepForward || _stepBackward || _updateTs) {
-      
-      // This is the "ideal" algo timestamp based on frame count and frame length (or in case the user jumps to a new timestamp a updated one)
-      int64 videoAlgoTs = -1;
+
+      int64 videoAlgoTs = -1; // This is the "ideal" algo timestamp based on frame count and frame length
       if (_isRecording) {
-        // For recordings artifically set timestamp according to frame count and desired algo fps
-        // depending on the commands from the player change frame and its according algo _ts
-        const int maxFrames = static_cast<int>(_recLength / (Config::goalFrameLength * 1000.0));
         if (_stepBackward) {
           _frame--;
           // Backward is not the standard way to fetch video frames, thus use timestamp to get the frame
@@ -96,18 +93,15 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
         }
         else {
           _frame++;
-          if (_frame > maxFrames) {
-            // In case we have more frames than the max frames, also use the ts to get the last frame
-            // otherwise fetching frames will not be successfull
-            _updateTs = true;
-          }
         }
-        _frame = std::clamp<int>(_frame, 0, maxFrames);
-        videoAlgoTs = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
 
-        if (videoAlgoTs >= _recLength) {
+        _frame = std::clamp<int>(_frame, 0, _maxFrames);
+        if (_frame >= _maxFrames) {
           _pause = true; // pause in case the end of the recording is reached
+          _updateTs = true;
         }
+        // Calc the ideal timestamp based on frame number and frame length in [us]
+        videoAlgoTs = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
       }
       else {
         _frame++;
@@ -135,7 +129,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
         }
 
         if (success) {
-          // TODO: do processing per image
+          // Do processing per image
           // _detector.detect(img);
 
           // Some test data to send
@@ -159,9 +153,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"imageBase64", encodedBase64Img},
           });
 
-          // If storage is currently in "saving mode" it will save the frame, otherwise do nothing
-          _storageService.saveFrame();
-
           // cv::imshow("Display window", img);
           // cv::waitKey(0);
         }
@@ -184,6 +175,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       jsonOutputState["data"]["timestamp"] = _ts;
 
       _outputState = jsonOutputState.dump();
+
+      // If storage is currently in "saving mode" it will save the frame, otherwise do nothing
+      _storageService.saveFrame();
 
       // Reset the one time action commands
       _stepForward = false;
