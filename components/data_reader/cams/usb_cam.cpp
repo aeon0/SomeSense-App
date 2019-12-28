@@ -12,9 +12,11 @@ data_reader::UsbCam::UsbCam(const int deviceIdx, const std::string name):
 }
 
 std::tuple<const bool, const int64, cv::Mat> data_reader::UsbCam::getNewFrame(
-    const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-    const int64 jumpToTs) {
-  static_cast<void>(jumpToTs);
+      const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
+      const int64 currentAlgoTs,
+      const bool updateToAlgoTs) {
+  static_cast<void>(currentAlgoTs);
+  static_cast<void>(updateToAlgoTs);
 
   const auto captureTime = std::chrono::high_resolution_clock::now();
   _validFrame = _cam.read(_currFrame);

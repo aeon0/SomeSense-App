@@ -11,7 +11,8 @@ namespace data_reader {
 
     std::tuple<const bool, const int64, cv::Mat> getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64 jumpToTs = -1) override;
+      const int64 currentAlgoTs,
+      const bool updateToAlgoTs) override;
     std::tuple<const bool, const int64, cv::Mat> getFrame() override;
 
     const cv::Size getFrameSize() const override { return cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT)); }

@@ -15,11 +15,13 @@ data_reader::VideoCam::VideoCam(const std::string& filename, const std::string n
 }
 
 std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
-    const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-    const int64 jumpToTs) {
+      const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
+      const int64 currentAlgoTs,
+      const bool updateToAlgoTs) {
+  // TODO: use the _timestamps if filled to check for specific frames timestamp... etc.
   static_cast<void>(algoStartTime);
-  if (jumpToTs > -1) {
-    double newTs = static_cast<double>(jumpToTs) / 1000; // in [ms]
+  if (updateToAlgoTs > -1) {
+    double newTs = static_cast<double>(currentAlgoTs) / 1000; // in [ms]
     const double lastPossibleTs = _recLength / 1000.0;
     newTs = std::clamp<double>(newTs, 0.0, lastPossibleTs);
     _stream.set(cv::CAP_PROP_POS_MSEC, newTs);

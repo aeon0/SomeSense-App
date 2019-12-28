@@ -77,9 +77,11 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
   while (!stopFromSignal) {
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
 
-    int64 getFrameFromTs = -1;
     // Check if a new frame should be created, note that pausing and stepping is only possible with recordings
     if (_outputState == "" || !_pause || !_isRecording || _stepForward || _stepBackward || _updateTs) {
+      
+      // This is the "ideal" algo timestamp based on frame count and frame length (or in case the user jumps to a new timestamp a updated one)
+      int64 videoAlgoTs = -1;
       if (_isRecording) {
         // For recordings artifically set timestamp according to frame count and desired algo fps
         // depending on the commands from the player change frame and its according algo _ts
@@ -101,9 +103,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           }
         }
         _frame = std::clamp<int>(_frame, 0, maxFrames);
-        getFrameFromTs = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
+        videoAlgoTs = static_cast<int64>(_frame * Config::goalFrameLength * 1000.0);
 
-        if (getFrameFromTs >= _recLength) {
+        if (videoAlgoTs >= _recLength) {
           _pause = true; // pause in case the end of the recording is reached
         }
       }
@@ -124,15 +126,10 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
         }}
       };
 
+      _ts = 0; // reset _ts, will be updated with the latest sensor ts
+
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
-        if (!_updateTs) {
-          // we can not always just use the ts as this is quite performance heavy
-          getFrameFromTs = -1;
-        }
-        else {
-          _ts = 0; // otherwise ts would not be updated
-        }
-        auto [success, sensorTs, img] = cam->getNewFrame(algoStartTime, getFrameFromTs);
+        auto [success, sensorTs, img] = cam->getNewFrame(algoStartTime, videoAlgoTs, _updateTs);
         if (sensorTs > _ts) {
           _ts = sensorTs; // algo algo ts will be the latest sensorTs
         }
