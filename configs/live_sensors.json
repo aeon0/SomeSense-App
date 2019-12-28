@@ -1,7 +1,0 @@
-{
-  "cams": [{
-    "type": "usb",
-    "deviceIdx": 0,
-    "name": "UsbTestCam"
-  }]
-}
