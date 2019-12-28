@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-data_reader::UsbCam::UsbCam(const int deviceIdx, const std::string name):
+data_reader::UsbCam::UsbCam(const std::string name, const int deviceIdx):
     BaseCam(name), _deviceIdx(deviceIdx) {
   _cam.open(_deviceIdx);
   if (!_cam.isOpened()) {

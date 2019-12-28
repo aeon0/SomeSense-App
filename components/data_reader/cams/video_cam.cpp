@@ -3,7 +3,7 @@
 #include <algorithm>
 
 
-data_reader::VideoCam::VideoCam(const std::string& filename, const std::string name, const std::vector<int64> timestamps) :
+data_reader::VideoCam::VideoCam(const std::string name, const std::string& filename, const std::vector<int64> timestamps) :
     BaseCam(name), _filename(filename), _timestamps(timestamps) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {

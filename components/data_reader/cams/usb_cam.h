@@ -7,7 +7,7 @@
 namespace data_reader {
   class UsbCam : public BaseCam {
   public:
-    UsbCam(const int deviceIdx, const std::string name);
+    UsbCam(const std::string name, const int deviceIdx);
 
     std::tuple<const bool, const int64, cv::Mat> getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,

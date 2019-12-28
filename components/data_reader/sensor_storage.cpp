@@ -33,16 +33,16 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       const std::string filePath = jsonSensorConfig["basepath"].get<std::string>() + "/" + camName + ".mp4";
       if (timestampsJson.contains(camName)) {
         auto timestamps = timestampsJson[camName].get<std::vector<int64>>();
-        std::unique_ptr<ICam> videoCam(new VideoCam(filePath, camName, timestamps));
+        std::unique_ptr<ICam> videoCam(new VideoCam(camName, filePath, timestamps));
         addCam(videoCam, camName);
       }
       else {
-        std::unique_ptr<ICam> videoCam(new VideoCam(filePath, camName));
+        std::unique_ptr<ICam> videoCam(new VideoCam(camName, filePath));
         addCam(videoCam, camName);
       }
     }
     else if (typeName == "usb") {
-      std::unique_ptr<ICam> usbCam(new UsbCam(it["device_idx"].get<int>(), camName));
+      std::unique_ptr<ICam> usbCam(new UsbCam(camName, it["device_idx"].get<int>()));
       addCam(usbCam);
     }
     else if (typeName == "csi") {

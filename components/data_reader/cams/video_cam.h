@@ -7,7 +7,7 @@
 namespace data_reader {
   class VideoCam : public BaseCam {
   public:
-    VideoCam(const std::string& filename, const std::string name, const std::vector<int64> timestamps = {});
+    VideoCam( const std::string name, const std::string& filename, const std::vector<int64> timestamps = {});
 
     // Getters for frame data
     std::tuple<const bool, const int64, cv::Mat> getNewFrame(
