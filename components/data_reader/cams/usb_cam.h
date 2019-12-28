@@ -1,11 +1,11 @@
 #pragma once
 
 #include <tuple>
-#include "icam.h"
+#include "base_cam.h"
 
 
 namespace data_reader {
-  class UsbCam : public ICam {
+  class UsbCam : public BaseCam {
   public:
     UsbCam(const int deviceIdx, const std::string name);
 
@@ -13,20 +13,9 @@ namespace data_reader {
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
       const int64 currentAlgoTs,
       const bool updateToAlgoTs) override;
-    std::tuple<const bool, const int64, cv::Mat> getFrame() override;
-
-    const cv::Size getFrameSize() const override { return cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT)); }
-    const double getFrameRate() const override { return _frameRate; }
-    const std::string getName() const override { return _name; }
 
   private:
-    const std::string _name;
     cv::VideoCapture _cam;
-    double _frameRate;
     int _deviceIdx;
-
-    cv::Mat _currFrame;
-    int64 _currTs;
-    bool _validFrame;
   };
 }

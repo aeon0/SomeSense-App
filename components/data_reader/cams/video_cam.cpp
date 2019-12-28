@@ -4,7 +4,7 @@
 
 
 data_reader::VideoCam::VideoCam(const std::string& filename, const std::string name, const std::vector<int64> timestamps) :
-    _filename(filename), _name(name), _timestamps(timestamps), _currTs(-1), _validFrame(false) {
+    BaseCam(name), _filename(filename), _timestamps(timestamps) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
@@ -12,6 +12,7 @@ data_reader::VideoCam::VideoCam(const std::string& filename, const std::string n
   _frameRate = _stream.get(cv::CAP_PROP_FPS);
   double frameCount = _stream.get(cv::CAP_PROP_FRAME_COUNT);
   _recLength = static_cast<int64>(((frameCount - 1)/_frameRate) * 1000000);
+  _frameSize = cv::Size(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT));
 }
 
 std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
@@ -45,12 +46,4 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
   // std::cout << std::fixed << std::setprecision(2) << "GetFrame: " << _duration.count() << " ms" << std::endl;
 
   return {_validFrame, _currTs, _currFrame};
-}
-
-std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getFrame() {
-  bool success = false;
-  if (_currTs >= 0 && _validFrame) {
-    success = true;
-  }
-  return {success, _currTs, _currFrame};
 }
