@@ -55,11 +55,12 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
   }
   else if (requestType == "client.step_backward") {
     _stepBackward = true;
+    _updateTs = true; // On backward we need to reset to an new timestamp
     responseData["success"] = true;
   }
   else if (requestType == "client.jump_to_ts") {
     _jumpToTs = static_cast<int64>(requestData["data"]);
-    _updateTs = true;
+    _updateTs = true; // When jumping reseting to a new timestamp is needed
     responseData["success"] = true;
   }
   else if (requestType == "client.start_storing") {
@@ -85,10 +86,8 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       if (_isRecording) {
         if (_stepBackward) {
           _frame--;
-          // Backward is not the standard way to fetch video frames, thus use timestamp to get the frame
-          _updateTs = true;
         }
-        else if (_updateTs) {
+        else if (_jumpToTs >= 0) {
           _frame = static_cast<int>(static_cast<double>(_jumpToTs) / (Config::goalFrameLength * 1000.0));
         }
         else {
