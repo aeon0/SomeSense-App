@@ -40,7 +40,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       }
     }
     else if (typeName == "usb") {
-      std::unique_ptr<ICam> usbCam(new UsbCam(it["deviceIdx"].get<int>(), camName));
+      std::unique_ptr<ICam> usbCam(new UsbCam(it["device_idx"].get<int>(), camName));
       addCam(usbCam);
     }
     else {
