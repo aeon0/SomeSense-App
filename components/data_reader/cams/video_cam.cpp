@@ -18,17 +18,20 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
       const int64 currentAlgoTs,
       const bool updateToAlgoTs) {
+
   // TODO: use the _timestamps if filled to check for specific frames timestamp... etc.
-  static_cast<void>(algoStartTime);
-  if (updateToAlgoTs > -1) {
+
+  if (updateToAlgoTs) {
     double newTs = static_cast<double>(currentAlgoTs) / 1000; // in [ms]
     const double lastPossibleTs = _recLength / 1000.0;
     newTs = std::clamp<double>(newTs, 0.0, lastPossibleTs);
     _stream.set(cv::CAP_PROP_POS_MSEC, newTs);
   }
+
   const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
   _currTs = static_cast<int64>(tsMsec * 1000.0);
   _validFrame = _stream.read(_currFrame);
+
   return {_validFrame, _currTs, _currFrame};
 }
 
