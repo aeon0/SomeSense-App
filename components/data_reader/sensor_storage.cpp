@@ -5,6 +5,8 @@
 #include "sensor_storage.h"
 #include "cams/video_cam.h"
 #include "cams/usb_cam.h"
+#include "cams/csi_cam.h"
+
 
 data_reader::SensorStorage::SensorStorage() : _sensorCounter(0) {}
 
@@ -42,6 +44,18 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
     else if (typeName == "usb") {
       std::unique_ptr<ICam> usbCam(new UsbCam(it["device_idx"].get<int>(), camName));
       addCam(usbCam);
+    }
+    else if (typeName == "csi") {
+      auto captureWidth = it["capture_width"].get<int>();
+      auto captureHeight = it["capture_height"].get<int>();
+      auto displayWidth = it["display_width"].get<int>();
+      auto displayHeight = it["display_height"].get<int>();
+      auto flipMethod = it["flip_method"].get<int>();
+      auto frameRate = it["frame_rate"].get<double>();
+
+      std::unique_ptr<ICam> csiCam(new CsiCam(camName, captureWidth, captureHeight, displayWidth,
+                                              displayHeight, frameRate, flipMethod));
+      addCam(csiCam);
     }
     else {
       throw std::runtime_error("Type " + typeName + " is not supported yet!");
