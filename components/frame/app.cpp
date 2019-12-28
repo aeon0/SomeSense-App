@@ -25,7 +25,7 @@ frame::App::App(const std::string& sensorConfigPath) :
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 
-  _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
+  // _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
   _sensorStorage.initFromConfig(sensorConfigPath);
 
   // Check if any of the sensors is playing from a recording
