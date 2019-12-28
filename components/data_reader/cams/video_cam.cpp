@@ -19,7 +19,15 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
       const int64 currentAlgoTs,
       const bool updateToAlgoTs) {
 
-  // TODO: use the _timestamps if filled to check for specific frames timestamp... etc.
+  const auto captureTime = std::chrono::high_resolution_clock::now();
+
+  // TODO: 1) Check if _timestamps is filled, if it is:
+  //       2) Find all ts in _timestamps that are between ]_currTs, currentAlgoTs]
+  //       3) If non is found: No frame can be grabbed
+  //       4) If one or multiple is found: grab the frame by reading as many as found e.g.
+  //          3 frames found, call _stream.read() 3x. Return the frame and set _currTs to the last found
+
+  // TODO: How to handle updateToAlgoTs??
 
   if (updateToAlgoTs) {
     double newTs = static_cast<double>(currentAlgoTs) / 1000; // in [ms]
@@ -31,6 +39,10 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
   const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
   _currTs = static_cast<int64>(tsMsec * 1000.0);
   _validFrame = _stream.read(_currFrame);
+
+  const auto endCaptureTime = std::chrono::high_resolution_clock::now();
+  auto _duration = std::chrono::duration<double, std::milli>(endCaptureTime - captureTime);
+  // std::cout << std::fixed << std::setprecision(2) << "GetFrame: " << _duration.count() << " ms" << std::endl;
 
   return {_validFrame, _currTs, _currFrame};
 }
