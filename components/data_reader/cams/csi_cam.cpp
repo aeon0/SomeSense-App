@@ -11,6 +11,8 @@ data_reader::CsiCam::CsiCam(const std::string name, int captureWidth, int captur
     "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod) + " ! video/x-raw, width=(int)" + std::to_string(displayWidth) + ", height=(int)" +
     std::to_string(displayHeight) + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
 
+  std::cout << gsStreamerPipline << std::endl;
+
   _cam.open(gsStreamerPipline, cv::CAP_GSTREAMER);
 
   if (!_cam.isOpened()) {
@@ -28,10 +30,8 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::CsiCam::getNewFrame(
   static_cast<void>(updateToAlgoTs);
 
   const auto captureTime = std::chrono::high_resolution_clock::now();
-  _validFrame = _cam.read(_currFrame);
-  // const auto endCaptureTime = std::chrono::high_resolution_clock::now();
-  // auto _duration = std::chrono::duration<double, std::milli>(endCaptureTime - captureTime);
-  // std::cout << std::fixed << std::setprecision(2) << "GetFrame: " << _duration.count() << " ms" << std::endl;
-  _currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
+  _validFrame = _cam.read(_currFrame); // Reading takes around 2-3 ms on the Jetson Nano
+
+_currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
   return {_validFrame, _currTs, _currFrame};
 }

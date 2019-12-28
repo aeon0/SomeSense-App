@@ -120,7 +120,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       };
 
       _ts = 0; // reset _ts, will be updated with the latest sensor ts
-
+  
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
         auto [success, sensorTs, img] = cam->getNewFrame(algoStartTime, videoAlgoTs, _updateTs);
         if (sensorTs > _ts) {
@@ -133,7 +133,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
           // Some test data to send
           std::vector<uchar> buf;
-          cv::imencode(".jpg", img, buf);
+          cv::Mat outImg;
+          cv::resize(img, outImg, cv::Size(), 0.25, 0.25);
+          cv::imencode(".jpg", outImg, buf);
           auto *encMsg = reinterpret_cast<unsigned char*>(buf.data());
           std::string encodedBase64Img = base64_encode(encMsg, buf.size());
           encodedBase64Img = "data:image/jpeg;base64," + encodedBase64Img;
@@ -157,6 +159,11 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
         }
       }
       // TODO: do the processing for tracks
+
+      // Example to measure runtime
+      // const auto startTime = std::chrono::high_resolution_clock::now();
+      // const auto measDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - startTime);
+      // std::cout << std::fixed << std::setprecision(2) << "Meas: " << measDuration.count() << " ms" << std::endl;
 
       // example track for testing
       jsonOutputState["data"]["tracks"].push_back({
@@ -197,6 +204,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
     }
 
     auto frameDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - frameStartTime);
-    // std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
+    std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
   }
 }
