@@ -1,21 +1,21 @@
 #include "app.h"
-#include "com_out/unix_server.h"
+#include "com_out/tcp_server.h"
 #include <thread>
 #include <iostream>
 
 
 int main() {
   // Create Server in seperate thread
-  com_out::UnixServer unixServer;
-  std::thread serverThread(&com_out::Server::run, &unixServer);
+  com_out::TcpServer server;
+  std::thread serverThread(&com_out::Server::run, &server);
 
   const std::string sensorConfigPath = "configs/live_sensors_csi.json";
 
   std::cout << "** Start Application **" << std::endl;
   auto app = std::make_shared<frame::App>(sensorConfigPath);
-  unixServer.registerRequestListener(app);
-  app->run(unixServer);
-  unixServer.deleteRequestListener(app);
+  server.registerRequestListener(app);
+  app->run(server);
+  server.deleteRequestListener(app);
 
   serverThread.detach(); // Detach will terminate the server which is in accept mode
 
