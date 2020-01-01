@@ -32,6 +32,6 @@ std::tuple<const bool, const int64, cv::Mat> data_reader::CsiCam::getNewFrame(
   const auto captureTime = std::chrono::high_resolution_clock::now();
   _validFrame = _cam.read(_currFrame); // Reading takes around 2-3 ms on the Jetson Nano
 
-_currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
+  _currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
   return {_validFrame, _currTs, _currFrame};
 }
