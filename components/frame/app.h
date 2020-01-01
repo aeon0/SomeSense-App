@@ -6,7 +6,7 @@
 #include "data_reader/storage_service.h"
 #include "com_out/ibroadcast.h"
 #include "com_out/irequest_listener.h"
-#include "object_detection/detector.h"
+// #include "object_detection/detector.h"
 #include <signal.h>
 
 
@@ -21,7 +21,7 @@ namespace frame {
   private:
     data_reader::StorageService _storageService;
     data_reader::SensorStorage _sensorStorage;
-    object_detection::Detector _detector;
+    // object_detection::Detector _detector;
 
     // Actions to take for recordings
     bool _pause;
