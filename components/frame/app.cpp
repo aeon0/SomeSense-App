@@ -127,18 +127,23 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           _ts = sensorTs; // algo algo ts will be the latest sensorTs
         }
 
-        if (success) {
+        if (success && img.size().width > 0 && img.size().height > 0) {
           // Do processing per image
           // _detector.detect(img);
 
-          // Some test data to send
-          std::vector<uchar> buf;
+          // Resize image to a reasonable size
+          // Note: Be aware that the resize should always be some integer factor, e.g. 640 -> 320
+          //       otherwise runtime can be quite high on the resize
           cv::Mat outImg;
-          cv::resize(img, outImg, cv::Size(), 0.25, 0.25);
-          cv::imencode(".jpg", outImg, buf);
-          auto *encMsg = reinterpret_cast<unsigned char*>(buf.data());
-          std::string encodedBase64Img = base64_encode(encMsg, buf.size());
-          encodedBase64Img = "data:image/jpeg;base64," + encodedBase64Img;
+          cv::Size outSize;
+          outSize.width = Config::outImgWidth;
+          const double scaleFactor = static_cast<double>(outSize.width) / static_cast<double>(img.size().width);
+          outSize.height = img.size().height * scaleFactor;
+          cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
+
+          // Encoding it to jpg and writing it to a string buffer
+          auto startTime = std::chrono::high_resolution_clock::now();
+          std::string encodedBase64Img = convert_mat_to_base64_jpg(outImg);
 
           const double fovHorizontal = M_PI * 0.33f;
           const double fovVertical = M_PI * 0.25f;
@@ -154,16 +159,14 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"imageBase64", encodedBase64Img},
           });
 
-          // cv::imshow("Display window", img);
-          // cv::waitKey(0);
+          auto measDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - startTime);
+          std::cout << std::fixed << std::setprecision(2) << "Meas 2: " << measDuration.count() << " ms" << std::endl;
+
         }
       }
       // TODO: do the processing for tracks
 
       // Example to measure runtime
-      // const auto startTime = std::chrono::high_resolution_clock::now();
-      // const auto measDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - startTime);
-      // std::cout << std::fixed << std::setprecision(2) << "Meas: " << measDuration.count() << " ms" << std::endl;
 
       // example track for testing
       jsonOutputState["data"]["tracks"].push_back({
@@ -204,6 +207,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
     }
 
     auto frameDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - frameStartTime);
-    std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
+    // std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
   }
 }

@@ -1,5 +1,9 @@
 SET(COMPONENT_NAME "utilities")
 
+include_directories(SYSTEM
+  ${OpenCV_INCLUDE_DIRS}
+)
+
 add_library(lib${COMPONENT_NAME} 
   base64.cpp
 )

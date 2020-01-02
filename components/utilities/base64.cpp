@@ -32,6 +32,15 @@ static inline bool is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
+std::string convert_mat_to_base64_jpg(cv::Mat& img) {
+  std::vector<uchar> buf;
+  cv::imencode(".jpg", img, buf);
+  auto *encMsg = reinterpret_cast<unsigned char*>(buf.data());
+  std::string encodedBase64Img = base64_encode(encMsg, buf.size());
+  encodedBase64Img = "data:image/jpeg;base64," + encodedBase64Img;
+  return encodedBase64Img;
+}
+
 std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) {
   std::string ret;
   int i = 0;
