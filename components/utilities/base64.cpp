@@ -34,7 +34,10 @@ static inline bool is_base64(unsigned char c) {
 
 std::string convert_mat_to_base64_jpg(cv::Mat& img) {
   std::vector<uchar> buf;
-  cv::imencode(".jpg", img, buf);
+  std::vector<int> params;
+  params.push_back(cv::IMWRITE_JPEG_QUALITY);
+  params.push_back(30);
+  cv::imencode(".jpg", img, buf, params);
   auto *encMsg = reinterpret_cast<unsigned char*>(buf.data());
   std::string encodedBase64Img = base64_encode(encMsg, buf.size());
   encodedBase64Img = "data:image/jpeg;base64," + encodedBase64Img;
