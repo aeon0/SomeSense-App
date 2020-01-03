@@ -9,6 +9,7 @@ include_directories(SYSTEM
 add_library(lib${COMPONENT_NAME}
   app.cpp
   config.cpp
+  runtime_meas_service.cpp
 )
 
 install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})

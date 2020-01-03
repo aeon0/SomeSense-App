@@ -75,12 +75,15 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
 
 void frame::App::run(const com_out::IBroadcast& broadCaster) {
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
+  _runtimeMeasService.setStartTime(algoStartTime);
 
   while (!stopFromSignal) {
+    _runtimeMeasService.startMeas("frame");
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
 
     // Check if a new frame should be created, note that pausing and stepping is only possible with recordings
     if (_outputState == "" || !_pause || !_isRecording || _stepForward || _stepBackward || _updateTs) {
+      _runtimeMeasService.startMeas("algo_compute");
 
       int64 videoAlgoTs = -1; // This is the "ideal" algo timestamp based on frame count and frame length
       if (_isRecording) {
@@ -116,6 +119,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           {"recLength", _recLength},
           {"isPlaying", !_pause},
           {"isStoring", _storageService.isStoring()},
+          {"runtimeMeas", {}},
         }}
       };
 
@@ -131,6 +135,8 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           // Do processing per image
           // _detector.detect(img);
 
+          _runtimeMeasService.startMeas("image_encoding_" + key);
+
           // Resize image to a reasonable size
           // Note: Be aware that the resize should always be some integer factor, e.g. 640 -> 320
           //       otherwise runtime can be quite high on the resize
@@ -142,7 +148,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
 
           // Encoding it to jpg and writing it to a string buffer
-          auto startTime = std::chrono::high_resolution_clock::now();
           std::string encodedBase64Img = convert_mat_to_base64_jpg(outImg);
 
           const double fovHorizontal = M_PI * 0.33f;
@@ -159,14 +164,12 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"imageBase64", encodedBase64Img},
           });
 
-          auto measDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - startTime);
-          std::cout << std::fixed << std::setprecision(2) << "Meas 2: " << measDuration.count() << " ms" << std::endl;
-
+          _runtimeMeasService.endMeas("image_encoding_" + key);
         }
       }
       // TODO: do the processing for tracks
 
-      // Example to measure runtime
+      _runtimeMeasService.endMeas("algo_compute");
 
       // example track for testing
       jsonOutputState["data"]["tracks"].push_back({
@@ -182,6 +185,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
       // Finally set the algo timestamp to the output data
       jsonOutputState["data"]["timestamp"] = _ts;
+
+      // Add time measurements to the json output
+      jsonOutputState["data"]["runtimeMeas"] = _runtimeMeasService.serializeMeas();
 
       _outputState = jsonOutputState.dump();
 
@@ -206,7 +212,8 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       std::this_thread::sleep_for(waitTimeUsec);
     }
 
-    auto frameDuration = std::chrono::duration<double, std::milli>(std::chrono::high_resolution_clock::now() - frameStartTime);
-    // std::cout << std::fixed << std::setprecision(2) << "Frame: " << frameDuration.count() << " ms \t Algo: " << algoDuration.count() << " ms" << std::endl;
+    _runtimeMeasService.endMeas("frame");
+
+    // _runtimeMeasService.printToConsole();
   }
 }
