@@ -41,6 +41,7 @@ nlohmann::json frame::RuntimeMeasService::serializeMeas() {
     if(!value.running) {
       auto startTs = static_cast<long int>(std::chrono::duration<double, std::micro>(value.startTime - _algoStartTime).count());
       jsonMeas.push_back({
+        {"name", key},
         {"start", startTs},
         {"duration", value.duration.count()},
       });
