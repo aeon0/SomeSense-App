@@ -25,9 +25,9 @@ if(NOT OpenCV_FOUND)
         -DCMAKE_BUILD_TYPE=Release
       INSTALL_COMMAND make -j4 install
     )
+  else()
+    # The first compilation this fails as find_package does not wait for ExternalProject_Add
+    # Just recompile... once, not sure how to fix this
+    find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
   endif()
-
-  # This fails the first time as find_package does not wait for ExternalProject_Add
-  # you might have to comment that the first time and let it fail then activate it again once OpenCV is installed
-  find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
 endif()
