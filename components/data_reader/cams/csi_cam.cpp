@@ -1,20 +1,18 @@
 #include "csi_cam.h"
 #include <iostream>
 
+std::string gstreamer_pipeline(int captureWidth, int captureHeight, int frameRate, int flipMethod) {
+    return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(captureWidth) + ", height=(int)" +
+           std::to_string(captureHeight) + ", format=(string)NV12, framerate=(fraction)" + std::to_string(frameRate) +
+           "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod) + " ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
+}
 
-data_reader::CsiCam::CsiCam(const std::string name, int captureWidth, int captureHeight, int displayWidth,
-                            int displayHeight, double frameRate, int flipMethod): BaseCam(name) {
 
-  std::string gsStreamerPipline = 
-    "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(captureWidth) + ", height=(int)" +
-    std::to_string(captureHeight) + ", format=(string)NV12, framerate=(fraction)" + std::to_string(frameRate) +
-    "/1 ! nvvidconv flip-method=" + std::to_string(flipMethod) + " ! video/x-raw, width=(int)" + std::to_string(displayWidth) + ", height=(int)" +
-    std::to_string(displayHeight) + ", format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink";
-
-  std::cout << gsStreamerPipline << std::endl;
+data_reader::CsiCam::CsiCam(const std::string name, int captureWidth, int captureHeight, double frameRate, int flipMethod): BaseCam(name) {
+  std::string gsStreamerPipline = gstreamer_pipeline(captureWidth, captureHeight, frameRate, flipMethod);
+  std::cout << "Using GStream Pipline: " << gsStreamerPipline << std::endl;
 
   _cam.open(gsStreamerPipline, cv::CAP_GSTREAMER);
-
   if (!_cam.isOpened()) {
     throw std::runtime_error("Could not open CSI Camera: " + name);
   }

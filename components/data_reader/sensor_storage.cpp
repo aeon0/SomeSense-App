@@ -48,13 +48,10 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
     else if (typeName == "csi") {
       auto captureWidth = it["capture_width"].get<int>();
       auto captureHeight = it["capture_height"].get<int>();
-      auto displayWidth = it["display_width"].get<int>();
-      auto displayHeight = it["display_height"].get<int>();
       auto flipMethod = it["flip_method"].get<int>();
       auto frameRate = it["frame_rate"].get<double>();
 
-      std::unique_ptr<ICam> csiCam(new CsiCam(camName, captureWidth, captureHeight, displayWidth,
-                                              displayHeight, frameRate, flipMethod));
+      std::unique_ptr<ICam> csiCam(new CsiCam(camName, captureWidth, captureHeight, frameRate, flipMethod));
       addCam(csiCam);
     }
     else {

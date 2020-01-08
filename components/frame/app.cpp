@@ -126,7 +126,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       _ts = 0; // reset _ts, will be updated with the latest sensor ts
   
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
+        _runtimeMeasService.startMeas("get_img_" + key);
         auto [success, sensorTs, img] = cam->getNewFrame(algoStartTime, videoAlgoTs, _updateTs);
+        _runtimeMeasService.endMeas("get_img_" + key);
         if (sensorTs > _ts) {
           _ts = sensorTs; // algo algo ts will be the latest sensorTs
         }
@@ -214,6 +216,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
     _runtimeMeasService.endMeas("frame");
 
-    // _runtimeMeasService.printToConsole();
+    _runtimeMeasService.printToConsole();
   }
 }
