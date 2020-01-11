@@ -64,5 +64,5 @@ cd $BUILDFOLDER
 
 cmake -DBUILD_TEST=$TESTS -DCMAKE_BUILD_TYPE=$CONFIG $ROOTDIR || exit 1
 
-make 
+make -j8
 make install
