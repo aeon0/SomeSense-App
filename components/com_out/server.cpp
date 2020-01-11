@@ -145,7 +145,7 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(const std::string payload) con
   const int payloadSize = payload.size();
 
   // create msg bytes 
-  const int msgSize = _headerSize + payloadSize + 1; // + 1 for NULL at the end of Message
+  const int msgSize = _headerSize + payloadSize;
   auto* msg = new BYTE[msgSize];
   memset(msg, 0x00, msgSize);
 

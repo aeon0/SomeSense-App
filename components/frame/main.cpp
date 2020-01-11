@@ -9,7 +9,7 @@ int main() {
   com_out::TcpServer server;
   std::thread serverThread(&com_out::Server::run, &server);
 
-  const std::string sensorConfigPath = "configs/live_sensors_csi.json";
+  const std::string sensorConfigPath = "configs/live_sensors_usb.json";
 
   std::cout << "** Start Application **" << std::endl;
   auto app = std::make_shared<frame::App>(sensorConfigPath);
