@@ -22,7 +22,7 @@ target_link_libraries(${PROJECT_NAME}
   lib${COMPONENT_NAME}
   libdata_reader
   libcom_out
-  libutilities
+  # libutilities # currently no cpp file, thus header only lib
   # libobject_detection
   # ${CUDA_LIBRARIES}
   ${OpenCV_LIBS}

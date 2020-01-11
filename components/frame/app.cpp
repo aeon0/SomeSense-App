@@ -5,7 +5,6 @@
 #include <cmath>
 #include <chrono>
 #include <algorithm>
-#include "utilities/base64.h"
 #include "utilities/json.hpp"
 
 #include <unistd.h>
@@ -150,8 +149,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
 
           // Encoding it to jpg and writing it to a string buffer
-          // std::string encodedBase64Img = convert_mat_to_base64_jpg(outImg);
-          outImg.setTo(cv::Scalar(11,11,11));
+          // outImg.setTo(cv::Scalar(11,11,11));
 
           std::string imgStr();
           broadCaster.broadcast(outImg.data, outImg.size().width, outImg.size().height, outImg.channels(), _ts);
@@ -167,7 +165,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"fovHorizontal", fovHorizontal},
             {"fovVertical", fovVertical},
             {"sensorTimestamp", sensorTs},
-            {"imageBase64", ""},
           });
 
           _runtimeMeasService.endMeas("sensor_data_prep_" + key);
@@ -223,6 +220,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
     _runtimeMeasService.endMeas("frame");
 
-    // _runtimeMeasService.printToConsole();
+    _runtimeMeasService.printToConsole();
   }
 }
