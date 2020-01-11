@@ -25,7 +25,7 @@ namespace com_out {
     void run();
     void stop();
     void broadcast(const std::string payload) const override;
-    void broadcast(BYTE* payload, int width, int height, int channels, int64_t ts) const override;
+    void broadcast(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const override;
 
     void registerRequestListener(std::shared_ptr<IRequestListener> listener);
     void deleteRequestListener(std::shared_ptr<IRequestListener> listener);
@@ -40,7 +40,7 @@ namespace com_out {
 
     // Convert different type of payloads to a complete message with header
     std::tuple<BYTE*, int> createMsg(const std::string payload) const;
-    std::tuple<BYTE*, int> createMsg(BYTE* payload, int width, int height, int channels, int64_t ts) const;
+    std::tuple<BYTE*, int> createMsg(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const;
 
     int _server;
     char* _buf;

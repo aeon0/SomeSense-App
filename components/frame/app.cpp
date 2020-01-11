@@ -124,6 +124,9 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
       _ts = 0; // reset _ts, will be updated with the latest sensor ts
   
+      // used to map sensor payload to sensor metadata as it is sent in seperate messages to client
+      int sensorIdx = 0;
+
       for (auto const& [key, cam]: _sensorStorage.getCams()) {
         _runtimeMeasService.startMeas("get_img_" + key);
         auto [success, sensorTs, img] = cam->getNewFrame(algoStartTime, videoAlgoTs, _updateTs);
@@ -152,14 +155,15 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           // outImg.setTo(cv::Scalar(11,11,11));
 
           std::string imgStr();
-          broadCaster.broadcast(outImg.data, outImg.size().width, outImg.size().height, outImg.channels(), _ts);
+          broadCaster.broadcast(sensorIdx, outImg.data, outImg.size().width, outImg.size().height, outImg.channels(), _ts);
 
           const double fovHorizontal = M_PI * 0.33f;
           const double fovVertical = M_PI * 0.25f;
 
           // Add current sensor to output state
           jsonOutputState["data"]["sensors"].push_back({
-            {"id", key},
+            {"idx", sensorIdx},
+            {"key", key},
             {"position", {0, 1.2, -0.5}},
             {"rotation", {0, 0, 0}},
             {"fovHorizontal", fovHorizontal},
@@ -169,6 +173,8 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
           _runtimeMeasService.endMeas("sensor_data_prep_" + key);
         }
+
+        sensorIdx++;
       }
       // TODO: do the processing for tracks
 

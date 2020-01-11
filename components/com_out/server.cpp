@@ -133,15 +133,15 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
   return true;
 }
 
-void com_out::Server::broadcast(BYTE* payload, int width, int height, int channels, int64_t ts) const {
-  auto [msg, len] = createMsg(payload, width, height, channels, ts);
+void com_out::Server::broadcast(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const {
+  auto [msg, len] = createMsg(sensorIdx, payload, width, height, channels, ts);
   for(int client: _clients) {
     sendToClient(client, msg, len);
   }
   delete [] msg;
 }
 
-std::tuple<BYTE*, int> com_out::Server::createMsg(BYTE* payload, int width, int height, int channels, int64_t ts) const {
+std::tuple<BYTE*, int> com_out::Server::createMsg(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const {
   const int payloadSize = width * height * channels;
 
   // create msg bytes 
@@ -161,9 +161,9 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(BYTE* payload, int width, int 
   msg[5] = 0x10; // Raw Image
 
   // add image dimensions
-  assert(width < 0xFFFF && "width is too large");
-  assert(height < 0xFFFF && "height is too large");
-  assert(channels < 0xFF && "channels are too large");
+  assert(width <= 0xFFFF && "width is too large");
+  assert(height <= 0xFFFF && "height is too large");
+  assert(channels <= 0xFF && "channels are too large");
   // width [6-7]
   msg[7] = static_cast<BYTE>(width & 0xFF);
   msg[6] = static_cast<BYTE>((width >> 8) & 0xFF);
@@ -182,6 +182,10 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(BYTE* payload, int width, int 
   msg[13] = static_cast<BYTE>((ts >> 38) & 0xFF);
   msg[12] = static_cast<BYTE>((ts >> 46) & 0xFF);
   msg[11] = static_cast<BYTE>((ts >> 54) & 0xFF);
+
+  // sensor idx [19]
+  assert(sensorIdx <= 0xFF && "sensorIdx too large");
+  msg[19] = static_cast<BYTE>(sensorIdx & 0xFF);
 
   // copy img data to msg
   memcpy(msg + _headerSize, payload, payloadSize);
