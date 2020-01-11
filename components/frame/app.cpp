@@ -151,9 +151,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           outSize.height = img.size().height * scaleFactor;
           cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
 
-          // Encoding it to jpg and writing it to a string buffer
-          // outImg.setTo(cv::Scalar(11,11,11));
-
           std::string imgStr();
           broadCaster.broadcast(sensorIdx, outImg.data, outImg.size().width, outImg.size().height, outImg.channels(), _ts);
 
