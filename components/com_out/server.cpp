@@ -1,5 +1,6 @@
 #include "server.h"
 #include <iostream>
+#include <iomanip>
 #include <algorithm>
 #include "utilities/json.hpp"
 
@@ -64,8 +65,10 @@ void com_out::Server::handle(int client) {
       void(listener->handleRequest(jsonRequest["type"], jsonRequest, jsonResponse["data"]));
     }
 
-    std::string res = jsonResponse.dump() + "\n";
-    if (!sendToClient(client, res)) {
+    auto [msg, len] = createMsg(jsonResponse.dump());
+    const bool success = sendToClient(client, msg, len);
+    delete [] msg;
+    if (!success) {
       break;
     }
   }
@@ -103,14 +106,13 @@ std::string com_out::Server::getRequest(int client) {
   return request;
 }
 
-bool com_out::Server::sendToClient(int client, const std::string msg) const {
+bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) const {
   // prepare to send response
-  const char* ptr = msg.c_str();
-  int nleft = msg.length();
+  int nleft = len;
   int nwritten;
   // loop to be sure it is all sent
   while(nleft) {
-    if((nwritten = send(client, ptr, nleft, 0)) < 0) {
+    if((nwritten = send(client, buf, nleft, 0)) < 0) {
       if (errno == EINTR) {
         // the socket call was interrupted -- try again
         continue;
@@ -126,14 +128,49 @@ bool com_out::Server::sendToClient(int client, const std::string msg) const {
       return false;
     }
     nleft -= nwritten;
-    ptr += nwritten;
+    buf += nwritten;
   }
   return true;
 }
 
-bool com_out::Server::broadcast(const std::string msg) const {
+void com_out::Server::broadcast(const std::string payload) const {
+  auto [msg, len] = createMsg(payload);
   for(int client: _clients) {
-    sendToClient(client, msg);
+    sendToClient(client, msg, len);
   }
-  return true;
+  delete [] msg;
+}
+
+std::tuple<BYTE*, int> com_out::Server::createMsg(const std::string payload) const {
+  const int payloadSize = payload.size();
+
+  // create msg bytes 
+  const int msgSize = _headerSize + payloadSize + 1; // + 1 for NULL at the end of Message
+  auto* msg = new BYTE[msgSize];
+  memset(msg, 0x00, msgSize);
+
+  // start byte [0]
+  msg[0] = 0x0F;
+  // size bytes [1-4]
+  msg[4] = static_cast<BYTE>(payloadSize & 0xFF);
+  msg[3] = static_cast<BYTE>((payloadSize >> 8) & 0xFF);
+  msg[2] = static_cast<BYTE>((payloadSize >> 16) & 0xFF);
+  msg[1] = static_cast<BYTE>((payloadSize >> 24) & 0xFF);
+
+  // type byte [5]
+  msg[5] = 0x01; // JSON string
+
+  // copy string to msg
+  memcpy(msg + _headerSize, payload.c_str(), payloadSize);
+
+  // For Debugging print Header hex values
+  // for (int i = 0; i < 30; ++i) {
+  //   std::cout << "[" << i << "] " <<
+  //     " 0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*msg) << 
+  //     std::dec << " (" << static_cast<int>(*msg) << ")" << std::endl;
+  //   msg++;
+  // }
+  // msg -= 30;
+
+  return {msg, msgSize};
 }

@@ -24,7 +24,8 @@ namespace com_out {
 
     void run();
     void stop();
-    bool broadcast(const std::string msg) const override;
+    // bool broadcast(const BYTE* buf, const int len) const override;
+    void broadcast(const std::string payload) const override;
 
     void registerRequestListener(std::shared_ptr<IRequestListener> listener);
     void deleteRequestListener(std::shared_ptr<IRequestListener> listener);
@@ -35,13 +36,18 @@ namespace com_out {
     void serve();
     void handle(int client);
     std::string getRequest(int client);
-    bool sendToClient(int client, const std::string msg) const;
+    bool sendToClient(int client, const BYTE* buf, const int len) const;
+
+    // Convert different type of payloads to a complete message with header
+    std::tuple<BYTE*, int> createMsg(const std::string payload) const;
 
     int _server;
     char* _buf;
     std::vector<int> _clients;
 
     std::vector<std::shared_ptr<IRequestListener>> _requestListeners;
+
+    static const int _headerSize = 20;
   };
 }
 

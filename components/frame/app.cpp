@@ -137,7 +137,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           // Do processing per image
           // _detector.detect(img);
 
-          _runtimeMeasService.startMeas("image_encoding_" + key);
+          _runtimeMeasService.startMeas("sensor_data_prep_" + key);
 
           // Resize image to a reasonable size
           // Note: Be aware that the resize should always be some integer factor, e.g. 640 -> 320
@@ -150,7 +150,12 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
 
           // Encoding it to jpg and writing it to a string buffer
-          std::string encodedBase64Img = convert_mat_to_base64_jpg(outImg);
+          // std::string encodedBase64Img = convert_mat_to_base64_jpg(outImg);
+          outImg.setTo(cv::Scalar(11,11,11));
+
+          std::string imgStr(reinterpret_cast<char *>(outImg.data));
+          imgStr = "type/raw_img;" + imgStr + "\n";
+          // broadCaster.broadcast(imgStr.c_str(), imgStr.length());
 
           const double fovHorizontal = M_PI * 0.33f;
           const double fovVertical = M_PI * 0.25f;
@@ -163,15 +168,16 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
             {"fovHorizontal", fovHorizontal},
             {"fovVertical", fovVertical},
             {"sensorTimestamp", sensorTs},
-            {"imageBase64", encodedBase64Img},
+            {"imageBase64", ""},
           });
 
-          _runtimeMeasService.endMeas("image_encoding_" + key);
+          _runtimeMeasService.endMeas("sensor_data_prep_" + key);
         }
       }
       // TODO: do the processing for tracks
 
       _runtimeMeasService.endMeas("algo_compute");
+      _runtimeMeasService.startMeas("prepare_output_data");
 
       // example track for testing
       jsonOutputState["data"]["tracks"].push_back({
@@ -201,9 +207,11 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       _stepBackward = false;
       _updateTs = false;
       _jumpToTs = -1;
+
+      _runtimeMeasService.endMeas("prepare_output_data");
     }
 
-    broadCaster.broadcast(_outputState + "\n"); // new line character to show end of message
+    broadCaster.broadcast(_outputState);
 
     // Do some timing stuff and in case algo was too fast, wait for a set amount of time
     auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();
@@ -216,6 +224,6 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
     _runtimeMeasService.endMeas("frame");
 
-    _runtimeMeasService.printToConsole();
+    // _runtimeMeasService.printToConsole();
   }
 }
