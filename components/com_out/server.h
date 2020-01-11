@@ -24,8 +24,8 @@ namespace com_out {
 
     void run();
     void stop();
-    // bool broadcast(const BYTE* buf, const int len) const override;
     void broadcast(const std::string payload) const override;
+    void broadcast(BYTE* data, int width, int height, int channels, int64_t ts) const override;
 
     void registerRequestListener(std::shared_ptr<IRequestListener> listener);
     void deleteRequestListener(std::shared_ptr<IRequestListener> listener);

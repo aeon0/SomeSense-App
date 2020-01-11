@@ -133,6 +133,10 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
   return true;
 }
 
+void com_out::Server::broadcast(BYTE* data, int width, int height, int channels, int64_t ts) const {
+
+}
+
 void com_out::Server::broadcast(const std::string payload) const {
   auto [msg, len] = createMsg(payload);
   for(int client: _clients) {

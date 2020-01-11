@@ -85,7 +85,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
     if (_outputState == "" || !_pause || !_isRecording || _stepForward || _stepBackward || _updateTs) {
       _runtimeMeasService.startMeas("algo_compute");
 
-      int64 videoAlgoTs = -1; // This is the "ideal" algo timestamp based on frame count and frame length
+      int64_t videoAlgoTs = -1; // This is the "ideal" algo timestamp based on frame count and frame length
       if (_isRecording) {
         if (_stepBackward) {
           _frame--;
@@ -153,9 +153,8 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
           // std::string encodedBase64Img = convert_mat_to_base64_jpg(outImg);
           outImg.setTo(cv::Scalar(11,11,11));
 
-          std::string imgStr(reinterpret_cast<char *>(outImg.data));
-          imgStr = "type/raw_img;" + imgStr + "\n";
-          // broadCaster.broadcast(imgStr.c_str(), imgStr.length());
+          std::string imgStr();
+          broadCaster.broadcast(outImg.data, outImg.size().width, outImg.size().height, outImg.channels(), _ts);
 
           const double fovHorizontal = M_PI * 0.33f;
           const double fovVertical = M_PI * 0.25f;

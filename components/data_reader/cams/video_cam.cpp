@@ -17,7 +17,7 @@ data_reader::VideoCam::VideoCam(const std::string name, const std::string& filen
 
 std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64 currentAlgoTs,
+      const int64_t currentAlgoTs,
       const bool updateToAlgoTs) {
 
   const auto captureTime = std::chrono::high_resolution_clock::now();

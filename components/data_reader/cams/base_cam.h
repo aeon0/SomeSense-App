@@ -23,7 +23,7 @@ namespace data_reader {
     cv::Size _frameSize;
 
     cv::Mat _currFrame;
-    int64 _currTs;
+    int64_t _currTs;
     bool _validFrame;
   };
 }

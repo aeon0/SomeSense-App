@@ -93,7 +93,7 @@ void data_reader::StorageService::saveFrame() {
       auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
       if (success) {
         writer.write(frame);
-        const int64 relativeTs = ts - _startTs;
+        const int64_t relativeTs = ts - _startTs;
         _timestamps[key].push_back(relativeTs);
       }
     }

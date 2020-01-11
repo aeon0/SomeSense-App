@@ -30,7 +30,7 @@ namespace data_reader {
     static std::string formatTimePoint(std::chrono::system_clock::time_point point);
 
     bool _isStoring;
-    int64 _startTs; // reference TS of the beginning of the recording
+    int64_t _startTs; // reference TS of the beginning of the recording
     std::string _currentStoragePath;
     const std::string _storageBasePath;
     const SensorStorage& _sensorStorage;

@@ -32,14 +32,14 @@ namespace frame {
     bool _updateTs;
     bool _record;
 
-    int64 _jumpToTs;
+    int64_t _jumpToTs;
     bool _isRecording;
-    int64 _recLength;
+    int64_t _recLength;
     int _maxFrames;
 
     // Current output state sent to the clients
     std::string _outputState;
-    int64 _ts; // algo timestamp of the current frame
+    int64_t _ts; // algo timestamp of the current frame
     int _frame; // current frame counter
   };
 }

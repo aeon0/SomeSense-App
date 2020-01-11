@@ -22,7 +22,7 @@ data_reader::CsiCam::CsiCam(const std::string name, int captureWidth, int captur
 
 std::tuple<const bool, const int64, cv::Mat> data_reader::CsiCam::getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64 currentAlgoTs,
+      const int64_t currentAlgoTs,
       const bool updateToAlgoTs) {
   static_cast<void>(currentAlgoTs);
   static_cast<void>(updateToAlgoTs);

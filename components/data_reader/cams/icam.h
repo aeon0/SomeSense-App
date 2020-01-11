@@ -11,7 +11,7 @@ namespace data_reader {
     // The currentAlgoTs and updateToAlgoTs are only relevant for recorded data
     virtual std::tuple<const bool, const int64, cv::Mat> getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64 currentAlgoTs,
+      const int64_t currentAlgoTs,
       const bool updateToAlgoTs) = 0;
 
     // Get previous frame and returns {success, timestamp in [us], image}
@@ -30,7 +30,7 @@ namespace data_reader {
     virtual const bool isRecording() const { return false; }
 
     // Return rec length in us
-    virtual const int64 getRecLength() const { return 0; }
+    virtual const int64_t getRecLength() const { return 0; }
 
   };
 }

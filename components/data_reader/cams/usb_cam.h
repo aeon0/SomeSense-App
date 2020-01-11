@@ -11,7 +11,7 @@ namespace data_reader {
 
     std::tuple<const bool, const int64, cv::Mat> getNewFrame(
       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64 currentAlgoTs,
+      const int64_t currentAlgoTs,
       const bool updateToAlgoTs) override;
 
   private:
