@@ -133,8 +133,69 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
   return true;
 }
 
-void com_out::Server::broadcast(BYTE* data, int width, int height, int channels, int64_t ts) const {
+void com_out::Server::broadcast(BYTE* payload, int width, int height, int channels, int64_t ts) const {
+  auto [msg, len] = createMsg(payload, width, height, channels, ts);
+  for(int client: _clients) {
+    sendToClient(client, msg, len);
+  }
+  delete [] msg;
+}
 
+std::tuple<BYTE*, int> com_out::Server::createMsg(BYTE* payload, int width, int height, int channels, int64_t ts) const {
+  const int payloadSize = width * height * channels;
+
+  // create msg bytes 
+  const int msgSize = _headerSize + payloadSize;
+  auto* msg = new BYTE[msgSize];
+  memset(msg, 0x00, msgSize);
+
+  // start byte [0]
+  msg[0] = 0x0F;
+  // size bytes [1-4]
+  msg[4] = static_cast<BYTE>(payloadSize & 0xFF);
+  msg[3] = static_cast<BYTE>((payloadSize >> 8) & 0xFF);
+  msg[2] = static_cast<BYTE>((payloadSize >> 16) & 0xFF);
+  msg[1] = static_cast<BYTE>((payloadSize >> 24) & 0xFF);
+
+  // type byte [5]
+  msg[5] = 0x10; // Raw Image
+
+  // add image dimensions
+  assert(width < 0xFFFF && "width is too large");
+  assert(height < 0xFFFF && "height is too large");
+  assert(channels < 0xFF && "channels are too large");
+  // width [6-7]
+  msg[7] = static_cast<BYTE>(width & 0xFF);
+  msg[6] = static_cast<BYTE>((width >> 8) & 0xFF);
+  // height [8-9]
+  msg[9] = static_cast<BYTE>(height & 0xFF);
+  msg[8] = static_cast<BYTE>((height >> 8) & 0xFF);
+  // channels [10]
+  msg[10] = static_cast<BYTE>(channels & 0xFF);
+
+  // image timestamp [11-18]
+  msg[18] = static_cast<BYTE>(ts & 0xFF);
+  msg[17] = static_cast<BYTE>((ts >> 8) & 0xFF);
+  msg[16] = static_cast<BYTE>((ts >> 16) & 0xFF);
+  msg[15] = static_cast<BYTE>((ts >> 24) & 0xFF);
+  msg[14] = static_cast<BYTE>((ts >> 32) & 0xFF);
+  msg[13] = static_cast<BYTE>((ts >> 38) & 0xFF);
+  msg[12] = static_cast<BYTE>((ts >> 46) & 0xFF);
+  msg[11] = static_cast<BYTE>((ts >> 54) & 0xFF);
+
+  // copy img data to msg
+  memcpy(msg + _headerSize, payload, payloadSize);
+
+  // For Debugging print Header hex values
+  // for (int i = 0; i < _headerSize; ++i) {
+  //   std::cout << "[" << i << "] " <<
+  //     " 0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*msg) << 
+  //     std::dec << " (" << static_cast<int>(*msg) << ")" << std::endl;
+  //   msg++;
+  // }
+  // msg -= _headerSize;
+
+  return {msg, msgSize};
 }
 
 void com_out::Server::broadcast(const std::string payload) const {
@@ -166,15 +227,6 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(const std::string payload) con
 
   // copy string to msg
   memcpy(msg + _headerSize, payload.c_str(), payloadSize);
-
-  // For Debugging print Header hex values
-  // for (int i = 0; i < 30; ++i) {
-  //   std::cout << "[" << i << "] " <<
-  //     " 0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*msg) << 
-  //     std::dec << " (" << static_cast<int>(*msg) << ")" << std::endl;
-  //   msg++;
-  // }
-  // msg -= 30;
 
   return {msg, msgSize};
 }

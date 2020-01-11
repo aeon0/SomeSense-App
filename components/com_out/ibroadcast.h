@@ -10,6 +10,6 @@ namespace com_out {
   class IBroadcast {
   public:
     virtual void broadcast(const std::string payload) const = 0;
-    virtual void broadcast(BYTE* data, int width, int height, int channels, int64_t ts) const = 0;
+    virtual void broadcast(BYTE* payload, int width, int height, int channels, int64_t ts) const = 0;
   };
 }
