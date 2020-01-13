@@ -3,12 +3,13 @@
 #include <iostream>
 #include <iomanip>
 #include "utilities/json.hpp"
+#include "types.h"
 
 
 namespace frame {
   class RuntimeMeasService {
   public:
-    RuntimeMeasService();
+    RuntimeMeasService(const TS& algoStartTime);
 
     void startMeas(std::string name);
     void endMeas(std::string name);
@@ -16,9 +17,6 @@ namespace frame {
     nlohmann::json serializeMeas();
 
     void reset() { _meas.clear(); }
-    void setStartTime(const std::chrono::time_point<std::chrono::high_resolution_clock> algoStartTime) {
-      _algoStartTime = algoStartTime;
-    }
 
   private:
     struct RuntimeMeas {
@@ -29,6 +27,6 @@ namespace frame {
     };
 
     std::map<std::string, RuntimeMeas> _meas;
-    std::chrono::time_point<std::chrono::high_resolution_clock> _algoStartTime;
+    const TS& _algoStartTime;
   };
 }

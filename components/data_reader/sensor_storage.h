@@ -1,14 +1,14 @@
-#ifndef sensor_storage_h
-#define sensor_storage_h
+#pragma once
 
 #include <map>
 #include <vector>
+#include "types.h"
 #include "cams/icam.h"
 
 namespace data_reader {
   class SensorStorage {
   public:
-    SensorStorage();
+    SensorStorage(const TS& algoStartTime);
 
     typedef std::map<const std::string, std::unique_ptr<ICam>> CamMap;
 
@@ -22,7 +22,6 @@ namespace data_reader {
   private:
     CamMap _cams;
     unsigned int _sensorCounter; // used to create unique sensor ids
+    const TS& _algoStartTime;
   };
 }
-
-#endif

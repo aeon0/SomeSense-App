@@ -1,8 +1,8 @@
 #include "runtime_meas_service.h"
 
 
-frame::RuntimeMeasService::RuntimeMeasService() 
-  : _algoStartTime(std::chrono::high_resolution_clock::now()) {}
+frame::RuntimeMeasService::RuntimeMeasService(const TS& algoStartTime) 
+  : _algoStartTime(algoStartTime) {}
 
 void frame::RuntimeMeasService::startMeas(std::string name) {
   _meas.erase(name); // In case the key does not exist at all, this does nothing
@@ -32,7 +32,6 @@ void frame::RuntimeMeasService::printToConsole() {
         std::right << std::setw(10) << std::setfill(' ') << std::fixed << std::setprecision(4) << value.duration.count() << " ms" << std::endl;
     }
   }
-  std::cout << std::endl;
 }
 
 nlohmann::json frame::RuntimeMeasService::serializeMeas() {

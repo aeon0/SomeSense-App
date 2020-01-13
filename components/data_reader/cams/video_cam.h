@@ -7,13 +7,7 @@
 namespace data_reader {
   class VideoCam : public BaseCam {
   public:
-    VideoCam( const std::string name, const std::string& filename, const std::vector<int64> timestamps = {});
-
-    // Getters for frame data
-    std::tuple<const bool, const int64, cv::Mat> getNewFrame(
-      const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64_t currentAlgoTs,
-      const bool updateToAlgoTs) override;
+    VideoCam( const std::string name, const TS& algoStartTime, const std::string& filename, const std::vector<int64> timestamps = {});
 
     // Recording specific getters (have default implementation otherwise)
     const bool isRecording() const override { return true; }

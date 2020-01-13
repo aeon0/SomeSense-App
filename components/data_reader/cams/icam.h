@@ -4,18 +4,12 @@
 #include <chrono>
 #include "opencv2/opencv.hpp"
 
+
 namespace data_reader {
   class ICam {
   public:
-    // Get next frame and returns {success, timestamp in [us], image}
-    // The currentAlgoTs and updateToAlgoTs are only relevant for recorded data
-    virtual std::tuple<const bool, const int64, cv::Mat> getNewFrame(
-      const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64_t currentAlgoTs,
-      const bool updateToAlgoTs) = 0;
-
     // Get previous frame and returns {success, timestamp in [us], image}
-    virtual std::tuple<const bool, const int64, cv::Mat> getFrame() = 0;
+    virtual std::tuple<const bool, const int64_t, cv::Mat> getFrame() = 0;
 
     // Return the base (optimal) fps possible for this sensor
     virtual const double getFrameRate() const = 0;

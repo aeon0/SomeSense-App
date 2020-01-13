@@ -80,22 +80,22 @@ void data_reader::StorageService::saveFrame() {
     // If the _startTs is not yet set (== -1), we need to find the smallest ts of the current frame
     // and set it as a reference to calculate a relative ts for all comming frames
     if (_startTs == -1) {
-      for (auto& [key, writer]: _videoWriters) {
-        auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
-        if (success && (_startTs == -1 || ts < _startTs)) {
-          _startTs = ts;
-        }
-      }
+      // for (auto& [key, writer]: _videoWriters) {
+      //   auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
+      //   if (success && (_startTs == -1 || ts < _startTs)) {
+      //     _startTs = ts;
+      //   }
+      // }
     }
 
     // Store frame for all the cameras and store a relative timestamp to the json object
     for (auto& [key, writer]: _videoWriters) {
-      auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
-      if (success) {
-        writer.write(frame);
-        const int64_t relativeTs = ts - _startTs;
-        _timestamps[key].push_back(relativeTs);
-      }
+      // auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
+      // if (success) {
+      //   writer.write(frame);
+      //   const int64_t relativeTs = ts - _startTs;
+      //   _timestamps[key].push_back(relativeTs);
+      // }
     }
   }
 }

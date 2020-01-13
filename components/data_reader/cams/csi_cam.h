@@ -7,12 +7,7 @@
 namespace data_reader {
   class CsiCam : public BaseCam {
   public:
-    CsiCam(const std::string name, int captureWidth, int captureHeight, double frameRate, int flipMethod);
-
-    std::tuple<const bool, const int64, cv::Mat> getNewFrame(
-      const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64_t currentAlgoTs,
-      const bool updateToAlgoTs) override;
+    CsiCam(const std::string name, const TS& algoStartTime, int captureWidth, int captureHeight, double frameRate, int flipMethod);
 
   private:
     cv::VideoCapture _cam;

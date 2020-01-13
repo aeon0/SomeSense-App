@@ -8,7 +8,8 @@
 #include "cams/csi_cam.h"
 
 
-data_reader::SensorStorage::SensorStorage() : _sensorCounter(0) {}
+data_reader::SensorStorage::SensorStorage(const TS& algoStartTime) :
+  _algoStartTime(algoStartTime), _sensorCounter(0) {}
 
 void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   std::ifstream ifs(filepath);
@@ -33,16 +34,16 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       const std::string filePath = jsonSensorConfig["basepath"].get<std::string>() + "/" + camName + ".mp4";
       if (timestampsJson.contains(camName)) {
         auto timestamps = timestampsJson[camName].get<std::vector<int64>>();
-        std::unique_ptr<ICam> videoCam(new VideoCam(camName, filePath, timestamps));
+        std::unique_ptr<ICam> videoCam(new VideoCam(camName, _algoStartTime, filePath, timestamps));
         addCam(videoCam, camName);
       }
       else {
-        std::unique_ptr<ICam> videoCam(new VideoCam(camName, filePath));
+        std::unique_ptr<ICam> videoCam(new VideoCam(camName, _algoStartTime, filePath));
         addCam(videoCam, camName);
       }
     }
     else if (typeName == "usb") {
-      std::unique_ptr<ICam> usbCam(new UsbCam(camName, it["device_idx"].get<int>()));
+      std::unique_ptr<ICam> usbCam(new UsbCam(camName, _algoStartTime, it["device_idx"].get<int>()));
       addCam(usbCam);
     }
     else if (typeName == "csi") {
@@ -51,7 +52,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       auto flipMethod = it["flip_method"].get<int>();
       auto frameRate = it["frame_rate"].get<double>();
 
-      std::unique_ptr<ICam> csiCam(new CsiCam(camName, captureWidth, captureHeight, frameRate, flipMethod));
+      std::unique_ptr<ICam> csiCam(new CsiCam(camName, _algoStartTime, captureWidth, captureHeight, frameRate, flipMethod));
       addCam(csiCam);
     }
     else {

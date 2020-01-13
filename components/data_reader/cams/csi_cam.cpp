@@ -8,7 +8,7 @@ std::string gstreamer_pipeline(int captureWidth, int captureHeight, int frameRat
 }
 
 
-data_reader::CsiCam::CsiCam(const std::string name, int captureWidth, int captureHeight, double frameRate, int flipMethod): BaseCam(name) {
+data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int captureWidth, int captureHeight, double frameRate, int flipMethod): BaseCam(name, algoStartTime) {
   std::string gsStreamerPipline = gstreamer_pipeline(captureWidth, captureHeight, frameRate, flipMethod);
   std::cout << "Using GStream Pipline: " << gsStreamerPipline << std::endl;
 
@@ -20,16 +20,16 @@ data_reader::CsiCam::CsiCam(const std::string name, int captureWidth, int captur
   _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
 }
 
-std::tuple<const bool, const int64, cv::Mat> data_reader::CsiCam::getNewFrame(
-      const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-      const int64_t currentAlgoTs,
-      const bool updateToAlgoTs) {
-  static_cast<void>(currentAlgoTs);
-  static_cast<void>(updateToAlgoTs);
+// std::tuple<const bool, const int64, cv::Mat> data_reader::CsiCam::getNewFrame(
+//       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
+//       const int64_t currentAlgoTs,
+//       const bool updateToAlgoTs) {
+//   static_cast<void>(currentAlgoTs);
+//   static_cast<void>(updateToAlgoTs);
 
-  const auto captureTime = std::chrono::high_resolution_clock::now();
-  _validFrame = _cam.read(_currFrame); // Reading takes around 2-3 ms on the Jetson Nano
+//   const auto captureTime = std::chrono::high_resolution_clock::now();
+//   _validFrame = _cam.read(_currFrame); // Reading takes around 2-3 ms on the Jetson Nano
 
-  _currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
-  return {_validFrame, _currTs, _currFrame};
-}
+//   _currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
+//   return {_validFrame, _currTs, _currFrame};
+// }
