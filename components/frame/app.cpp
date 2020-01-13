@@ -33,7 +33,7 @@ frame::App::App(const std::string& sensorConfigPath) :
       _isRecording = true;
       if (cam->getRecLength() > _recLength) {
         _recLength = cam->getRecLength();
-        _maxFrames = static_cast<int>(_recLength / (Config::goalFrameLength * 1000.0));
+        _maxFrames = static_cast<int>(_recLength / static_cast<double>(Config::goalFrameLength));
       }
     }
   }
@@ -74,11 +74,14 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
 
 void frame::App::run(const com_out::IBroadcast& broadCaster) {
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
+
   _runtimeMeasService.setStartTime(algoStartTime);
 
   while (!stopFromSignal) {
     _runtimeMeasService.startMeas("frame");
+
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
+    const auto plannedFrameEndTime = algoStartTime + std::chrono::nanoseconds(Config::goalFrameLength);
 
     // Check if a new frame should be created, note that pausing and stepping is only possible with recordings
     if (_outputState == "" || !_pause || !_isRecording || _stepForward || _stepBackward || _updateTs) {
@@ -212,17 +215,10 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
 
     broadCaster.broadcast(_outputState);
 
-    // Do some timing stuff and in case algo was too fast, wait for a set amount of time
-    auto frameAlgoEndTime = std::chrono::high_resolution_clock::now();
-    auto algoDuration = std::chrono::duration<double, std::milli>(frameAlgoEndTime - frameStartTime);
-    double waitTimeMsec = (Config::goalFrameLength - 0.02) - algoDuration.count();
-    if (waitTimeMsec > 0.0) {
-      auto waitTimeUsec = std::chrono::microseconds(static_cast<int>(waitTimeMsec * 1000.0));
-      std::this_thread::sleep_for(waitTimeUsec);
-    }
+    // Wait till end of frame in case algo was quicker too keep consistent algo frame rate
+    std::this_thread::sleep_until(plannedFrameEndTime);
 
     _runtimeMeasService.endMeas("frame");
-
     _runtimeMeasService.printToConsole();
   }
 }
