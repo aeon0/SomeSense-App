@@ -20,6 +20,9 @@ int main() {
   auto app = std::make_shared<frame::App>(sensorStorage, algoStartTime);
   app->run(server);
 
+  // TODO: app should either store its output and server reads it in its thread
+  //       or app should get a shared memory to write to where server sends it every x times
+
   serverThread.detach(); // Detach will terminate the server which is in accept mode
 
   std::cout << std::endl << "** Exit Program **" << std::endl;

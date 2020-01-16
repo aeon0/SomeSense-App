@@ -1,8 +1,9 @@
 #include <string>
 #include <chrono>
 #include <iostream>
+#include <map>
 #include <iomanip>
-#include "utilities/json.hpp"
+#include "com_out/output_state.h"
 #include "types.h"
 
 
@@ -14,7 +15,7 @@ namespace frame {
     void startMeas(std::string name);
     void endMeas(std::string name);
     void printToConsole();
-    nlohmann::json serializeMeas();
+    std::vector<com_out::RuntimeMeas> serializeMeas();
 
     void reset() { _meas.clear(); }
 

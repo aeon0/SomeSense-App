@@ -34,17 +34,13 @@ void frame::RuntimeMeasService::printToConsole() {
   }
 }
 
-nlohmann::json frame::RuntimeMeasService::serializeMeas() {
-  nlohmann::json jsonMeas;
+std::vector<com_out::RuntimeMeas> frame::RuntimeMeasService::serializeMeas() {
+  std::vector<com_out::RuntimeMeas> measVec;
   for(auto& [key, value]: _meas) {
     if(!value.running) {
       auto startTs = static_cast<long int>(std::chrono::duration<double, std::micro>(value.startTime - _algoStartTime).count());
-      jsonMeas.push_back({
-        {"name", key},
-        {"start", startTs},
-        {"duration", value.duration.count()},
-      });
+      measVec.push_back({key, startTs, value.duration.count()});
     }
   }
-  return jsonMeas;
+  return measVec;
 }
