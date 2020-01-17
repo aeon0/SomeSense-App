@@ -17,8 +17,9 @@ volatile sig_atomic_t stopFromSignal = 0;
 void sighandler(int signum) { stopFromSignal = 1; }
 
 
-frame::App::App(const data_reader::SensorStorage& sensorStorage, const TS& algoStartTime) :
-  _sensorStorage(sensorStorage), _algoStartTime(algoStartTime), _ts(0), _outputState(""), _frame(-1), _runtimeMeasService(algoStartTime) {
+frame::App::App(const data_reader::SensorStorage& sensorStorage, output::OutputStorage& outputStorage, const TS& algoStartTime) :
+  _sensorStorage(sensorStorage), _outputStorage(outputStorage), _algoStartTime(algoStartTime),
+  _ts(0), _frame(-1), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 
@@ -97,7 +98,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       auto runtimeMeas = _runtimeMeasService.serializeMeas();
       outputState.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
       
-      // broadCaster.broadcast(_outputState);
+      _outputStorage.set(outputState);
 
       _runtimeMeasService.endMeas("send_data");
 

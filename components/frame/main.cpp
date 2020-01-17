@@ -1,6 +1,7 @@
 #include "app.h"
 #include "com_out/tcp_server.h"
 #include "data_reader/sensor_storage.h"
+#include "output_storage.h"
 #include <thread>
 #include <iostream>
 
@@ -12,12 +13,14 @@ int main() {
 
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
+  auto outputStorage = output::OutputStorage();
+
   const std::string sensorConfigPath = "configs/live_sensors_usb.json";
   auto sensorStorage = data_reader::SensorStorage(algoStartTime);
   sensorStorage.initFromConfig(sensorConfigPath);
 
   std::cout << "** Start Application **" << std::endl;
-  auto app = std::make_shared<frame::App>(sensorStorage, algoStartTime);
+  auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);
   app->run(server);
 
   // TODO: app should either store its output and server reads it in its thread
