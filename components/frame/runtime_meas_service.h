@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 #include <iomanip>
-#include "com_out/output_state.h"
+#include "output_types.h"
 #include "types.h"
 
 
@@ -15,7 +15,7 @@ namespace frame {
     void startMeas(std::string name);
     void endMeas(std::string name);
     void printToConsole();
-    std::vector<com_out::RuntimeMeas> serializeMeas();
+    std::vector<output::RuntimeMeas> serializeMeas();
 
     void reset() { _meas.clear(); }
 

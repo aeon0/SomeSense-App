@@ -34,8 +34,8 @@ void frame::RuntimeMeasService::printToConsole() {
   }
 }
 
-std::vector<com_out::RuntimeMeas> frame::RuntimeMeasService::serializeMeas() {
-  std::vector<com_out::RuntimeMeas> measVec;
+std::vector<output::RuntimeMeas> frame::RuntimeMeasService::serializeMeas() {
+  std::vector<output::RuntimeMeas> measVec;
   for(auto& [key, value]: _meas) {
     if(!value.running) {
       auto startTs = static_cast<long int>(std::chrono::duration<double, std::micro>(value.startTime - _algoStartTime).count());

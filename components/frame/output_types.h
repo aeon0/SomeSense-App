@@ -1,9 +1,11 @@
+#pragma once
+
 #include <string>
 #include <tuple>
 #include <vector>
 
 
-namespace com_out {
+namespace output {
   struct CamSensor {
     int idx;
     std::string key;

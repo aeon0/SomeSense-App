@@ -6,7 +6,7 @@
 #include <chrono>
 #include <algorithm>
 #include "utilities/json.hpp"
-#include "com_out/output_state.h"
+#include "output_types.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -37,7 +37,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
     const auto plannedFrameEndTime = frameStartTime + std::chrono::microseconds(Config::goalFrameLength);
 
     // Output State contains all data which is sent to the "outside" e.g. to visualize
-    com_out::OutputState outputState;
+    output::OutputState outputState;
 
     const int64_t previousTs = _ts;
     _ts = 0;
