@@ -36,9 +36,9 @@ void output::to_json(nlohmann::json& j, const Track& t) {
 void output::to_json(nlohmann::json& j, const Frame& f) {
   j = nlohmann::json{
     {"timestamp", f.timestamp},
-    {"frame", f.frame},
+    {"frameCount", f.frameCount},
     {"tracks", f.tracks},
-    {"sensors", f.sensors},
+    {"camSensors", f.camSensors},
     {"runtimeMeas", f.runtimeMeas}
   };
 }

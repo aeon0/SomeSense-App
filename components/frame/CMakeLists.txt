@@ -1,5 +1,6 @@
 SET(COMPONENT_NAME "frame")
 
+# SYSTEM hides warnings in this file as I cant really do anything about it
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORRT_INCLUDE_DIRS}

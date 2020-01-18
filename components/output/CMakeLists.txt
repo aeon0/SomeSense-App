@@ -1,5 +1,7 @@
 SET(COMPONENT_NAME "output")
 
+include_directories(${OpenCV_INCLUDE_DIRS})
+
 add_library(lib${COMPONENT_NAME}
   storage.cpp
   types.cpp

@@ -3,7 +3,10 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <opencv2/core/core.hpp>
 #include "utilities/json.hpp"
+
+#define OUTPUT_INTERFACE_VERSION 1
 
 
 namespace output {
@@ -40,12 +43,21 @@ namespace output {
 
   struct Frame {
     int64_t timestamp;
-    int frame; // TODO: rename to frameCount
+    int frameCount;
     std::vector<Track> tracks;
 
     // Debug data, maybe create seperate struct for this
-    std::vector<CamSensor> sensors; // TODO: rename to camSensors
+    std::vector<CamSensor> camSensors;
     std::vector<RuntimeMeas> runtimeMeas;
   };
   void to_json(nlohmann::json& j, const Frame& o);
+
+  struct CamImg {
+    int sensorIdx;
+    int timestamp;
+    cv::Mat img;
+    int width;
+    int height;
+    int channels;
+  };
 }

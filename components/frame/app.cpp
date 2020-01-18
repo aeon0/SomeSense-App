@@ -5,6 +5,7 @@
 #include <cmath>
 #include <chrono>
 #include <algorithm>
+#include <memory>
 #include "utilities/json.hpp"
 #include "output/types.h"
 
@@ -65,8 +66,16 @@ void frame::App::run() {
         const double scaleFactor = static_cast<double>(outSize.width) / static_cast<double>(img.size().width);
         outSize.height = img.size().height * scaleFactor;
         cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
-        
-        // broadCaster.broadcast(sensorIdx, outImg.data, outImg.size().width, outImg.size().height, outImg.channels(), sensorTs);
+
+        auto camImgData = std::make_unique<output::CamImg>();
+        camImgData->sensorIdx = sensorIdx;
+        camImgData->timestamp = sensorTs;
+        camImgData->img = outImg;
+        camImgData->width = outImg.size().width;
+        camImgData->height = outImg.size().height;
+        camImgData->channels = outImg.channels();
+        // Note that the unique ptr is moved on setCamImg! Do not use it afterwards as it is a null ptr then
+        _outputStorage.setCamImg(key, camImgData);
 
         gotNewSensorData = true;
         if (sensorTs > _ts) {
@@ -77,7 +86,7 @@ void frame::App::run() {
       }
 
       // Add sensor to outputstate
-      frameData.sensors.push_back({sensorIdx, key, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
+      frameData.camSensors.push_back({sensorIdx, key, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
 
       sensorIdx++;
     }
@@ -93,7 +102,7 @@ void frame::App::run() {
 
       // Finally set the algo timestamp to the output data
       frameData.timestamp = _ts;
-      frameData.frame = _frame;
+      frameData.frameCount = _frame;
       // Add time measurements to the json output
       auto runtimeMeas = _runtimeMeasService.serializeMeas();
       frameData.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
@@ -105,7 +114,7 @@ void frame::App::run() {
       _frame++;
     }
 
-    // _runtimeMeasService.printToConsole();
+    _runtimeMeasService.printToConsole();
     _runtimeMeasService.reset();
     // Wait till end of frame in case algo was quicker too keep consistent algo frame rate
     std::this_thread::sleep_until(plannedFrameEndTime);
