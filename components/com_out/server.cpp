@@ -33,6 +33,7 @@ void com_out::Server::pollOutput() {
       _lastSentTs = currAlgoTs;
 
       // Send raw sensor data (has to be before algo data!)
+      // TODO: Is this actually thread save? Cause cloneing after lock is actually freed...
       for (auto [key, data] : _outputStorage.getCamImgs()) {
         cv::Mat imgClone = data.img.clone();
         broadcast(

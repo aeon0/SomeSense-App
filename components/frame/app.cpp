@@ -67,14 +67,14 @@ void frame::App::run() {
         outSize.height = img.size().height * scaleFactor;
         cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
 
-        auto camImgData = std::make_unique<output::CamImg>();
-        camImgData->sensorIdx = sensorIdx;
-        camImgData->timestamp = sensorTs;
-        camImgData->img = outImg;
-        camImgData->width = outImg.size().width;
-        camImgData->height = outImg.size().height;
-        camImgData->channels = outImg.channels();
-        // Note that the unique ptr is moved on setCamImg! Do not use it afterwards as it is a null ptr then
+        output::CamImg camImgData {
+          sensorIdx,
+          sensorTs,
+          outImg.clone(),
+          outImg.size().width,
+          outImg.size().height,
+          outImg.channels()
+        };
         _outputStorage.setCamImg(key, camImgData);
 
         gotNewSensorData = true;

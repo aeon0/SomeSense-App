@@ -26,12 +26,17 @@ int64_t output::Storage::getAlgoTs() const {
   return _frameData.timestamp;
 }
 
-void output::Storage::setCamImg(std::string key, std::unique_ptr<CamImg>& data) {
+void output::Storage::setCamImg(std::string key, CamImg data) {
   std::lock_guard<std::mutex> lockGuard(camImgsLock);
-  _camImgs.insert({key, std::move(data)});
+  if (_camImgs.find(key) != _camImgs.end()) {
+    _camImgs.at(key) = data;
+  }
+  else {
+    _camImgs.insert({key, data});
+  }
 }
 
-const output::Storage::CamImgMap& output::Storage::getCamImgs() const {
+output::Storage::CamImgMap output::Storage::getCamImgs() const {
   std::lock_guard<std::mutex> lockGuard(camImgsLock);
   return _camImgs;
 }

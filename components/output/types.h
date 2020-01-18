@@ -54,7 +54,7 @@ namespace output {
 
   struct CamImg {
     int sensorIdx;
-    int timestamp;
+    int64_t timestamp;
     cv::Mat img;
     int width;
     int height;
