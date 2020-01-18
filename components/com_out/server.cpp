@@ -32,6 +32,18 @@ void com_out::Server::pollOutput() {
     if (currAlgoTs > _lastSentTs) {
       _lastSentTs = currAlgoTs;
 
+      // Send raw sensor data (has to be before algo data!)
+      for (auto [key, data] : _outputStorage.getCamImgs()) {
+        cv::Mat imgClone = data.img.clone();
+        broadcast(
+          data.sensorIdx,
+          imgClone.data,
+          data.width,
+          data.height,
+          data.channels,
+          data.timestamp);
+      }
+
       // Send algo data
       nlohmann::json out {
         {"type", "server.frame"},
