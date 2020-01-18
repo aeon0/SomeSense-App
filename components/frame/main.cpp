@@ -8,26 +8,26 @@
 
 int main() {
   // Create Server in seperate thread
-  com_out::TcpServer server;
-  std::thread serverThread(&com_out::Server::run, &server);
+  // com_out::TcpServer server;
+  // std::thread serverThread(&com_out::Server::run, &server);
 
-  const auto algoStartTime = std::chrono::high_resolution_clock::now();
+  // const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
-  auto outputStorage = output::OutputStorage();
+  // auto outputStorage = output::OutputStorage();
 
-  const std::string sensorConfigPath = "configs/live_sensors_usb.json";
-  auto sensorStorage = data_reader::SensorStorage(algoStartTime);
-  sensorStorage.initFromConfig(sensorConfigPath);
+  // const std::string sensorConfigPath = "configs/live_sensors_usb.json";
+  // auto sensorStorage = data_reader::SensorStorage(algoStartTime);
+  // sensorStorage.initFromConfig(sensorConfigPath);
 
-  std::cout << "** Start Application **" << std::endl;
-  auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);
-  app->run(server);
+  // std::cout << "** Start Application **" << std::endl;
+  // auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);
+  // app->run(server);
 
-  // TODO: app should either store its output and server reads it in its thread
-  //       or app should get a shared memory to write to where server sends it every x times
+  // // TODO: app should either store its output and server reads it in its thread
+  // //       or app should get a shared memory to write to where server sends it every x times
 
-  serverThread.detach(); // Detach will terminate the server which is in accept mode
+  // serverThread.detach(); // Detach will terminate the server which is in accept mode
 
-  std::cout << std::endl << "** Exit Program **" << std::endl;
+  // std::cout << std::endl << "** Exit Program **" << std::endl;
   return 0;
 }

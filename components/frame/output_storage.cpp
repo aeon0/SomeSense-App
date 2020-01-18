@@ -5,13 +5,14 @@ std::mutex outputStateLock;
 
 void output::OutputStorage::set(output::OutputState outputState) {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  // TODO: Convert to json
+  // nlohmann::json jsonOutput = outputState;
+  // _outputStateJsonStr = jsonOutput.dump();
   _outputState = outputState;
 }
 
-std::string output::OutputStorage::getJson() {
+std::string output::OutputStorage::getJsonStr() {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _outputStateJson;
+  return _outputStateJsonStr;
 }
 
 output::OutputState output::OutputStorage::get() {

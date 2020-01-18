@@ -9,10 +9,10 @@ namespace output {
   public:
     void set(OutputState outputState);
     OutputState get();
-    std::string getJson();
+    std::string getJsonStr();
 
   private:
     OutputState _outputState;
-    std::string _outputStateJson;
+    std::string _outputStateJsonStr;
   };
 }
