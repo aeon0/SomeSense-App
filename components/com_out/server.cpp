@@ -158,7 +158,6 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
       } 
       else {
         // an error occurred, so break out
-        throw std::runtime_error("Error on writing message to client");
         return false;
       }
     } 
