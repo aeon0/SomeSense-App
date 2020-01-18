@@ -30,6 +30,8 @@ add_subdirectory(components/com_out)
 add_subdirectory(components/data_reader)
 # add_subdirectory(components/object_detection)
 add_subdirectory(components/frame)
+add_subdirectory(components/output)
+
 
 if(BUILD_TEST)
   add_subdirectory(test/frame)

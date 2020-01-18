@@ -10,7 +10,6 @@ add_library(lib${COMPONENT_NAME}
   app.cpp
   config.cpp
   runtime_meas_service.cpp
-  output_storage.cpp
 )
 
 install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})
@@ -25,6 +24,7 @@ target_link_libraries(${PROJECT_NAME}
   libcom_out
   # libutilities # currently no cpp file, thus header only lib
   # libobject_detection
+  liboutput
   # ${CUDA_LIBRARIES}
   ${OpenCV_LIBS}
 

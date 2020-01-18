@@ -1,7 +1,7 @@
 #include "app.h"
 #include "com_out/tcp_server.h"
 #include "data_reader/sensor_storage.h"
-#include "output_storage.h"
+#include "output/storage.h"
 #include <thread>
 #include <iostream>
 
@@ -13,7 +13,7 @@ int main() {
 
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
-  auto outputStorage = output::OutputStorage();
+  auto outputStorage = output::Storage();
 
   const std::string sensorConfigPath = "configs/live_sensors_usb.json";
   auto sensorStorage = data_reader::SensorStorage(algoStartTime);

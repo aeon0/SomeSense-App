@@ -6,7 +6,7 @@
 #include <chrono>
 #include <algorithm>
 #include "utilities/json.hpp"
-#include "output_types.h"
+#include "output/types.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@ volatile sig_atomic_t stopFromSignal = 0;
 void sighandler(int signum) { stopFromSignal = 1; }
 
 
-frame::App::App(const data_reader::SensorStorage& sensorStorage, output::OutputStorage& outputStorage, const TS& algoStartTime) :
+frame::App::App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime) :
   _sensorStorage(sensorStorage), _outputStorage(outputStorage), _algoStartTime(algoStartTime),
   _ts(0), _frame(-1), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
@@ -38,7 +38,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
     const auto plannedFrameEndTime = frameStartTime + std::chrono::microseconds(Config::goalFrameLength);
 
     // Output State contains all data which is sent to the "outside" e.g. to visualize
-    output::OutputState outputState;
+    output::Frame frameData;
 
     const int64_t previousTs = _ts;
     _ts = 0;
@@ -77,7 +77,7 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       }
 
       // Add sensor to outputstate
-      outputState.sensors.push_back({sensorIdx, key, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
+      frameData.sensors.push_back({sensorIdx, key, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
 
       sensorIdx++;
     }
@@ -89,16 +89,16 @@ void frame::App::run(const com_out::IBroadcast& broadCaster) {
       _runtimeMeasService.startMeas("send_data");
 
       // Add example track for testing
-      outputState.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
+      frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
 
       // Finally set the algo timestamp to the output data
-      outputState.timestamp = _ts;
-      outputState.frame = _frame;
+      frameData.timestamp = _ts;
+      frameData.frame = _frame;
       // Add time measurements to the json output
       auto runtimeMeas = _runtimeMeasService.serializeMeas();
-      outputState.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
-      
-      _outputStorage.set(outputState);
+      frameData.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
+
+      _outputStorage.set(frameData);
 
       _runtimeMeasService.endMeas("send_data");
 

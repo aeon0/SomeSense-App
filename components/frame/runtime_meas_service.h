@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 #include <iomanip>
-#include "output_types.h"
+#include "output/types.h"
 #include "types.h"
 
 
