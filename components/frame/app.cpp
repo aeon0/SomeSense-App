@@ -95,7 +95,7 @@ void frame::App::run() {
       // TODO: do the processing for tracks
 
       _runtimeMeasService.endMeas("algo");
-      _runtimeMeasService.startMeas("send_data");
+      _runtimeMeasService.startMeas("set_algo_data");
 
       // Add example track for testing
       frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
@@ -109,7 +109,7 @@ void frame::App::run() {
 
       _outputStorage.set(frameData);
 
-      _runtimeMeasService.endMeas("send_data");
+      _runtimeMeasService.endMeas("set_algo_data");
 
       _frame++;
     }
