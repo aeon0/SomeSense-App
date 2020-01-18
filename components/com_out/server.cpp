@@ -44,7 +44,6 @@ void com_out::Server::pollOutput() {
           data.channels,
           data.timestamp
         );
-        data.img.release();
       }
 
       // Send algo data

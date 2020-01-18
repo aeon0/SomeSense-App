@@ -25,8 +25,9 @@ void data_reader::UsbCam::readData() {
     std::lock_guard<std::mutex> lockGuard(_readMutex);
     _currTs = static_cast<int64_t>(std::chrono::duration<double, std::micro>(captureTime - _algoStartTime).count());
     _currFrame = _bufferFrame.clone();
+     _bufferFrame.release();
     _validFrame = success;
-    
+
     // Not sure why I need this... but it seems otherwise the readFrame() is not fast enough
     // to take the lock...
     // std::this_thread::sleep_for(std::chrono::microseconds(100));
