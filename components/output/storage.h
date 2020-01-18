@@ -18,8 +18,10 @@ namespace output {
     int64_t getAlgoTs() const;
 
     // Cam sensor raw output data
+    // Dont forget to clone the cv::Mat of data!
     void setCamImg(std::string key, CamImg data);
-    CamImgMap getCamImgs() const;
+    // Output by reference because it needs to be cloned during an active lock
+    void getCamImgs(CamImgMap& camImgMap) const;
 
   private:
     Frame _frameData;

@@ -33,16 +33,18 @@ void com_out::Server::pollOutput() {
       _lastSentTs = currAlgoTs;
 
       // Send raw sensor data (has to be before algo data!)
-      // TODO: Is this actually thread save? Cause cloneing after lock is actually freed...
-      for (auto [key, data] : _outputStorage.getCamImgs()) {
-        cv::Mat imgClone = data.img.clone();
+     output::Storage::CamImgMap camImgMap;
+     _outputStorage.getCamImgs(camImgMap);
+      for (auto [key, data] : camImgMap) {
         broadcast(
           data.sensorIdx,
-          imgClone.data,
+          data.img.data,
           data.width,
           data.height,
           data.channels,
-          data.timestamp);
+          data.timestamp
+        );
+        data.img.release();
       }
 
       // Send algo data
@@ -151,22 +153,27 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
   int nwritten;
   // loop to be sure it is all sent
   while(nleft) {
-    if((nwritten = send(client, buf, nleft, 0)) < 0) {
-      if (errno == EINTR) {
-        // the socket call was interrupted -- try again
-        continue;
+    try {
+      if((nwritten = send(client, buf, nleft, 0)) < 0) {
+        if (errno == EINTR) {
+          // the socket call was interrupted -- try again
+          continue;
+        } 
+        else {
+          // an error occurred, so break out
+          return false;
+        }
       } 
-      else {
-        // an error occurred, so break out
+      else if(nwritten == 0) {
+        // the socket is closed
         return false;
       }
-    } 
-    else if(nwritten == 0) {
-      // the socket is closed
+      nleft -= nwritten;
+      buf += nwritten;
+    }
+    catch (const std::exception& e) {
       return false;
     }
-    nleft -= nwritten;
-    buf += nwritten;
   }
   return true;
 }
