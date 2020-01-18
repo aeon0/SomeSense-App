@@ -30,7 +30,7 @@ void reset() {
   std::cout << "Reset Algo..." << std::endl;
 }
 
-void frame::App::run(const com_out::IBroadcast& broadCaster) {
+void frame::App::run() {
   while (!stopFromSignal) {
     _runtimeMeasService.startMeas("algo");
 

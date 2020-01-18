@@ -3,7 +3,6 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "data_reader/sensor_storage.h"
-#include "com_out/ibroadcast.h"
 #include "runtime_meas_service.h"
 #include "types.h"
 #include "output/storage.h"
@@ -16,7 +15,7 @@ namespace frame {
   public:
     App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime);
 
-    void run(const com_out::IBroadcast& broadCaster);
+    void run();
     void reset();
 
   private:

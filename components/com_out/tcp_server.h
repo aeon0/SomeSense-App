@@ -11,15 +11,13 @@
 namespace com_out {
   class TcpServer : public Server {
   public:
-    TcpServer();
+    TcpServer(const output::Storage& outputStorage);
 
   protected:
     void create();
     void closeSocket();
-
-  private:
-    static void interrupt(int);
-    
-    // static const char* _socketName;
+  
+  // private:
+  //   static void interrupt(int);
   };
 }

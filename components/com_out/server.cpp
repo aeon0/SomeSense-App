@@ -2,10 +2,13 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <thread>
+#include <chrono>
 #include "utilities/json.hpp"
 
 
-com_out::Server::Server() {
+com_out::Server::Server(const output::Storage& outputStorage) :
+  _outputStorage(outputStorage), _lastSentTs(-1), _pollOutput(true) {
   _buf = new char[1024];
 }
 
@@ -16,6 +19,29 @@ com_out::Server::~Server() {
 void com_out::Server::run() {
   create();
   serve();
+}
+
+void com_out::Server::stop() {
+  close(_server);
+  _pollOutput = false;
+}
+
+void com_out::Server::pollOutput() {
+  while(_pollOutput) {
+    int64_t currAlgoTs = _outputStorage.getAlgoTs();
+    if (currAlgoTs > _lastSentTs) {
+      _lastSentTs = currAlgoTs;
+
+      // Send algo data
+      nlohmann::json out {
+        {"type", "server.frame"},
+        {"data", _outputStorage.getJson()}
+      };
+      broadcast(out.dump());
+    }
+    // Polling every 2 ms to check if there is new data
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
 }
 
 void com_out::Server::registerRequestListener(std::shared_ptr<IRequestListener> listener) {

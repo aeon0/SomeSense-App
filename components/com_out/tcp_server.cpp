@@ -2,15 +2,13 @@
 #include <iostream>
 
 
-// const char* com_out::TcpServer::_socketName = "/tmp/unix-socket";
-
-com_out::TcpServer::TcpServer() {
+com_out::TcpServer::TcpServer(const output::Storage& outputStorage) : Server(outputStorage) {
   // setup handler for Control-C so we can properly unlink the UNIX socket when that occurs
-  struct sigaction sigIntHandler;
-  sigIntHandler.sa_handler = interrupt;
-  sigemptyset(&sigIntHandler.sa_mask);
-  sigIntHandler.sa_flags = 0;
-  sigaction(SIGINT, &sigIntHandler, NULL);
+  // struct sigaction sigIntHandler;
+  // sigIntHandler.sa_handler = interrupt;
+  // sigemptyset(&sigIntHandler.sa_mask);
+  // sigIntHandler.sa_flags = 0;
+  // sigaction(SIGINT, &sigIntHandler, NULL);
 }
 
 void com_out::TcpServer::create() {
@@ -45,7 +43,6 @@ void com_out::TcpServer::closeSocket() {
   close(_server);
 }
 
-void com_out::TcpServer::interrupt(int) {
-  // close(_server);
-  std::cout << "Interrupt called... but nothing happens" << std::endl;
-}
+// void com_out::TcpServer::interrupt(int) {
+//   close(_server);
+// }
