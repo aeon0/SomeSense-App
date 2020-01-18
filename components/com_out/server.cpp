@@ -53,7 +53,7 @@ void com_out::Server::pollOutput() {
       };
       broadcast(out.dump());
     }
-    // Polling every 2 ms to check if there is new data
+    // Polling every 5 ms to check if there is new data
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 }
