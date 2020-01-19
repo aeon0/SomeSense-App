@@ -2,6 +2,7 @@
 #include "com_out/tcp_server.h"
 #include "data_reader/sensor_storage.h"
 #include "output/storage.h"
+#include "output/storage_service.h"
 #include <thread>
 #include <iostream>
 
@@ -17,9 +18,14 @@ int main() {
 
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
+  // Create Sensor Storage
   const std::string sensorConfigPath = "configs/live_sensors_usb.json";
   auto sensorStorage = data_reader::SensorStorage(server, algoStartTime);
   sensorStorage.initFromConfig(sensorConfigPath);
+
+  // Create Storage Service for recording
+  auto storageService = std::make_shared<output::StorageService>("/home/jo/Desktop/projects/app-frame/storage_data", outputStorage);
+  server.registerRequestListener(storageService);
 
   std::cout << "** Start Application **" << std::endl;
   auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);

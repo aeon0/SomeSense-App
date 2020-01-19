@@ -8,10 +8,15 @@
 std::mutex storageServiceLock;
 
 
-data_reader::StorageService::StorageService(const std::string storageBasePath, const SensorStorage& sensorStorage) :
-  _isStoring(false), _storageBasePath(storageBasePath), _sensorStorage(sensorStorage), _startTs(-1) {}
+output::StorageService::StorageService(const std::string storageBasePath, const output::Storage& outputStorage) :
+  _isStoring(false), _storageBasePath(storageBasePath), _outputStorage(outputStorage), _startTs(-1) {}
 
-std::string data_reader::StorageService::formatTimePoint(std::chrono::system_clock::time_point point) {
+void output::StorageService::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+  std::cout << "Handle Request: " << std::endl;
+  std::cout << requestData << std::endl;
+}
+
+std::string output::StorageService::formatTimePoint(std::chrono::system_clock::time_point point) {
     static_assert(std::chrono::system_clock::time_point::period::den == 1000000000 && std::chrono::system_clock::time_point::period::num == 1);
     std::string out(29, '0');
     char* buf = &out[0];
@@ -21,13 +26,13 @@ std::string data_reader::StorageService::formatTimePoint(std::chrono::system_clo
     return out;
 }
 
-bool data_reader::StorageService::isStoring() const {
+bool output::StorageService::isStoring() const {
   // Normaly this should not be needed for returning a bool, but better save than sorry
   std::lock_guard<std::mutex> lockGuard(storageServiceLock);
   return _isStoring;
 }
 
-void data_reader::StorageService::startStoring() {
+void output::StorageService::startStoring() {
   if (!_isStoring) {
     std::lock_guard<std::mutex> lockGuard(storageServiceLock);
     _isStoring = true;
@@ -38,24 +43,24 @@ void data_reader::StorageService::startStoring() {
     mkdir(_currentStoragePath.c_str(), 0755);
 
     // Loop through all sensors in the storage and create e.g. cv::VideoWriter for each camera
-    for (auto const& [key, cam]: _sensorStorage.getCams()) {
-      const double fps = cam->getFrameRate();
-      const cv::Size frameSize = cam->getFrameSize();
-      const std::string videoFilePath = _currentStoragePath + "/" + key + ".mp4";
+    // for (auto const& [key, cam]: _sensorStorage.getCams()) {
+    //   const double fps = cam->getFrameRate();
+    //   const cv::Size frameSize = cam->getFrameSize();
+    //   const std::string videoFilePath = _currentStoragePath + "/" + key + ".mp4";
 
-      auto writer = cv::VideoWriter(videoFilePath, cv::VideoWriter::fourcc('m','p','4','v'), fps, frameSize);
-      _videoWriters.insert({key, writer});
+    //   auto writer = cv::VideoWriter(videoFilePath, cv::VideoWriter::fourcc('m','p','4','v'), fps, frameSize);
+    //   _videoWriters.insert({key, writer});
 
-      // For each videoWriter create a key array in the json object
-      _timestamps[key] = nlohmann::json::array();
-    }
+    //   // For each videoWriter create a key array in the json object
+    //   _timestamps[key] = nlohmann::json::array();
+    // }
 
     // Set to -1 to force a reset on first time calling saveFrame()
     _startTs = -1;
   }
 }
 
-void data_reader::StorageService::stopStoring() {
+void output::StorageService::stopStoring() {
   if (_isStoring) {
     std::lock_guard<std::mutex> lockGuard(storageServiceLock);
     _isStoring = false;
@@ -73,7 +78,7 @@ void data_reader::StorageService::stopStoring() {
   }
 }
 
-void data_reader::StorageService::saveFrame() {
+void output::StorageService::saveFrame() {
   if (_isStoring) {
     std::lock_guard<std::mutex> lockGuard(storageServiceLock);
 

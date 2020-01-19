@@ -4,7 +4,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_library(lib${COMPONENT_NAME} 
   sensor_storage.cpp
-  storage_service.cpp
   cams/base_cam.cpp
   cams/video_cam.cpp
   cams/csi_cam.cpp
