@@ -2,6 +2,7 @@
 #include <chrono>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <thread>
 #include <fstream>
 
 // Mutex needed because user interactions can fire startStoring(), stopStoring() at any time from the server thread
@@ -9,7 +10,8 @@ std::mutex storageServiceLock;
 
 
 output::StorageService::StorageService(const std::string storageBasePath, const output::Storage& outputStorage) :
-  _isStoring(false), _storageBasePath(storageBasePath), _outputStorage(outputStorage), _startTs(-1) {}
+  _isStoring(false), _storageBasePath(storageBasePath), _outputStorage(outputStorage), _startTs(-1),
+  _runFlag(false), _lastSavedTs(-1) {}
 
 void output::StorageService::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   std::cout << "Handle Request: " << std::endl;
@@ -17,19 +19,40 @@ void output::StorageService::handleRequest(const std::string& requestType, const
 }
 
 std::string output::StorageService::formatTimePoint(std::chrono::system_clock::time_point point) {
-    static_assert(std::chrono::system_clock::time_point::period::den == 1000000000 && std::chrono::system_clock::time_point::period::num == 1);
-    std::string out(29, '0');
-    char* buf = &out[0];
-    std::time_t now_c = std::chrono::system_clock::to_time_t(point);
-    std::strftime(buf, 21, "%Y-%m-%dT%H:%M:%S.", std::localtime(&now_c));
-    sprintf(buf+20, "%09ld", point.time_since_epoch().count() % 1000000000);
-    return out;
+  static_assert(std::chrono::system_clock::time_point::period::den == 1000000000 && std::chrono::system_clock::time_point::period::num == 1);
+  std::string out(29, '0');
+  char* buf = &out[0];
+  std::time_t now_c = std::chrono::system_clock::to_time_t(point);
+  std::strftime(buf, 21, "%Y-%m-%dT%H:%M:%S.", std::localtime(&now_c));
+  sprintf(buf+20, "%09ld", point.time_since_epoch().count() % 1000000000);
+  return out;
 }
 
 bool output::StorageService::isStoring() const {
   // Normaly this should not be needed for returning a bool, but better save than sorry
   std::lock_guard<std::mutex> lockGuard(storageServiceLock);
   return _isStoring;
+}
+
+void output::StorageService::stop() {
+  // Not sure if lock is really needed for setting bool values
+  std::lock_guard<std::mutex> lockGuard(storageServiceLock);
+  _runFlag = false;
+}
+
+void output::StorageService::run() {
+  _runFlag = true;
+  while (_runFlag) {
+    if (_isStoring) {
+      int64_t currAlgoTs = _outputStorage.getAlgoTs();
+      if (currAlgoTs > _lastSavedTs) {
+        _lastSavedTs = currAlgoTs;
+        std::cout << "Store frame..." << std::endl;
+      }
+    }
+    // Polling every 5 ms to check if there is new data
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
 }
 
 void output::StorageService::startStoring() {

@@ -28,16 +28,21 @@ namespace output {
 
     bool isStoring() const;
 
+    void run();
+    void stop();
+
   private:
     // Format a chrono timepoint in something such as "2019-12-27T21:11:13.134689566"
     static std::string formatTimePoint(std::chrono::system_clock::time_point point);
 
     const output::Storage& _outputStorage;
-    bool _isStoring;
+    bool _runFlag; // TODO: use std::atomic<bool>
+    bool _isStoring; // TODO: use std::atomic<bool>
     int64_t _startTs; // reference TS of the beginning of the recording
     std::string _currentStoragePath;
     const std::string _storageBasePath;
     std::map<const std::string, cv::VideoWriter> _videoWriters; // keys corresponds to _sensorStorage.getCams() keys
     nlohmann::json _timestamps;
+    int64_t _lastSavedTs;
   };
 }
