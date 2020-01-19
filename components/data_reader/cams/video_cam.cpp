@@ -15,6 +15,10 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
   _frameSize = cv::Size(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT));
 }
 
+void data_reader::VideoCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+  std::cout << "Handle Request" << std::endl;
+}
+
 // std::tuple<const bool, const int64, cv::Mat> data_reader::VideoCam::getNewFrame(
 //       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
 //       const int64_t currentAlgoTs,

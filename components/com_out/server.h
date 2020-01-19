@@ -1,6 +1,6 @@
 #pragma once
 
-#include "irequest_listener.h"
+#include "irequest_handler.h"
 #include "output/storage.h"
 #include <errno.h>
 #include <netinet/in.h>
@@ -19,7 +19,7 @@ typedef unsigned char BYTE;
 
 
 namespace com_out {
-  class Server {
+  class Server : public IRequestHandler {
   public:
     Server(const output::Storage& outputStorage);
     ~Server();
@@ -29,8 +29,8 @@ namespace com_out {
 
     void pollOutput();
 
-    void registerRequestListener(std::shared_ptr<IRequestListener> listener);
-    void deleteRequestListener(std::shared_ptr<IRequestListener> listener);
+    void registerRequestListener(std::shared_ptr<IRequestListener> listener) override;
+    void deleteRequestListener(std::shared_ptr<IRequestListener> listener) override;
 
   protected:
     virtual void create() = 0;
