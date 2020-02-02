@@ -33,6 +33,9 @@ namespace com_out {
     void deleteRequestListener(std::shared_ptr<IRequestListener> listener) override;
 
   protected:
+    static const int _headerSize = 20;
+    static const int _bufSize = 1024;
+
     virtual void create() = 0;
     virtual void closeSocket() = 0;
 
@@ -53,8 +56,6 @@ namespace com_out {
     std::vector<int> _clients;
 
     std::vector<std::shared_ptr<IRequestListener>> _requestListeners;
-
-    static const int _headerSize = 20;
 
     const output::Storage& _outputStorage;
     int64_t _lastSentTs;

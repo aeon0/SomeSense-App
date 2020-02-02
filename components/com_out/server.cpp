@@ -9,7 +9,7 @@
 
 com_out::Server::Server(const output::Storage& outputStorage) :
   _outputStorage(outputStorage), _lastSentTs(-1), _pollOutput(true) {
-  _buf = new char[1024];
+  _buf = new char[_bufSize];
 }
 
 com_out::Server::~Server() {
@@ -124,7 +124,7 @@ std::string com_out::Server::getRequest(int client) {
 
   // read until we get a newline
   while(request.find("\n") == std::string::npos) {
-    int nread = recv(client,_buf, 1024, 0);
+    int nread = recv(client, _buf, _bufSize, 0);
     if (nread < 0) {
       if (errno == EINTR)
         // the socket call was interrupted -- try again
@@ -132,7 +132,7 @@ std::string com_out::Server::getRequest(int client) {
       else
         // an error occurred, so break out
         return "";
-    } 
+    }
     else if(nread == 0) {
       // the socket is closed
       return "";
