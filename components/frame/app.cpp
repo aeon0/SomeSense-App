@@ -114,7 +114,7 @@ void frame::App::run() {
       _frame++;
     }
 
-    _runtimeMeasService.printToConsole();
+    // _runtimeMeasService.printToConsole();
     _runtimeMeasService.reset();
     // Wait till end of frame in case algo was quicker too keep consistent algo frame rate
     std::this_thread::sleep_until(plannedFrameEndTime);

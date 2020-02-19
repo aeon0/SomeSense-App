@@ -21,23 +21,15 @@ namespace output {
     StorageService(const std::string storageBasePath, const output::Storage& outputStorage);
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
-
-    void startStoring();
     void saveFrame();
-    void stopStoring();
-
-    bool isStoring() const;
-
     void run();
     void stop();
 
   private:
-    // Format a chrono timepoint in something such as "2019-12-27T21:11:13.134689566"
+    // Format a chrono timepoint in something such as "2019-12-27T21:11:13.134689566" for unique file name creation
     static std::string formatTimePoint(std::chrono::system_clock::time_point point);
 
     const output::Storage& _outputStorage;
-    bool _runFlag; // TODO: use std::atomic<bool>
-    bool _isStoring; // TODO: use std::atomic<bool>
     int64_t _startTs; // reference TS of the beginning of the recording
     std::string _currentStoragePath;
     const std::string _storageBasePath;

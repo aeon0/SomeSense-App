@@ -4,18 +4,27 @@
 #include <sys/types.h>
 #include <thread>
 #include <fstream>
+#include <atomic>
 
-// Mutex needed because user interactions can fire startStoring(), stopStoring() at any time from the server thread
+
+// Atomic bools as user interaction can start and stop storing at any time
+std::atomic<bool> isStoring(false);
 std::mutex storageServiceLock;
 
 
 output::StorageService::StorageService(const std::string storageBasePath, const output::Storage& outputStorage) :
-  _isStoring(false), _storageBasePath(storageBasePath), _outputStorage(outputStorage), _startTs(-1),
-  _runFlag(false), _lastSavedTs(-1) {}
+  _storageBasePath(storageBasePath), _outputStorage(outputStorage), _startTs(-1), _lastSavedTs(-1) {}
 
 void output::StorageService::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  std::cout << "Handle Request: " << std::endl;
-  std::cout << requestData << std::endl;
+  std::cout << "Storage Service: Handle Request: " << std::endl;
+  if (requestData["type"] == "client.start_storing") {
+    std::cout << "Start Storing" << std::endl;
+    run();
+  }
+  else if (requestData["type"] == "client.stop_storing") {
+    std::cout << "Stop Storing" << std::endl;
+    stop();
+  }
 }
 
 std::string output::StorageService::formatTimePoint(std::chrono::system_clock::time_point point) {
@@ -28,65 +37,9 @@ std::string output::StorageService::formatTimePoint(std::chrono::system_clock::t
   return out;
 }
 
-bool output::StorageService::isStoring() const {
-  // Normaly this should not be needed for returning a bool, but better save than sorry
-  std::lock_guard<std::mutex> lockGuard(storageServiceLock);
-  return _isStoring;
-}
-
 void output::StorageService::stop() {
-  // Not sure if lock is really needed for setting bool values
-  std::lock_guard<std::mutex> lockGuard(storageServiceLock);
-  _runFlag = false;
-}
-
-void output::StorageService::run() {
-  _runFlag = true;
-  while (_runFlag) {
-    if (_isStoring) {
-      int64_t currAlgoTs = _outputStorage.getAlgoTs();
-      if (currAlgoTs > _lastSavedTs) {
-        _lastSavedTs = currAlgoTs;
-        std::cout << "Store frame..." << std::endl;
-      }
-    }
-    // Polling every 5 ms to check if there is new data
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
-  }
-}
-
-void output::StorageService::startStoring() {
-  if (!_isStoring) {
+  if (isStoring) {
     std::lock_guard<std::mutex> lockGuard(storageServiceLock);
-    _isStoring = true;
-
-    // Create a new folder for storing the data based on the current date + time
-    std::ostringstream folderName;
-    _currentStoragePath = _storageBasePath + formatTimePoint(std::chrono::system_clock::now());
-    mkdir(_currentStoragePath.c_str(), 0755);
-
-    // Loop through all sensors in the storage and create e.g. cv::VideoWriter for each camera
-    // for (auto const& [key, cam]: _sensorStorage.getCams()) {
-    //   const double fps = cam->getFrameRate();
-    //   const cv::Size frameSize = cam->getFrameSize();
-    //   const std::string videoFilePath = _currentStoragePath + "/" + key + ".mp4";
-
-    //   auto writer = cv::VideoWriter(videoFilePath, cv::VideoWriter::fourcc('m','p','4','v'), fps, frameSize);
-    //   _videoWriters.insert({key, writer});
-
-    //   // For each videoWriter create a key array in the json object
-    //   _timestamps[key] = nlohmann::json::array();
-    // }
-
-    // Set to -1 to force a reset on first time calling saveFrame()
-    _startTs = -1;
-  }
-}
-
-void output::StorageService::stopStoring() {
-  if (_isStoring) {
-    std::lock_guard<std::mutex> lockGuard(storageServiceLock);
-    _isStoring = false;
 
     for (auto& [key, writer]: _videoWriters) {
       writer.release();
@@ -98,32 +51,76 @@ void output::StorageService::stopStoring() {
     timestampFile << _timestamps.dump();
     timestampFile.close();
     _timestamps.clear();
+
+    isStoring = false;
+  }
+}
+
+void output::StorageService::run() {
+  // In case we are already in "storing mode" do nothing
+  if (!isStoring) {
+    isStoring = true;
+
+    std::ostringstream folderName;
+    _currentStoragePath = _storageBasePath + formatTimePoint(std::chrono::system_clock::now());
+    mkdir(_currentStoragePath.c_str(), 0755);
+
+    _lastSavedTs = -1;
+    _startTs = -1;
+
+    while (isStoring) {
+      int64_t currAlgoTs = _outputStorage.getAlgoTs();
+      if (currAlgoTs > _lastSavedTs) {
+        _lastSavedTs = currAlgoTs;
+        saveFrame();
+      }
+
+      // Polling every 5 ms to check if there is new data
+      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
   }
 }
 
 void output::StorageService::saveFrame() {
-  if (_isStoring) {
+  if (isStoring) {
     std::lock_guard<std::mutex> lockGuard(storageServiceLock);
+
+    // Get all images from the output storage
+    Storage::CamImgMap camImgMap;
+    _outputStorage.getCamImgs(camImgMap);
+
+    // Check if videoWriter and timestamp array already exist and create in case it does not
+    for (auto& [key, cam]: camImgMap) {
+      if (_videoWriters.count(key) <= 0) {
+        // TODO: add fps to camera? Not really needed in algo as its synced with timestamp, but just to look at mp4?
+        // const double fps = cam.framerate;
+        const cv::Size frameSize(cam.width, cam.height);
+        const std::string videoFilePath = _currentStoragePath + "/" + key + ".mp4";
+
+        auto writer = cv::VideoWriter(videoFilePath, cv::VideoWriter::fourcc('m','p','4','v'), 30, frameSize);
+        _videoWriters.insert({key, writer});
+
+        // For each videoWriter create a key array in the json object
+        _timestamps[key] = nlohmann::json::array();
+      }
+    }
 
     // If the _startTs is not yet set (== -1), we need to find the smallest ts of the current frame
     // and set it as a reference to calculate a relative ts for all comming frames
     if (_startTs == -1) {
-      // for (auto& [key, writer]: _videoWriters) {
-      //   auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
-      //   if (success && (_startTs == -1 || ts < _startTs)) {
-      //     _startTs = ts;
-      //   }
-      // }
+      for (auto& [key, writer]: _videoWriters) {
+        const int64_t ts = camImgMap.at(key).timestamp;
+        if (_startTs == -1 || ts < _startTs) {
+          _startTs = ts;
+        }
+      }
     }
 
     // Store frame for all the cameras and store a relative timestamp to the json object
     for (auto& [key, writer]: _videoWriters) {
-      // auto [success, ts, frame] = _sensorStorage.getCams().at(key)->getFrame();
-      // if (success) {
-      //   writer.write(frame);
-      //   const int64_t relativeTs = ts - _startTs;
-      //   _timestamps[key].push_back(relativeTs);
-      // }
+      writer.write(camImgMap.at(key).img);
+      const int64_t relativeTs = camImgMap.at(key).timestamp - _startTs;
+      _timestamps[key].push_back(relativeTs);
     }
   }
 }
