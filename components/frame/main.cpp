@@ -26,16 +26,11 @@ int main() {
   // Create Storage Service for recording
   auto storageService = std::make_shared<output::StorageService>("/home/jodo/ILONA/app-frame/storage_data/", outputStorage);
   server.registerRequestListener(storageService);
-  std::thread storageServiceThread(&output::StorageService::run, storageService);
 
   // Start Algo Application
   std::cout << "** Start Application **" << std::endl;
   auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);
   app->run();
-
-  // Stop Storage Service
-  storageService->stop();
-  storageServiceThread.detach();
 
   // Stop Server
   server.stop();
