@@ -22,8 +22,10 @@ namespace output {
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
     void saveFrame();
-    void run();
+    
+    void start();
     void stop();
+    void run();
 
   private:
     // Format a chrono timepoint in something such as "2019-12-27T21:11:13.134689566" for unique file name creation

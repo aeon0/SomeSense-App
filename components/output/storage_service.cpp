@@ -18,7 +18,7 @@ output::StorageService::StorageService(const std::string storageBasePath, const 
 void output::StorageService::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   if (requestData["type"] == "client.start_storing") {
     std::cout << "Start Storing" << std::endl;
-    run();
+    start();
   }
   else if (requestData["type"] == "client.stop_storing") {
     std::cout << "Stop Storing" << std::endl;
@@ -55,7 +55,7 @@ void output::StorageService::stop() {
   }
 }
 
-void output::StorageService::run() {
+void output::StorageService::start() {
   // In case we are already in "storing mode" do nothing
   if (!isStoring) {
     isStoring = true;
@@ -67,16 +67,21 @@ void output::StorageService::run() {
     _lastSavedTs = -1;
     _startTs = -1;
 
-    while (isStoring) {
-      int64_t currAlgoTs = _outputStorage.getAlgoTs();
-      if (currAlgoTs > _lastSavedTs) {
-        _lastSavedTs = currAlgoTs;
-        saveFrame();
-      }
+    std::thread dataStorageThread(&output::StorageService::run, this);
+    dataStorageThread.detach();
+  }
+}
 
-      // Polling every 5 ms to check if there is new data
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+void output::StorageService::run() {
+  while (isStoring) {
+    int64_t currAlgoTs = _outputStorage.getAlgoTs();
+    if (currAlgoTs > _lastSavedTs) {
+      _lastSavedTs = currAlgoTs;
+      saveFrame();
     }
+
+    // Polling every 5 ms to check if there is new data
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 }
 
