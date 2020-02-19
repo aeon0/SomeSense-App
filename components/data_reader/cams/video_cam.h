@@ -22,5 +22,9 @@ namespace data_reader {
 
     cv::VideoCapture _stream;
     int64_t _recLength; // length of recording in [us]
+
+    bool _pause;
+
+    void readData();
   };
 }
