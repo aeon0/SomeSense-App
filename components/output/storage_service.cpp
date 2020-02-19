@@ -16,7 +16,6 @@ output::StorageService::StorageService(const std::string storageBasePath, const 
   _storageBasePath(storageBasePath), _outputStorage(outputStorage), _startTs(-1), _lastSavedTs(-1) {}
 
 void output::StorageService::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  std::cout << "Storage Service: Handle Request: " << std::endl;
   if (requestData["type"] == "client.start_storing") {
     std::cout << "Start Storing" << std::endl;
     run();

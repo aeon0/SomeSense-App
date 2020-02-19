@@ -98,7 +98,7 @@ void com_out::Server::handle(int client) {
       {"data", {}},
     };
 
-    std::cout << request << std::endl;
+    // std::cout << request << std::endl;
 
     // pass to every request listener and collect responses
     for(auto const& listener: _requestListeners) {
