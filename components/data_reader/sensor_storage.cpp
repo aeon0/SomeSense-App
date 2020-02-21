@@ -8,8 +8,8 @@
 #include "cams/csi_cam.h"
 
 
-data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime) :
-  _requestHandler(requestHandler), _algoStartTime(algoStartTime), _sensorCounter(0) {}
+data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime, output::Storage& outputStorage) :
+  _outputStorage(outputStorage), _requestHandler(requestHandler), _algoStartTime(algoStartTime), _sensorCounter(0) {}
 
 void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   std::ifstream ifs(filepath);
@@ -34,12 +34,12 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       const std::string filePath = jsonSensorConfig["basepath"].get<std::string>() + "/" + camName + ".mp4";
       if (timestampsJson.contains(camName)) {
         auto timestamps = timestampsJson[camName].get<std::vector<int64>>();
-        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, filePath, timestamps);
+        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath, timestamps);
         _requestHandler.registerRequestListener(videoCam);
         addCam(videoCam, camName);
       }
       else {
-        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, filePath);
+        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath);
         _requestHandler.registerRequestListener(videoCam);
         addCam(videoCam, camName);
       }

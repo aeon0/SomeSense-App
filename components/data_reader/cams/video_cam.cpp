@@ -4,8 +4,8 @@
 #include <thread>
 
 
-data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, const std::string& filename, const std::vector<int64> timestamps) :
-    BaseCam(name, algoStartTime), _filename(filename), _timestamps(timestamps), _gotOneFrame(false), _pause(true) {
+data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const std::vector<int64> timestamps) :
+    BaseCam(name, algoStartTime), _outputStorage(outputStorage), _filename(filename), _timestamps(timestamps), _gotOneFrame(false), _pause(true) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
@@ -24,6 +24,13 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
     _frameRate = (_recLength / 1000000) / _timestamps.size();
   }
 
+  output::ControlData ctrlData;
+  ctrlData.isStoring = false;
+  ctrlData.isARecording = true;
+  ctrlData.isPlaying = _pause;
+  ctrlData.recLength = _recLength;
+  _outputStorage.set(ctrlData);
+
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::VideoCam::readData, this);
   dataReaderThread.detach();
@@ -33,10 +40,16 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
   if (requestData["type"] == "client.start_recording") {
     std::cout << "Start Recording" << std::endl;
     _pause = false;
+    output::ControlData ctrlData = _outputStorage.getControlData();
+    ctrlData.isPlaying = _pause;
+    _outputStorage.set(ctrlData);
   }
   else if (requestData["type"] == "client.stop_recording") {
     std::cout << "Stop Recording" << std::endl;
     _pause = true;
+    output::ControlData ctrlData = _outputStorage.getControlData();
+    ctrlData.isPlaying = _pause;
+    _outputStorage.set(ctrlData);
   }
 }
 

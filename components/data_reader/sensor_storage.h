@@ -5,12 +5,14 @@
 #include "types.h"
 #include "cams/icam.h"
 #include "com_out/irequest_handler.h"
+// Needed to store control data for video cam...
+#include "output/storage.h"
 
 
 namespace data_reader {
   class SensorStorage {
   public:
-    SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime);
+    SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime, output::Storage& outputStorage);
 
     typedef std::map<const std::string, std::shared_ptr<ICam>> CamMap;
 
@@ -22,6 +24,8 @@ namespace data_reader {
     const CamMap& getCams() const { return _cams; };
 
   private:
+    output::Storage& _outputStorage;
+
     CamMap _cams;
     unsigned int _sensorCounter; // used to create unique sensor ids
     const TS& _algoStartTime;
