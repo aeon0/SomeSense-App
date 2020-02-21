@@ -37,14 +37,14 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
 }
 
 void data_reader::VideoCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  if (requestData["type"] == "client.start_recording") {
+  if (requestData["type"] == "client.play_rec") {
     std::cout << "Start Recording" << std::endl;
     _pause = false;
     output::CtrlData ctrlData = _outputStorage.getCtrlData();
     ctrlData.isPlaying = !_pause;
     _outputStorage.set(ctrlData);
   }
-  else if (requestData["type"] == "client.stop_recording") {
+  else if (requestData["type"] == "client.pause_rec") {
     std::cout << "Stop Recording" << std::endl;
     _pause = true;
     output::CtrlData ctrlData = _outputStorage.getCtrlData();
