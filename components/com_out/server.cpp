@@ -55,7 +55,7 @@ void com_out::Server::pollOutput() {
         {"type", "server.frame"},
         {"data", {
           {"frame", _outputStorage.getFrameJson()},
-          {"controlData", _outputStorage.getControlDataJson()}
+          {"ctrlData", _outputStorage.getCtrlDataJson()}
         }}
       };
       // std::cout << out.dump() << std::endl;

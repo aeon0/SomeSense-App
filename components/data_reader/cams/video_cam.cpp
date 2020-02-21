@@ -24,7 +24,7 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
     _frameRate = (_recLength / 1000000) / _timestamps.size();
   }
 
-  output::ControlData ctrlData;
+  output::CtrlData ctrlData;
   ctrlData.isStoring = false;
   ctrlData.isARecording = true;
   ctrlData.isPlaying = _pause;
@@ -40,14 +40,14 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
   if (requestData["type"] == "client.start_recording") {
     std::cout << "Start Recording" << std::endl;
     _pause = false;
-    output::ControlData ctrlData = _outputStorage.getControlData();
+    output::CtrlData ctrlData = _outputStorage.getCtrlData();
     ctrlData.isPlaying = _pause;
     _outputStorage.set(ctrlData);
   }
   else if (requestData["type"] == "client.stop_recording") {
     std::cout << "Stop Recording" << std::endl;
     _pause = true;
-    output::ControlData ctrlData = _outputStorage.getControlData();
+    output::CtrlData ctrlData = _outputStorage.getCtrlData();
     ctrlData.isPlaying = _pause;
     _outputStorage.set(ctrlData);
   }

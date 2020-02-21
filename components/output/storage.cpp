@@ -11,10 +11,10 @@ void output::Storage::set(Frame frame) {
   _frameData = frame;
 }
 
-void output::Storage::set(ControlData controlData) {
+void output::Storage::set(CtrlData ctrlData) {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  _controlDataJson = controlData;
-  _controlData = controlData;
+  _ctrlDataJson = ctrlData;
+  _ctrlData = ctrlData;
 }
 
 output::Frame output::Storage::getFrame() const {
@@ -22,9 +22,9 @@ output::Frame output::Storage::getFrame() const {
   return _frameData;
 }
 
-output::ControlData output::Storage::getControlData() const {
+output::CtrlData output::Storage::getCtrlData() const {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _controlData;
+  return _ctrlData;
 }
 
 nlohmann::json output::Storage::getFrameJson() const {
@@ -32,9 +32,9 @@ nlohmann::json output::Storage::getFrameJson() const {
   return _frameDataJson;
 }
 
-nlohmann::json output::Storage::getControlDataJson() const {
+nlohmann::json output::Storage::getCtrlDataJson() const {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _controlDataJson;
+  return _ctrlDataJson;
 }
 
 int64_t output::Storage::getAlgoTs() const {

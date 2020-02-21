@@ -52,14 +52,14 @@ namespace output {
   };
   void to_json(nlohmann::json& j, const Frame& f);
 
-  struct ControlData {
+  struct CtrlData {
     bool isStoring;
 
     bool isARecording; // flag if the current frame is from a recording
     bool isPlaying; // flag if the video is current playing (only filled in case isARecording is true)
     int64_t recLength; // recording length in [us] (only filled in case isARecording is true)
   };
-  void to_json(nlohmann::json& j, const ControlData& c);
+  void to_json(nlohmann::json& j, const CtrlData& c);
 
   struct CamImg {
     int sensorIdx;

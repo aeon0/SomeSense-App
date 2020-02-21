@@ -43,7 +43,7 @@ void output::to_json(nlohmann::json& j, const Frame& f) {
   };
 }
 
-void output::to_json(nlohmann::json& j, const ControlData& c) {
+void output::to_json(nlohmann::json& j, const CtrlData& c) {
   j = nlohmann::json {
     {"isStoring", c.isStoring},
     {"isARecording", c.isARecording},

@@ -13,12 +13,12 @@ namespace output {
 
     // Algo data + Sensor meta data
     void set(Frame frame);
-    void set(ControlData controlData);
+    void set(CtrlData ctrlData);
     Frame getFrame() const;
-    ControlData getControlData() const;
+    CtrlData getCtrlData() const;
 
     nlohmann::json getFrameJson() const;
-    nlohmann::json getControlDataJson() const;
+    nlohmann::json getCtrlDataJson() const;
 
     int64_t getAlgoTs() const;
 
@@ -30,10 +30,10 @@ namespace output {
 
   private:
     Frame _frameData;
-    ControlData _controlData;
+    CtrlData _ctrlData;
 
     nlohmann::json _frameDataJson;
-    nlohmann::json _controlDataJson;
+    nlohmann::json _ctrlDataJson;
 
     CamImgMap _camImgs;
   };
