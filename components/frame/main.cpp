@@ -24,7 +24,7 @@ int main() {
   sensorStorage.initFromConfig(sensorConfigPath);
 
   // Create Storage Service for recording
-  auto storageService = std::make_shared<output::StorageService>("/home/jodo/ILONA/app-frame/storage_data/", outputStorage);
+  auto storageService = std::make_shared<output::StorageService>("./storage_data/", outputStorage);
   server.registerRequestListener(storageService);
 
   // Start Algo Application
