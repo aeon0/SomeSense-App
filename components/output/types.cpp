@@ -2,7 +2,7 @@
 
 
 void output::to_json(nlohmann::json& j, const CamSensor& c) {
-  j = nlohmann::json{
+  j = nlohmann::json {
     {"idx", c.idx},
     {"key", c.key},
     {"position", c.position},
@@ -13,14 +13,14 @@ void output::to_json(nlohmann::json& j, const CamSensor& c) {
 }
 
 void output::to_json(nlohmann::json& j, const RuntimeMeas& r) {
-  j = nlohmann::json{
+  j = nlohmann::json {
     {"name", r.name},
     {"start", r.start},
     {"duration", r.duration}};
 }
 
 void output::to_json(nlohmann::json& j, const Track& t) {
-  j = nlohmann::json{
+  j = nlohmann::json {
     {"trackId", t.trackId},
     {"objClass", t.objClass},
     {"position", t.position},
@@ -34,11 +34,20 @@ void output::to_json(nlohmann::json& j, const Track& t) {
 }
 
 void output::to_json(nlohmann::json& j, const Frame& f) {
-  j = nlohmann::json{
+  j = nlohmann::json {
     {"timestamp", f.timestamp},
     {"frameCount", f.frameCount},
     {"tracks", f.tracks},
     {"camSensors", f.camSensors},
     {"runtimeMeas", f.runtimeMeas}
+  };
+}
+
+void output::to_json(nlohmann::json& j, const ControlData& c) {
+  j = nlohmann::json {
+    {"isStoring", c.isStoring},
+    {"isARecording", c.isARecording},
+    {"isPlaying", c.isPlaying},
+    {"recLength", c.recLength}
   };
 }

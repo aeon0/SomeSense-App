@@ -50,7 +50,16 @@ namespace output {
     std::vector<CamSensor> camSensors;
     std::vector<RuntimeMeas> runtimeMeas;
   };
-  void to_json(nlohmann::json& j, const Frame& o);
+  void to_json(nlohmann::json& j, const Frame& f);
+
+  struct ControlData {
+    bool isStoring;
+
+    bool isARecording; // flag if the current frame is from a recording
+    bool isPlaying; // flag if the video is current playing (only filled in case isARecording is true)
+    int64_t recLength; // recording length in [us] (only filled in case isARecording is true)
+  };
+  void to_json(nlohmann::json& j, const ControlData& c);
 
   struct CamImg {
     int sensorIdx;
