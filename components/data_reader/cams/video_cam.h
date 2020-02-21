@@ -18,7 +18,7 @@ namespace data_reader {
     const int64_t getRecLength() const override { return _recLength; }
 
   private:
-    output::Storage _outputStorage;
+    output::Storage& _outputStorage;
 
     const std::string _filename;
     const std::vector<int64> _timestamps;
