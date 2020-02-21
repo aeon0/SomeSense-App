@@ -13,8 +13,13 @@ namespace output {
 
     // Algo data + Sensor meta data
     void set(Frame frame);
-    Frame get() const;
-    nlohmann::json getJson() const;
+    void set(ControlData controlData);
+    Frame getFrame() const;
+    ControlData getControlData() const;
+
+    nlohmann::json getFrameJson() const;
+    nlohmann::json getControlDataJson() const;
+
     int64_t getAlgoTs() const;
 
     // Cam sensor raw output data
@@ -25,7 +30,10 @@ namespace output {
 
   private:
     Frame _frameData;
+    ControlData _controlData;
+
     nlohmann::json _frameDataJson;
+    nlohmann::json _controlDataJson;
 
     CamImgMap _camImgs;
   };

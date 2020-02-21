@@ -53,7 +53,10 @@ void com_out::Server::pollOutput() {
       // Send algo data
       nlohmann::json out {
         {"type", "server.frame"},
-        {"data", _outputStorage.getJson()}
+        {"data", {
+          {"frame", _outputStorage.getFrameJson()},
+          {"controlData", _outputStorage.getControlDataJson()}
+        }}
       };
       // std::cout << out.dump() << std::endl;
       broadcast(out.dump());
