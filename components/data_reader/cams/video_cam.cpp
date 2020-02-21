@@ -5,7 +5,7 @@
 
 
 data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, const std::string& filename, const std::vector<int64> timestamps) :
-    BaseCam(name, algoStartTime), _filename(filename), _timestamps(timestamps), _pause(true) {
+    BaseCam(name, algoStartTime), _filename(filename), _timestamps(timestamps), _gotOneFrame(false), _pause(true) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
@@ -42,7 +42,10 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
 
 void data_reader::VideoCam::readData() {
   for (;;) {
-    if (!_pause) {
+    if (!_pause || !_gotOneFrame) {
+      std::cout << "Read Frame" << std::endl;
+      _gotOneFrame = true;
+
       // Read frame and wait the amount of time it takes to get to the next timestamp
       const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
       bool success = _stream.read(_bufferFrame);

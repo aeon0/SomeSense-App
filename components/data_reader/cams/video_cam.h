@@ -23,7 +23,8 @@ namespace data_reader {
     cv::VideoCapture _stream;
     int64_t _recLength; // length of recording in [us]
 
-    bool _pause;
+    bool _gotOneFrame; // At least one frame needs to be created in the beginning
+    bool _pause; // Pause the video
 
     void readData();
   };
