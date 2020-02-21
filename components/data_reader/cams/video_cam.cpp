@@ -43,7 +43,6 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
 void data_reader::VideoCam::readData() {
   for (;;) {
     if (!_pause || !_gotOneFrame) {
-      std::cout << "Read Frame" << std::endl;
       _gotOneFrame = true;
 
       // Read frame and wait the amount of time it takes to get to the next timestamp
