@@ -4,11 +4,12 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
+#include <thread>
 #include "utilities/json.hpp"
 
 
 com_out::Server::Server(const output::Storage& outputStorage) :
-  _outputStorage(outputStorage), _lastSentTs(-1), _pollOutput(true) {
+  _outputStorage(outputStorage), _lastSentTs(-1), _pollOutput(true), _newClient(false) {
   _buf = new char[_bufSize];
 }
 
@@ -28,8 +29,11 @@ void com_out::Server::stop() {
 
 void com_out::Server::pollOutput() {
   while(_pollOutput) {
+    std::lock_guard<std::mutex> lockGuard(_newClientMtx);
+
     int64_t currAlgoTs = _outputStorage.getAlgoTs();
-    if (currAlgoTs > _lastSentTs) {
+    if (currAlgoTs > _lastSentTs || _newClient) {
+      _newClient = false;
       _lastSentTs = currAlgoTs;
 
       // Send raw sensor data (has to be before algo data!)
@@ -51,6 +55,7 @@ void com_out::Server::pollOutput() {
         {"type", "server.frame"},
         {"data", _outputStorage.getJson()}
       };
+      // std::cout << out.dump() << std::endl;
       broadcast(out.dump());
     }
     // Polling every 5 ms to check if there is new data
@@ -73,8 +78,13 @@ void com_out::Server::serve() {
 
   // accept clients
   while((client = accept(_server, (struct sockaddr *)&clientAddr, &clientlen)) > 0) {
-    std::cout << "Add client: " << client << std::endl;
-    _clients.push_back(client);
+    // brackets needed to remove lock after adding to _clients
+    {
+      std::lock_guard<std::mutex> lockGuard(_newClientMtx);
+      std::cout << "Add client: " << client << std::endl;
+      _clients.push_back(client);
+      _newClient = true;
+    }
     handle(client);
   }
 

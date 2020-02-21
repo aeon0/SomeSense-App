@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <mutex>
 
 #include <string>
 #include <vector>
@@ -60,5 +61,8 @@ namespace com_out {
     const output::Storage& _outputStorage;
     int64_t _lastSentTs;
     bool _pollOutput;
+
+    std::mutex _newClientMtx;
+    bool _newClient; // in case there is a new client, this is true (false after next broadcast)
   };
 }
