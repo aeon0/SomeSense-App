@@ -21,7 +21,7 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
   }
   else {
     _recLength = _timestamps.back() - _timestamps.front();
-    _frameRate = (_recLength / 1000000) / _timestamps.size();
+    _frameRate = static_cast<double>(_timestamps.size()) / (static_cast<double>(_recLength) / 1000000.0);
   }
 
   output::CtrlData ctrlData;

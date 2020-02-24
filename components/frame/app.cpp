@@ -20,7 +20,7 @@ void sighandler(int signum) { stopFromSignal = 1; }
 
 frame::App::App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime) :
   _sensorStorage(sensorStorage), _outputStorage(outputStorage), _algoStartTime(algoStartTime),
-  _ts(0), _frame(-1), _runtimeMeasService(algoStartTime) {
+  _ts(-1), _frame(-1), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 
@@ -42,7 +42,6 @@ void frame::App::run() {
     output::Frame frameData;
 
     const int64_t previousTs = _ts;
-    _ts = 0;
     int sensorIdx = 0;
     bool gotNewSensorData = false;
 

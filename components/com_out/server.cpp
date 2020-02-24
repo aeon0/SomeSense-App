@@ -32,7 +32,11 @@ void com_out::Server::pollOutput() {
     std::lock_guard<std::mutex> lockGuard(_newClientMtx);
 
     int64_t currAlgoTs = _outputStorage.getAlgoTs();
-    if (currAlgoTs != _lastSentTs || _newClient) {
+    
+    nlohmann::json frameData = _outputStorage.getFrameJson();
+    nlohmann::json ctrlData = _outputStorage.getCtrlDataJson();
+
+    if ((currAlgoTs != _lastSentTs || _newClient) && frameData.dump() != "null" && ctrlData.dump() != "null") {
       _newClient = false;
       _lastSentTs = currAlgoTs;
 
@@ -54,8 +58,8 @@ void com_out::Server::pollOutput() {
       nlohmann::json out {
         {"type", "server.frame"},
         {"data", {
-          {"frame", _outputStorage.getFrameJson()},
-          {"ctrlData", _outputStorage.getCtrlDataJson()}
+          {"frame", frameData},
+          {"ctrlData", ctrlData}
         }}
       };
       // std::cout << out.dump() << std::endl;
