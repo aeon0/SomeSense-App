@@ -60,7 +60,6 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
     if (_timestamps.size() == 0) {
       const int64_t frameLengthUs = static_cast<int64_t>((1.0 / _frameRate) * 1000000);
       _newTs = _currTs - (2 * frameLengthUs);
-      // _newTs = std::clamp<int64_t>(0, _newTs);
       _jumpToTs = true;
     }
     else {
@@ -84,6 +83,7 @@ void data_reader::VideoCam::readData() {
       std::cout << "Read Frame" << std::endl;
 
       if (_jumpToTs) {
+        // TODO: Algo needs to be reset in this case! Maybe check in algo if timestamp is in past. And if it is reset?
         std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
         const double newTsMs = _newTs / 1000.0;
         _stream.set(cv::CAP_PROP_POS_MSEC, static_cast<int>(newTsMs));
