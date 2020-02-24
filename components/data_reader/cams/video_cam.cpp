@@ -37,38 +37,69 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
 }
 
 void data_reader::VideoCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+  // TODO: Pause has quite the delay, why?? Probably bad computer performancE?
+  std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
   if (requestData["type"] == "client.play_rec") {
-    std::cout << "Start Recording" << std::endl;
     _pause = false;
     output::CtrlData ctrlData = _outputStorage.getCtrlData();
     ctrlData.isPlaying = !_pause;
     _outputStorage.set(ctrlData);
   }
   else if (requestData["type"] == "client.pause_rec") {
-    std::cout << "Stop Recording" << std::endl;
+    std::cout << "Pause Recording" << std::endl;
     _pause = true;
     output::CtrlData ctrlData = _outputStorage.getCtrlData();
     ctrlData.isPlaying = !_pause;
     _outputStorage.set(ctrlData);
   }
+  else if (requestData["type"] == "client.step_forward" && _pause) {
+    _stepForward = true;
+  }
+  else if (requestData["type"] == "client.step_backward" && _pause) {
+    std::cout << "Step Backward" << std::endl;
+    if (_timestamps.size() == 0) {
+      const int64_t frameLengthUs = static_cast<int64_t>((1.0 / _frameRate) * 1000000);
+      _newTs = _currTs - (2 * frameLengthUs);
+      // _newTs = std::clamp<int64_t>(0, _newTs);
+      _jumpToTs = true;
+    }
+    else {
+      const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
+      if (currFrameNr > 0) {
+         _newTs = _timestamps.at(currFrameNr - 1) - 1;
+         _jumpToTs = true;
+      }
+    }
+  }
+  else if (requestData["type"] == "client.jump_to_ts") {
+    std::cout << "Jump to Ts" << std::endl;
+    _newTs = requestData["data"];
+    _jumpToTs = true;
+  }
 }
 
 void data_reader::VideoCam::readData() {
   for (;;) {
-    if (!_pause || !_gotOneFrame) {
-      _gotOneFrame = true;
+    if (!_pause || _stepForward || !_gotOneFrame || _jumpToTs) {
+      std::cout << "Read Frame" << std::endl;
 
-      // Read frame and wait the amount of time it takes to get to the next timestamp
+      if (_jumpToTs) {
+        std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
+        const double newTsMs = _newTs / 1000.0;
+        _stream.set(cv::CAP_PROP_POS_MSEC, static_cast<int>(newTsMs));
+      }
+
       const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
-      bool success = _stream.read(_bufferFrame);
+      const bool success = _stream.read(_bufferFrame);
 
       // Brackets are needed to release the lock
       {
-        std::lock_guard<std::mutex> lockGuard(_readMutex);
+        std::lock_guard<std::mutex> lockGuardRead(_readMutex);
         _currFrame = _bufferFrame.clone();
         _bufferFrame.release();
         _validFrame = success;
 
+        std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
         if (_timestamps.size() == 0) {
           const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
           _currTs = static_cast<int64>(tsMsec * 1000.0);
@@ -79,6 +110,7 @@ void data_reader::VideoCam::readData() {
       }
 
       // Wait the amount of time to the next timestamp or one frame length if timestamps are not available
+      // TODO: Wait this time from the beginning of the frame including the fetching of the frame and other meta data
       int64_t waitTimeUs = 0;
       if (_timestamps.size() > (currFrameNr + 1)) {
         waitTimeUs = _timestamps.at(currFrameNr + 1) - _timestamps.at(currFrameNr);
@@ -87,13 +119,13 @@ void data_reader::VideoCam::readData() {
         waitTimeUs = (1 / _frameRate) * 1000000;
       }
       std::this_thread::sleep_for(std::chrono::microseconds(waitTimeUs));
+
+      _gotOneFrame = true;
+      {
+        std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
+        _stepForward = false;
+        _jumpToTs = false;
+      }
     }
   }
-
-  // if (updateToAlgoTs) {
-  //   double newTs = static_cast<double>(currentAlgoTs) / 1000; // in [ms]
-  //   const double lastPossibleTs = _recLength / 1000.0;
-  //   newTs = std::clamp<double>(newTs, 0.0, lastPossibleTs);
-  //   _stream.set(cv::CAP_PROP_POS_MSEC, newTs);
-  // }
 }

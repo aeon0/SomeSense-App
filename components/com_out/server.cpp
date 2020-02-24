@@ -32,7 +32,7 @@ void com_out::Server::pollOutput() {
     std::lock_guard<std::mutex> lockGuard(_newClientMtx);
 
     int64_t currAlgoTs = _outputStorage.getAlgoTs();
-    if (currAlgoTs > _lastSentTs || _newClient) {
+    if (currAlgoTs != _lastSentTs || _newClient) {
       _newClient = false;
       _lastSentTs = currAlgoTs;
 

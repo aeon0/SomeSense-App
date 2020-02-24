@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <tuple>
 #include "output/storage.h"
 #include "base_cam.h"
@@ -26,8 +27,12 @@ namespace data_reader {
     cv::VideoCapture _stream;
     int64_t _recLength; // length of recording in [us]
 
+    std::mutex _controlsMtx;
     bool _gotOneFrame; // At least one frame needs to be created in the beginning
     bool _pause; // Pause the video
+    bool _stepForward; // One step forward
+    bool _jumpToTs; // Jump to the timestamp that is in _newTs
+    int64_t _newTs;
 
     void readData();
   };

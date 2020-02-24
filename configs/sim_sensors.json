@@ -1,7 +1,7 @@
 {
-  "basepath": "/home/jodo/Data/videos",
+  "basepath": "/home/jo/projects/app-frame/storage_data/2020-02-21T13:48:55.547348265",
   "cams": [{
     "type": "video",
-    "name": "test"
+    "name": "UsbTestCam_0"
   }]
 }
