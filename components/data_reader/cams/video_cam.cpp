@@ -65,8 +65,9 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
     else {
       const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
       if (currFrameNr > 0) {
-         _newTs = _timestamps.at(currFrameNr - 1) - 1;
-         _jumpToTs = true;
+        // TODO: DO NOT JUMP TO TS, but to frameNr as timestamps in timestamp file do not correspond to timestamp in video stream...
+        _newTs = _timestamps.at(currFrameNr - 1);
+        _jumpToTs = true;
       }
     }
   }
@@ -85,8 +86,8 @@ void data_reader::VideoCam::readData() {
       if (_jumpToTs) {
         // TODO: Algo needs to be reset in this case! Maybe check in algo if timestamp is in past. And if it is reset?
         std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-        const double newTsMs = _newTs / 1000.0;
-        _stream.set(cv::CAP_PROP_POS_MSEC, static_cast<int>(newTsMs));
+        const double newTsMs = static_cast<double>(_newTs) / 1000.0;
+        _stream.set(cv::CAP_PROP_POS_MSEC, newTsMs);
       }
 
       const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
