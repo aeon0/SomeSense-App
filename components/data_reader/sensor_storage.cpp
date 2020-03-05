@@ -52,7 +52,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       auto captureWidth = it["capture_width"].get<int>();
       auto captureHeight = it["capture_height"].get<int>();
       auto flipMethod = it["flip_method"].get<int>();
-      auto frameRate = it["frame_rate"].get<double>();
+      auto frameRate = it["frame_rate"].get<int>();
 
       auto csiCam = std::make_shared<CsiCam>(camName, _algoStartTime, captureWidth, captureHeight, frameRate, flipMethod);
       addCam(csiCam);

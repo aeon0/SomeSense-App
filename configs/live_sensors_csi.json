@@ -4,7 +4,7 @@
     "name": "CsiFrontCam",
     "capture_width": 1280,
     "capture_height": 720,
-    "frame_rate": 120.0,
+    "frame_rate": 60,
     "flip_method": 2
   }]
 }

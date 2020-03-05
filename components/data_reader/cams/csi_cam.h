@@ -7,7 +7,7 @@
 namespace data_reader {
   class CsiCam : public BaseCam {
   public:
-    CsiCam(const std::string name, const TS& algoStartTime, int captureWidth, int captureHeight, double frameRate, int flipMethod);
+    CsiCam(const std::string name, const TS& algoStartTime, int captureWidth, int captureHeight, int frameRate, int flipMethod);
 
   private:
     void readData();
