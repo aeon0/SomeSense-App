@@ -34,7 +34,11 @@ void data_reader::CsiCam::readData() {
     std::lock_guard<std::mutex> lockGuard(_readMutex);
     _currTs = static_cast<int64_t>(std::chrono::duration<double, std::micro>(captureTime - _algoStartTime).count());
     _currFrame = _bufferFrame.clone();
-     _bufferFrame.release();
+    _bufferFrame.release();
     _validFrame = success;
+
+    std::cout << _validFrame << ", " << _currTs _std::endl;
+
+    std::this_thread::sleep_for(std::chrono::microseconds(200));
   }
 }
