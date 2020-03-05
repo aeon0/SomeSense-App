@@ -104,7 +104,7 @@ void frame::App::run() {
       _runtimeMeasService.startMeas("set_algo_data");
 
       // Add example track for testing
-      frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
+      // frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
 
       // Finally set the algo timestamp to the output data
       frameData.timestamp = _ts;
