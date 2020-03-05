@@ -31,8 +31,8 @@ namespace data_reader {
     bool _gotOneFrame; // At least one frame needs to be created in the beginning
     bool _pause; // Pause the video
     bool _stepForward; // One step forward
-    bool _jumpToTs; // Jump to the timestamp that is in _newTs
-    int64_t _newTs;
+    bool _jumpToFrame; // Jump to the frame number that is in _newFrameNr
+    int _newFrameNr;
 
     void readData();
   };

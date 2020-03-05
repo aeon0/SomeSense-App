@@ -5,7 +5,7 @@
 
 
 data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const std::vector<int64> timestamps) :
-    BaseCam(name, algoStartTime), _outputStorage(outputStorage), _filename(filename), _timestamps(timestamps), _gotOneFrame(false), _pause(true) {
+    BaseCam(name, algoStartTime), _outputStorage(outputStorage), _filename(filename), _timestamps(timestamps), _gotOneFrame(false), _pause(true), _jumpToFrame(false) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
@@ -37,7 +37,6 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
 }
 
 void data_reader::VideoCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  // TODO: Pause has quite the delay, why?? Probably bad computer performancE?
   std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
   if (requestData["type"] == "client.play_rec") {
     _pause = false;
@@ -46,7 +45,6 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
     _outputStorage.set(ctrlData);
   }
   else if (requestData["type"] == "client.pause_rec") {
-    std::cout << "Pause Recording" << std::endl;
     _pause = true;
     output::CtrlData ctrlData = _outputStorage.getCtrlData();
     ctrlData.isPlaying = !_pause;
@@ -55,39 +53,43 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
   else if (requestData["type"] == "client.step_forward" && _pause) {
     _stepForward = true;
   }
-  else if (requestData["type"] == "client.step_backward" && _pause) {
-    std::cout << "Step Backward" << std::endl;
-    if (_timestamps.size() == 0) {
-      const int64_t frameLengthUs = static_cast<int64_t>((1.0 / _frameRate) * 1000000);
-      _newTs = _currTs - (2 * frameLengthUs);
-      _jumpToTs = true;
-    }
-    else {
-      const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
-      if (currFrameNr > 0) {
-        // TODO: DO NOT JUMP TO TS, but to frameNr as timestamps in timestamp file do not correspond to timestamp in video stream...
-        _newTs = _timestamps.at(currFrameNr - 1);
-        _jumpToTs = true;
-      }
-    }
+  else if (requestData["type"] == "client.step_backward") {
+    _newFrameNr = _currFrameNr - 1;
+    _jumpToFrame = true;
   }
   else if (requestData["type"] == "client.jump_to_ts") {
-    std::cout << "Jump to Ts" << std::endl;
-    _newTs = requestData["data"];
-    _jumpToTs = true;
+    const int64_t newTs = requestData["data"];
+    
+    _newFrameNr = -1;
+
+    if (_timestamps.size() == 0) {
+      _newFrameNr = static_cast<int>((static_cast<double>(newTs) / 1000000.0) * _frameRate);
+    }
+    else {
+      int64_t smallestDiff = INT64_MAX;
+      // find frame that is closest to this ts, TODO: runtime optimize the search
+      for (uint i = 0; i < _timestamps.size(); ++i)
+      {
+        int64_t diff = std::abs(_timestamps[i] - newTs);
+        if (i == 0 || diff < smallestDiff) {
+          smallestDiff = diff;
+          _newFrameNr = i;
+        }
+      }
+    }
+
+
+    _jumpToFrame = true;
   }
 }
 
 void data_reader::VideoCam::readData() {
   for (;;) {
-    if (!_pause || _stepForward || !_gotOneFrame || _jumpToTs) {
-      std::cout << "Read Frame" << std::endl;
-
-      if (_jumpToTs) {
-        // TODO: Algo needs to be reset in this case! Maybe check in algo if timestamp is in past. And if it is reset?
+    if (!_pause || _stepForward || !_gotOneFrame || _jumpToFrame) {
+      if (_jumpToFrame && _newFrameNr >= 0) {
+        // Algo also has a requestHandler and resets Algo on jump_to_ts and step_backward
         std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-        const double newTsMs = static_cast<double>(_newTs) / 1000.0;
-        _stream.set(cv::CAP_PROP_POS_MSEC, newTsMs);
+        _stream.set(cv::CAP_PROP_POS_FRAMES, _newFrameNr);
       }
 
       const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
@@ -104,9 +106,11 @@ void data_reader::VideoCam::readData() {
         if (_timestamps.size() == 0) {
           const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
           _currTs = static_cast<int64>(tsMsec * 1000.0);
+          _currFrameNr = currFrameNr;
         }
         else {
           _currTs = _timestamps.at(currFrameNr);
+          _currFrameNr = currFrameNr;
         }
       }
 
@@ -125,7 +129,7 @@ void data_reader::VideoCam::readData() {
       {
         std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
         _stepForward = false;
-        _jumpToTs = false;
+        _jumpToFrame = false;
       }
     }
   }

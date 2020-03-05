@@ -27,8 +27,15 @@ frame::App::App(const data_reader::SensorStorage& sensorStorage, output::Storage
   // _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
 }
 
-void reset() {
-  std::cout << "Reset Algo..." << std::endl;
+void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+  if (requestData["type"] == "client.step_backward" || requestData["type"] == "client.jump_to_ts") {
+    reset();
+  }
+}
+
+void frame::App::reset() {
+  _ts = -1;
+  _frame = -1;
 }
 
 void frame::App::run() {
