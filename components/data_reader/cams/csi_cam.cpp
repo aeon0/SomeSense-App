@@ -1,5 +1,7 @@
 #include "csi_cam.h"
 #include <iostream>
+#include <thread>
+
 
 std::string gstreamer_pipeline(int captureWidth, int captureHeight, int frameRate, int flipMethod) {
     return "nvarguscamerasrc ! video/x-raw(memory:NVMM), width=(int)" + std::to_string(captureWidth) + ", height=(int)" +
@@ -18,18 +20,21 @@ data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int
   }
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
   _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+    // Start thread to read image and store it into _currFrame
+  std::thread dataReaderThread(&data_reader::CsiCam::readData, this);
+  dataReaderThread.detach();
 }
 
-// std::tuple<const bool, const int64, cv::Mat> data_reader::CsiCam::getNewFrame(
-//       const std::chrono::time_point<std::chrono::high_resolution_clock>& algoStartTime,
-//       const int64_t currentAlgoTs,
-//       const bool updateToAlgoTs) {
-//   static_cast<void>(currentAlgoTs);
-//   static_cast<void>(updateToAlgoTs);
+void data_reader::CsiCam::readData() {
+  for (;;) {
+    const auto captureTime = std::chrono::high_resolution_clock::now();
+    bool success = _cam.read(_bufferFrame);
 
-//   const auto captureTime = std::chrono::high_resolution_clock::now();
-//   _validFrame = _cam.read(_currFrame); // Reading takes around 2-3 ms on the Jetson Nano
-
-//   _currTs = static_cast<int64>(std::chrono::duration<double, std::micro>(captureTime - algoStartTime).count());
-//   return {_validFrame, _currTs, _currFrame};
-// }
+    std::lock_guard<std::mutex> lockGuard(_readMutex);
+    _currTs = static_cast<int64_t>(std::chrono::duration<double, std::micro>(captureTime - _algoStartTime).count());
+    _currFrame = _bufferFrame.clone();
+     _bufferFrame.release();
+    _validFrame = success;
+  }
+}
