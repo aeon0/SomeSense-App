@@ -9,6 +9,8 @@
 namespace output {
   class Storage {
   public:
+    Storage();
+
     typedef std::map<const std::string, CamImg> CamImgMap;
 
     // Algo data + Sensor meta data

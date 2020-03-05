@@ -5,6 +5,16 @@
 std::mutex outputStateLock;
 std::mutex camImgsLock;
 
+output::Storage::Storage() {
+  // ctrl data should have default values:
+  output::CtrlData ctrlData;
+  ctrlData.isStoring = false;
+  ctrlData.isARecording = false;
+  ctrlData.isPlaying = false;
+  ctrlData.recLength = -1;
+  set(ctrlData);
+}
+
 void output::Storage::set(Frame frame) {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
   _frameDataJson = frame;

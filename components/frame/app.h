@@ -3,6 +3,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "data_reader/sensor_storage.h"
+#include "com_out/irequest_listener.h"
 #include "runtime_meas_service.h"
 #include "types.h"
 #include "output/storage.h"
@@ -11,9 +12,11 @@
 
 
 namespace frame {
-  class App {
+  class App : public com_out::IRequestListener {
   public:
     App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime);
+
+    void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
 
     void run();
     void reset();

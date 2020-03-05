@@ -19,7 +19,7 @@ int main() {
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
   // Create Sensor Storage
-  const std::string sensorConfigPath = "configs/sim_sensors_ts.json";
+  const std::string sensorConfigPath = "configs/live_sensors_usb.json";
   auto sensorStorage = data_reader::SensorStorage(server, algoStartTime, outputStorage);
   sensorStorage.initFromConfig(sensorConfigPath);
 
@@ -30,6 +30,7 @@ int main() {
   // Start Algo Application
   std::cout << "** Start Application **" << std::endl;
   auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);
+  server.registerRequestListener(app);
   app->run();
 
   // Stop Server
