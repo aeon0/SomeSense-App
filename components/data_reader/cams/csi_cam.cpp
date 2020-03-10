@@ -23,8 +23,9 @@ data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
   _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
 
+  // Read one frame to test things
   bool success = _cam.read(_bufferFrame);
-  std::cout << "Success: " << success << std::endl;
+  std::cout << "Reading Test Frame Success: " << success << std::endl;
 
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::CsiCam::readData, this);
@@ -43,6 +44,6 @@ void data_reader::CsiCam::readData() {
     _bufferFrame.release();
     _validFrame = success;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
