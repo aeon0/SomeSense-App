@@ -94,9 +94,7 @@ void data_reader::VideoCam::readData() {
 
       const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
       const bool success = _stream.read(_bufferFrame);
-
-      // Brackets are needed to release the lock
-      {
+      if (success) {
         std::lock_guard<std::mutex> lockGuardRead(_readMutex);
         _currFrame = _bufferFrame.clone();
         _bufferFrame.release();
@@ -116,6 +114,7 @@ void data_reader::VideoCam::readData() {
 
       // Wait the amount of time to the next timestamp or one frame length if timestamps are not available
       // TODO: Wait this time from the beginning of the frame including the fetching of the frame and other meta data
+      // TODO: There is still something wrong when approching the end of the recording and going beyond, it does not stop
       int64_t waitTimeUs = 0;
       if (_timestamps.size() > (currFrameNr + 1)) {
         waitTimeUs = _timestamps.at(currFrameNr + 1) - _timestamps.at(currFrameNr);
