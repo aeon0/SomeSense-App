@@ -29,6 +29,7 @@ frame::App::App(const data_reader::SensorStorage& sensorStorage, output::Storage
 
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   if (requestData["type"] == "client.step_backward" || requestData["type"] == "client.jump_to_ts") {
+    // TODO: Frame is reset to -1, but it should be reset to whatever we jump to...
     reset();
   }
 }
