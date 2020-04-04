@@ -129,6 +129,10 @@ void data_reader::VideoCam::readData() {
         std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
         _stepForward = false;
         _jumpToFrame = false;
+
+        if (_currTs >= _recLength) {
+          _pause = true;
+        }
       }
     }
   }
