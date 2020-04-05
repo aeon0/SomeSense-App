@@ -64,23 +64,13 @@ void frame::App::run() {
 
         _runtimeMeasService.startMeas("data_proc_" + key);
 
-        // Resize image to a reasonable size
-        // Note: Be aware that the resize should always be some integer factor, e.g. 640 -> 320
-        //       otherwise runtime can be quite high on the resize
-        cv::Mat outImg;
-        cv::Size outSize;
-        outSize.width = Config::outImgWidth;
-        const double scaleFactor = static_cast<double>(outSize.width) / static_cast<double>(img.size().width);
-        outSize.height = img.size().height * scaleFactor;
-        cv::resize(img, outImg, outSize, 0.0, 0.0, cv::InterpolationFlags::INTER_NEAREST);
-
         output::CamImg camImgData {
           sensorIdx,
           sensorTs,
-          outImg.clone(),
-          outImg.size().width,
-          outImg.size().height,
-          outImg.channels()
+          img.clone(),
+          img.size().width,
+          img.size().height,
+          img.channels()
         };
         _outputStorage.setCamImg(key, camImgData);
 
@@ -102,7 +92,6 @@ void frame::App::run() {
       // TODO: do the processing for tracks
 
       _runtimeMeasService.endMeas("algo");
-      _runtimeMeasService.startMeas("set_algo_data");
 
       // Add example track for testing
       // frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
@@ -115,8 +104,6 @@ void frame::App::run() {
       frameData.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
 
       _outputStorage.set(frameData);
-
-      _runtimeMeasService.endMeas("set_algo_data");
 
       _frame++;
     }

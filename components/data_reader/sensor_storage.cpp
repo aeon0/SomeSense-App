@@ -45,7 +45,11 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       }
     }
     else if (typeName == "usb") {
-      auto usbCam = std::make_shared<UsbCam>(camName, _algoStartTime, it["device_idx"].get<int>());
+      auto captureWidth = it["capture_width"].get<int>();
+      auto captureHeight = it["capture_height"].get<int>();
+      auto device_idx = it["device_idx"].get<int>();
+
+      auto usbCam = std::make_shared<UsbCam>(camName, _algoStartTime, device_idx, captureWidth, captureHeight);
       addCam(usbCam);
     }
     else if (typeName == "csi") {

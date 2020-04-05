@@ -2,6 +2,8 @@
   "cams": [{
     "type": "usb",
     "device_idx": 0,
-    "name": "UsbTestCam"
+    "name": "UsbTestCam",
+    "capture_width": 1280,
+    "capture_height": 720
   }]
 }
