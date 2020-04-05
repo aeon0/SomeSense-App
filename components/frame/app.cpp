@@ -54,9 +54,7 @@ void frame::App::run() {
     bool gotNewSensorData = false;
 
     for (auto const& [key, cam]: _sensorStorage.getCams()) {
-      _runtimeMeasService.startMeas("get_img_" + key);
       auto [success, sensorTs, img] = cam->getFrame();
-      _runtimeMeasService.endMeas("get_img_" + key);
 
       if (success && img.size().width > 0 && img.size().height > 0 && sensorTs > previousTs) {
         // Do processing per image
@@ -106,6 +104,11 @@ void frame::App::run() {
       _outputStorage.set(frameData);
 
       _frame++;
+
+      // Complete Algo duration for debugging
+      // const auto endTime = std::chrono::high_resolution_clock::now();
+      // const auto durAlgo = std::chrono::duration<double, std::milli>(endTime - frameStartTime);
+      // std::cout << durAlgo.count() << std::endl;
     }
 
     // _runtimeMeasService.printToConsole();
