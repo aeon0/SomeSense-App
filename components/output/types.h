@@ -42,7 +42,9 @@ namespace output {
   void to_json(nlohmann::json& j, const Track& t);
 
   struct Frame {
-    int64_t timestamp;
+    int64_t timestamp; // from the start of the app in [us]
+    int64_t frameStart; // time of current frame start in [us]
+    double plannedFrameLength; // planned length of the frame in [ms]
     int frameCount;
     std::vector<Track> tracks;
 

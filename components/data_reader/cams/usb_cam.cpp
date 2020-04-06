@@ -31,9 +31,5 @@ void data_reader::UsbCam::readData() {
     _currFrame = _bufferFrame.clone();
     _bufferFrame.release();
     _validFrame = success;
-
-    // Not sure why I need this... but it seems otherwise the readFrame() is not fast enough
-    // to take the lock...
-    // std::this_thread::sleep_for(std::chrono::microseconds(100));
   }
 }

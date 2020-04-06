@@ -43,9 +43,13 @@ void frame::App::run() {
   while (!stopFromSignal) {
     _runtimeMeasService.startMeas("algo");
 
+    // Timepoint of frame start
     const auto frameStartTime = std::chrono::high_resolution_clock::now();
-    const auto plannedFrameEndTime = frameStartTime + std::chrono::microseconds(Config::goalFrameLength);
-
+    // To have a constant framerate, we would wait until this time in case the algo was quicker
+    const auto plannedFrameEndTime = frameStartTime + std::chrono::duration<double, std::micro>(Config::goalFrameLength);
+    // Ts (from app start) of frame start. This Ts is not the algo Ts. The sensor Ts determine the algo Ts
+    const auto frameStartTS = static_cast<int64_t>(std::chrono::duration<double, std::micro>(frameStartTime - _algoStartTime).count());
+    
     // Output State contains all data which is sent to the "outside" e.g. to visualize
     output::Frame frameData;
 
@@ -54,11 +58,15 @@ void frame::App::run() {
     bool gotNewSensorData = false;
 
     for (auto const& [key, cam]: _sensorStorage.getCams()) {
+      _runtimeMeasService.startMeas("read_img_" + key);
       auto [success, sensorTs, img] = cam->getFrame();
+      _runtimeMeasService.endMeas("read_img_" + key);
 
       if (success && img.size().width > 0 && img.size().height > 0 && sensorTs > previousTs) {
-        // Do processing per image
+        // Do processing per 2D image
+        // _runtimeMeasService.startMeas("detect_" + key);
         // _detector.detect(img);
+        // _runtimeMeasService.endMeas("detect_" + key);
 
         _runtimeMeasService.startMeas("data_proc_" + key);
 
@@ -88,15 +96,16 @@ void frame::App::run() {
 
     if (gotNewSensorData) {
       // TODO: do the processing for tracks
-
-      _runtimeMeasService.endMeas("algo");
-
       // Add example track for testing
       // frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
+
+      _runtimeMeasService.endMeas("algo");
 
       // Finally set the algo timestamp to the output data
       frameData.timestamp = _ts;
       frameData.frameCount = _frame;
+      frameData.frameStart = frameStartTS;
+      frameData.plannedFrameLength = Config::goalFrameLength;
       // Add time measurements to the json output
       auto runtimeMeas = _runtimeMeasService.serializeMeas();
       frameData.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
@@ -111,7 +120,6 @@ void frame::App::run() {
       // std::cout << durAlgo.count() << std::endl;
     }
 
-    // _runtimeMeasService.printToConsole();
     _runtimeMeasService.reset();
     // Wait till end of frame in case algo was quicker too keep consistent algo frame rate
     std::this_thread::sleep_until(plannedFrameEndTime);
