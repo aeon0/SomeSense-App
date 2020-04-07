@@ -2,7 +2,7 @@
 find_package(OpenCV)
 
 # if not found, install it with ExternalProject
-if(NOT OpenCV_FOUND)
+# if(NOT OpenCV_FOUND)
   if(NOT EXISTS ${EXTERNAL_INSTALL_DIR}/opencv)
     ExternalProject_Add(OpenCVPrj
       GIT_REPOSITORY "https://github.com/opencv/opencv.git"
@@ -20,7 +20,7 @@ if(NOT OpenCV_FOUND)
         -DWITH_CUDA:BOOL=FALSE
         -DWITH_FFMPEG:BOOL=TRUE
         -DWITH_GSTREAMER:BOOL=TRUE
-        -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui,video
+        -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui,video,features2D,calib3d,video
         -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_DIR}/opencv
         -DCMAKE_BUILD_TYPE=Release
       INSTALL_COMMAND make -j4 install
@@ -30,4 +30,4 @@ if(NOT OpenCV_FOUND)
     # Just recompile... once, not sure how to fix this
     find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
   endif()
-endif()
+# endif()

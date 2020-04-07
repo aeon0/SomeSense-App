@@ -14,8 +14,13 @@ namespace output {
   struct CamSensor {
     int idx;
     std::string key;
+    // intrinsic parameters
+    double focalLength[2];
+    double principalPoint[2];
+    // extrinsic parameters
     double position[3];
     double rotation[3];
+    // fov
     double fovHorizontal;
     double fovVertical;
   };

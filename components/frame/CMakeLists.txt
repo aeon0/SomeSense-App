@@ -23,6 +23,7 @@ target_link_libraries(${PROJECT_NAME}
   lib${COMPONENT_NAME}
   libdata_reader
   libcom_out
+  libonline_calibration
   # libutilities # currently no cpp file, thus header only lib
   # libobject_detection
   liboutput

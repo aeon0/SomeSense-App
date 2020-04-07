@@ -19,7 +19,7 @@ int main() {
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
   // Create Sensor Storage
-  const std::string sensorConfigPath = "configs/live_sensors_usb.json";
+  const std::string sensorConfigPath = "configs/sim_sensors.json";
   auto sensorStorage = data_reader::SensorStorage(server, algoStartTime, outputStorage);
   sensorStorage.initFromConfig(sensorConfigPath);
 

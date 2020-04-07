@@ -7,6 +7,7 @@
 #include "runtime_meas_service.h"
 #include "types.h"
 #include "output/storage.h"
+#include "online_calibration/online_calibration.h"
 // #include "object_detection/detector.h"
 #include <signal.h>
 
@@ -22,10 +23,13 @@ namespace frame {
     void reset();
 
   private:
+    typedef std::map<const std::string, std::shared_ptr<online_calibration::Calibrator>> CalibratorMap;
+
     output::Storage& _outputStorage;
     const data_reader::SensorStorage& _sensorStorage;
     // object_detection::Detector _detector;
     RuntimeMeasService _runtimeMeasService;
+    CalibratorMap _calibrationMap;
 
     int64_t _ts; // algo timestamp of the current frame
     int _frame; // current frame counter

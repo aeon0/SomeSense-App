@@ -63,13 +63,25 @@ void frame::App::run() {
       _runtimeMeasService.endMeas("read_img_" + key);
 
       if (success && img.size().width > 0 && img.size().height > 0 && sensorTs > previousTs) {
+        // Create grayscale img
+        cv::Mat grayScaleImg;
+        cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
+
         // Do processing per 2D image
         // _runtimeMeasService.startMeas("detect_" + key);
         // _detector.detect(img);
         // _runtimeMeasService.endMeas("detect_" + key);
 
-        _runtimeMeasService.startMeas("data_proc_" + key);
+        _runtimeMeasService.startMeas("calib_" + key);
+        if (_calibrationMap.count(key) <= 0) {
+          _calibrationMap.insert({key, std::make_shared<online_calibration::Calibrator>(_runtimeMeasService)});
+        }
+        auto calibrator = _calibrationMap.at(key);
+        calibrator->calibrate(grayScaleImg);
+        _runtimeMeasService.endMeas("calib_" + key);
 
+        // Set image to output state
+        _runtimeMeasService.startMeas("img_to_output" + key);
         output::CamImg camImgData {
           sensorIdx,
           sensorTs,
@@ -79,17 +91,16 @@ void frame::App::run() {
           img.channels()
         };
         _outputStorage.setCamImg(key, camImgData);
+        _runtimeMeasService.endMeas("img_to_output" + key);
 
         gotNewSensorData = true;
         if (sensorTs > _ts) {
           _ts = sensorTs; // take latest sensorTs as as algoTs
         }
-
-        _runtimeMeasService.endMeas("data_proc_" + key);
       }
 
       // Add sensor to outputstate
-      frameData.camSensors.push_back({sensorIdx, key, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
+      frameData.camSensors.push_back({sensorIdx, key, {1, 1}, {0, 0}, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
 
       sensorIdx++;
     }

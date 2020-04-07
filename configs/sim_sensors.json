@@ -1,7 +1,7 @@
 {
-  "basepath": "/home/jodo/ILONA/app-frame/storage_data/2020-02-27T22:01:20.779744413",
+  "basepath": "/home/jodo/Downloads/speedchallenge/data",
   "cams": [{
     "type": "video",
-    "name": "UsbTestCam_0"
+    "name": "test"
   }]
 }

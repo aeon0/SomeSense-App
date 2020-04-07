@@ -5,6 +5,8 @@ void output::to_json(nlohmann::json& j, const CamSensor& c) {
   j = nlohmann::json {
     {"idx", c.idx},
     {"key", c.key},
+    {"focalLength", c.focalLength},
+    {"principalPoint", c.principalPoint},
     {"position", c.position},
     {"rotation", c.rotation},
     {"fovHorizontal", c.fovHorizontal},
