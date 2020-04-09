@@ -37,6 +37,10 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
 void frame::App::reset() {
   _ts = -1;
   _frame = -1;
+
+  for (auto [key, opticalFlow]: _opticalFlowMap) {
+    opticalFlow.reset();
+  }
 }
 
 void frame::App::run() {
@@ -73,11 +77,11 @@ void frame::App::run() {
         // _runtimeMeasService.endMeas("detect_" + key);
 
         _runtimeMeasService.startMeas("calib_" + key);
-        if (_calibrationMap.count(key) <= 0) {
-          _calibrationMap.insert({key, std::make_shared<online_calibration::Calibrator>(_runtimeMeasService)});
+        if (_opticalFlowMap.count(key) <= 0) {
+          _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
         }
-        auto calibrator = _calibrationMap.at(key);
-        calibrator->calibrate(grayScaleImg);
+        auto calibrator = _opticalFlowMap.at(key);
+        calibrator->update(grayScaleImg, sensorTs);
         _runtimeMeasService.endMeas("calib_" + key);
 
         // Set image to output state
