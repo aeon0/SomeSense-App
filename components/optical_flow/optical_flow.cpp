@@ -31,9 +31,6 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
       cv::TermCriteria((cv::TermCriteria::COUNT) + (cv::TermCriteria::EPS), 30, 0.01));
     _runtimeMeasService.endMeas("calc_flow");
 
-    // Find fundamental matrix to filter out flow vectors
-    // TODO: Points which are within a object should be ignored for this (one object detection works)
-    _fundamentalMat = cv::findFundamentalMat(_prevFreatures, newFeatures, cv::Mat(), cv::FM_RANSAC, 3.0, 0.99);
 
     // Save optical flow to internal flow
     _flow.clear();
@@ -42,22 +39,27 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
     }
 
     // Show image for Debugging
-    cv::Mat debugImg;
-    cv::cvtColor(img, debugImg, cv::COLOR_GRAY2BGR);
-    for (int i = 0; i < _prevFreatures.size(); ++i) {
-      cv::circle(debugImg, _prevFreatures[i], 2, {255, 0, 0});
-      cv::circle(debugImg, newFeatures[i], 2, {0, 255, 0});
-      cv::arrowedLine(debugImg, _prevFreatures[i], newFeatures[i], {0, 0, 255});
-    }
-    cv::namedWindow("Debug Optical Flow Window", cv::WINDOW_AUTOSIZE);
-    cv::imshow("Debug Optical Flow", debugImg);
-    cv::waitKey(1);
+    // cv::Mat debugImg;
+    // cv::cvtColor(img, debugImg, cv::COLOR_GRAY2BGR);
+    // for (auto f: _flow) {
+    //   cv::circle(debugImg, f.first, 2, {255, 0, 0});
+    //   cv::circle(debugImg, f.second, 2, {0, 255, 0});
+    //   cv::arrowedLine(debugImg, f.first, f.second, {0, 0, 255});
+    // }
+    // cv::namedWindow("Debug Optical Flow Window", cv::WINDOW_AUTOSIZE);
+    // cv::imshow("Debug Optical Flow", debugImg);
+    // cv::waitKey(1);
   }
 
   _runtimeMeasService.startMeas("find_good_features");
   // Find good features takes quite some runtime, only use it every x frames
   if (_framesSinceRefresh >= (REFRESH_AFTER - 1)) {
-    cv::goodFeaturesToTrack(img, _prevFreatures, 400, 0.05, 10);
+    const int width = img.size().width;
+    const int height = img.size().height;
+    const int borderOutside = 50;
+    cv::Mat mask = cv::Mat::zeros(height, width, CV_8U);
+    cv::rectangle(mask, cv::Rect(borderOutside, borderOutside, width - (2*borderOutside), height - (2*borderOutside)), 255, cv::FILLED);
+    cv::goodFeaturesToTrack(img, _prevFreatures, 400, 0.02, 7, mask);
     _framesSinceRefresh = 0;
   }
   else {
