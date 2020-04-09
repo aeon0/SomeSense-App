@@ -8,6 +8,7 @@
 namespace optical_flow {
   class OpticalFlow {
   public:
+    // pair has Points at [t-1, t]
     typedef std::vector<std::pair<cv::Point2f, cv::Point2f>> FlowVector;
 
     OpticalFlow(frame::RuntimeMeasService& runtimeMeasService);
@@ -19,10 +20,11 @@ namespace optical_flow {
   private:
     int64_t _prevTs;
     cv::Mat _prevImg;
-    std::vector<cv::Point2f> _featuresLastFrame;
+    std::vector<cv::Point2f> _prevFreatures;
     int _framesSinceRefresh;
     frame::RuntimeMeasService& _runtimeMeasService;
 
+    cv::Mat _fundamentalMat;
     FlowVector _flow;
     double _deltaTime; // delta time of the flow measurement in [ms]
 
