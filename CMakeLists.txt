@@ -8,6 +8,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 
 # some options for the build
 option(BUILD_TEST "Build the unit tests" OFF)
+option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
 
 # we want to choice our own prefix to prevent naming issues
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
@@ -25,14 +26,16 @@ include_directories(${COMPONENT_DIR} NO_DEFAULT_PATH)
 
 include(externals/dependencies.cmake)
 
-# add_subdirectory(components/utilities)
-# add_subdirectory(components/com_out)
-# add_subdirectory(components/data_reader)
-# # add_subdirectory(components/object_detection)
-# add_subdirectory(components/optical_flow)
-# add_subdirectory(components/online_calibration)
-# add_subdirectory(components/output)
-# add_subdirectory(components/frame)
+if (NOT INSTALL_DEPENDENCIES)
+  add_subdirectory(components/utilities)
+  add_subdirectory(components/com_out)
+  add_subdirectory(components/data_reader)
+  # add_subdirectory(components/object_detection)
+  add_subdirectory(components/optical_flow)
+  add_subdirectory(components/online_calibration)
+  add_subdirectory(components/output)
+  add_subdirectory(components/frame)
+endif()
 
 if(BUILD_TEST)
   add_subdirectory(test/frame)

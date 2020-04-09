@@ -1,9 +1,14 @@
 # try to find a pre installed OpenCV
-find_package(OpenCV)
+find_package(OpenCV ${OPENCV_VERSION} EXACT PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+find_package(Eigen3 NO_MODULE)
+if(NOT OpenCV_FOUND)
+  # find_package(OpenCV)
+endif()
 
 # if not found, install it with ExternalProject
-# if(NOT OpenCV_FOUND)
+if(NOT OpenCV_FOUND)
   if(NOT EXISTS ${EXTERNAL_INSTALL_DIR}/opencv)
+    message("========================== INSTALL OPENCV ============================")
     ExternalProject_Add(OpenCVPrj
       GIT_REPOSITORY "https://github.com/opencv/opencv.git"
       GIT_TAG "${OPENCV_VERSION}"
@@ -17,6 +22,7 @@ find_package(OpenCV)
         -DBUILD_TESTS:BOOL=FALSE
         -DBUILD_SHARED_LIBS:BOOL=FALSE
         -DBUILD_PERF_TESTS:BOOL=FALSE
+        -DWITH_EIGEN:BOOL=TRUE
         -DWITH_CUDA:BOOL=FALSE
         -DWITH_FFMPEG:BOOL=TRUE
         -DWITH_GSTREAMER:BOOL=TRUE
@@ -26,8 +32,7 @@ find_package(OpenCV)
       INSTALL_COMMAND make -j4 install
     )
   else()
-    # The first compilation this fails as find_package does not wait for ExternalProject_Add
-    # Just recompile... once, not sure how to fix this
-    find_package(OpenCV REQUIRED PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+    find_package(OpenCV ${OPENCV_VERSION} REQUIRED EXACT PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+    find_package(Eigen3 REQUIRED NO_MODULE)
   endif()
-# endif()
+endif()
