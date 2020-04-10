@@ -7,8 +7,12 @@
 # Run these commands to install cmake and compiler (g++)
 sudo apt-get update
 sudo apt-get install cmake
-sudo apt-get install g++
+sudo apt-get install clang-8
+# sudo apt-get install g++
 sudo apt-get install ffmpeg x264 libx264-dev
+
+# for simulation (carla)
+sudo apt-get install ninja-build pytohn-dev
 ```
 
 ### CUDA + CUDNN
