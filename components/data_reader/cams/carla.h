@@ -4,6 +4,8 @@
 #include "base_cam.h"
 
 
+using namespace std::chrono_literals;
+
 namespace data_reader {
   class Carla : public BaseCam {
   public:

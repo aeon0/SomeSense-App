@@ -29,6 +29,6 @@ namespace optical_flow {
     double _deltaTime; // delta time of the flow measurement in [ms]
 
     // After this many updates, the features are calculated again
-    const int REFRESH_AFTER = 3;
+    const int _refreshAfter;
   };
 }

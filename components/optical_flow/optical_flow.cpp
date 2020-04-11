@@ -5,7 +5,7 @@
 
 
 optical_flow::OpticalFlow::OpticalFlow(frame::RuntimeMeasService& runtimeMeasService) :
-  _runtimeMeasService(runtimeMeasService), _framesSinceRefresh(REFRESH_AFTER) {}
+  _runtimeMeasService(runtimeMeasService), _refreshAfter(3), _framesSinceRefresh(3) {}
 
 void optical_flow::OpticalFlow::reset() {
   _prevFreatures.clear();
@@ -16,7 +16,7 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
 
   if (_prevFreatures.size() > 0 && _prevImg.size().height > 0 && _prevImg.size().width > 0) {
     // Calc delta time to last frame
-    _deltaTime = (ts - _prevTs) * 0,001; // convert from [us] to [ms]
+    _deltaTime = (ts - _prevTs) * 0.001; // convert from [us] to [ms]
 
     _runtimeMeasService.startMeas("calc_flow");
     std::vector<uchar> status;
@@ -53,7 +53,7 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
 
   _runtimeMeasService.startMeas("find_good_features");
   // Find good features takes quite some runtime, only use it every x frames
-  if (_framesSinceRefresh >= (REFRESH_AFTER - 1)) {
+  if (_framesSinceRefresh >= (_refreshAfter - 1)) {
     const int width = img.size().width;
     const int height = img.size().height;
     const int borderOutside = 50;

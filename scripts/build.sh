@@ -18,6 +18,7 @@ if [[ ( "$1" == "-h" ) || ( "$1" == "--help" ) ]]; then
     echo "  -h, --help           Show this help text"
     echo "  --build_type         Can be one of [debug, release], default=debug"
     echo "  --build_tests        Can be one of [OFF, ON], default=OFF"
+    echo "  --build_sim          Can be one of [OFF, ON], default=OFF"
     exit 0
 fi
 
@@ -27,6 +28,7 @@ fi
 ROOTDIR=`pwd`
 CONFIG="debug"
 TESTS="OFF"
+SIM="OFF"
 
 #######################
 ## PARAMETER PARSING ##
@@ -46,6 +48,12 @@ case $i in
         fi
         shift 1
         ;;
+    --build_sim=*)
+        if [ $# -ne 0 ]; then
+            SIM="${i#*=}"
+        fi
+        shift 1
+        ;;
     "")
         break
         ;;
@@ -62,7 +70,7 @@ BUILDFOLDER=$ROOTDIR/build/$CONFIG
 mkdir -p $BUILDFOLDER
 cd $BUILDFOLDER
 
-cmake -DBUILD_TEST=$TESTS -DCMAKE_BUILD_TYPE=$CONFIG $ROOTDIR || exit 1
+cmake -DBUILD_TEST=$TESTS -DBUILD_SIM=$SIM -DCMAKE_BUILD_TYPE=$CONFIG $ROOTDIR || exit 1
 
 make -j8
 make install

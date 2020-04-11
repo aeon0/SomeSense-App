@@ -1,7 +1,4 @@
-# 1) Download sources from the URL
-# 2) Run CMake
-# 3) Install with make
-IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/gtest)
+if(INSTALL_DEPENDENCIES)
   ExternalProject_Add(CarlaPrj
     GIT_REPOSITORY "https://github.com/carla-simulator/carla"
     GIT_TAG "${CARLA_VERSION}"
@@ -17,7 +14,7 @@ IF (NOT EXISTS ${EXTERNAL_INSTALL_DIR}/gtest)
     BUILD_COMMAND cd <SOURCE_DIR>/Build && ninja
     INSTALL_COMMAND cd <SOURCE_DIR>/Build && ninja install
   )
-ENDIF()
+endif()
 
 # Provide pathes to the installed dependency, these are available in root scope as there are only "include()" used for dependencies
 SET(CARLA_INCLUDE_DIR ${EXTERNAL_INSTALL_DIR}/carla/include)

@@ -8,9 +8,13 @@ set(${PROJECT_NAME}_VERSION_MINOR 1)
 include(compiler_flags.cmake)
 
 # some options for the build
-option(BUILD_TEST "Build the unit tests" OFF)
 option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
-option(INSTALL_SIM "Flag if simulation (carla) shouldb also be built" OFF)
+option(BUILD_TEST "Build the unit tests" OFF)
+option(BUILD_SIM "Build simulation (Carla client)" OFF)
+# export this to c++ code as compiler definition
+if (BUILD_SIM)
+  add_compile_definitions(BUILD_SIM)
+endif()
 
 # we want to choice our own prefix to prevent naming issues
 set(CMAKE_STATIC_LIBRARY_PREFIX "")

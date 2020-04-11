@@ -1,6 +1,5 @@
 SET(COMPONENT_NAME "frame")
 
-# SYSTEM hides warnings in this file as I cant really do anything about it
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORRT_INCLUDE_DIRS}
@@ -16,22 +15,38 @@ add_library(lib${COMPONENT_NAME}
 install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")
 
-# link libs and create executable
+
+# Create executable by linking all libs
 add_executable(${PROJECT_NAME} ${COMPONENT_DIR}/frame/main.cpp)
-target_link_libraries(${PROJECT_NAME}
-  # link static libs
+set(COMPONENT_LIBS
   lib${COMPONENT_NAME}
   libdata_reader
   libcom_out
   liboptical_flow
   libonline_calibration
-  # libutilities # currently no cpp file, thus header only lib
-  # libobject_detection
   liboutput
-  # ${CUDA_LIBRARIES}
+  # libobject_detection
+)
+set(DEPENDENCY_LIBS
+  # Dependencies: link static libs
   ${OpenCV_LIBS}
 
-  # link shared libs
+  # In case TensorRT should be used
+  # ${CUDA_LIBRARIES}
   # ${TENSORRT_SHARED_LIBS}
+)
+if (BUILD_SIM)
+  # Add carla libs for simulation
+  set(DEPENDENCY_LIBS
+    ${DEPENDENCY_LIBS}
+    ${CARLA_LIB_DIR}/libcarla_client.a
+    ${CARLA_LIB_DIR}/librpc.a
+    ${CARLA_LIB_DIR}/libDetour.a
+    ${CARLA_LIB_DIR}/libDetourCrowd.a
+  )
+endif()
+target_link_libraries(${PROJECT_NAME}
+  ${COMPONENT_LIBS}
+  ${DEPENDENCY_LIBS}
 )
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})

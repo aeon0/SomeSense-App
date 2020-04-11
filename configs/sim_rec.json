@@ -1,0 +1,8 @@
+{
+  "cams": [{
+    "type": "video",
+    "basepath": "/home/jodo/ILONA/app-frame/storage_data/2020-04-05T21:02:18.101046369",
+    "timestamps": "timestamps.json",
+    "name": "UsbTestCam_0"
+  }]
+}

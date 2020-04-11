@@ -16,7 +16,7 @@ if [[ ( "$1" == "-h" ) || ( "$1" == "--help" ) ]]; then
     echo "  Install dependencies needed for the project"
     echo
     echo "  -h, --help           Show this help text"
-    echo "  --sim                Download Carla for simulation"
+    echo "  --build_sim          Can be one of [OFF, ON], default=OFF"
     exit 0
 fi
 
@@ -24,7 +24,7 @@ fi
 ## VARIABLE SETTINGS && DEFAULTS ##
 ###################################
 ROOTDIR=`pwd`
-SIM=OFF
+SIM="OFF"
 
 #######################
 ## PARAMETER PARSING ##
@@ -32,8 +32,10 @@ SIM=OFF
 for i in "$@"
 do
 case $i in
-    --sim)
-        SIM=ON
+    --build_sim=*)
+        if [ $# -ne 0 ]; then
+            SIM="${i#*=}"
+        fi
         shift 1
         ;;
     "")
@@ -69,5 +71,21 @@ BUILDFOLDER=$ROOTDIR/build/externals
 mkdir -p $BUILDFOLDER
 cd $BUILDFOLDER
 
-cmake -DINSTALL_DEPENDENCIES=ON -DBUILD_TEST=ON -DINSTALL_SIM=$SIM $ROOTDIR || exit 1
+cmake -DINSTALL_DEPENDENCIES=ON -DBUILD_TEST=ON -DBUILD_SIM=$SIM $ROOTDIR || exit 1
 make -j8
+
+# Note: With $ ninja install, not all include dependencies (boost, rpc, recast) are copied / moved
+#       openend and issue for that: https://github.com/carla-simulator/carla/issues/2718
+if [[ "${SIM}" == ON ]]; then
+  CARLA_BUILD_DIR="${ROOTDIR}/build/externals/CarlaPrj-prefix/src/CarlaPrj/Build"
+  CARLA_INSTALL_DIR="${ROOTDIR}/externals/install/carla"
+  if [ ! -d "$CARLA_INSTALL_DIR/include/boost" ]; then
+    mv $CARLA_BUILD_DIR/boost-*-install/include/boost $CARLA_INSTALL_DIR/include/boost
+  fi
+  if [ ! -d "$CARLA_INSTALL_DIR/include/recast" ]; then
+    mv $CARLA_BUILD_DIR/recast-*-install/include/recast $CARLA_INSTALL_DIR/include/recast
+  fi
+  if [ ! -d "$CARLA_INSTALL_DIR/include/rpc" ]; then
+    mv $CARLA_BUILD_DIR/rpclib-*-libstdcxx-install/include/rpc $CARLA_INSTALL_DIR/include/rpc
+  fi
+fi

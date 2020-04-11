@@ -6,6 +6,7 @@
 #include "cams/video_cam.h"
 #include "cams/usb_cam.h"
 #include "cams/csi_cam.h"
+#include "cams/carla.h"
 
 
 data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime, output::Storage& outputStorage) :
@@ -19,19 +20,21 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
 
   nlohmann::json timestampsJson;
   auto jsonSensorConfig = nlohmann::json::parse(ifs);
-  if (jsonSensorConfig.contains("timestamps")) {
-    // Load timestamps file
-    std::ifstream ifsTs(jsonSensorConfig["basepath"].get<std::string>() + "/" + jsonSensorConfig["timestamps"].get<std::string>());
-    if (!ifsTs.good()) {
-      throw std::runtime_error("Could not open timestamp file, please check its path in the json config");
-    }
-    timestampsJson = nlohmann::json::parse(ifsTs);
-  }
+
   for (const auto it: jsonSensorConfig["cams"]) {
     const auto typeName = it["type"].get<std::string>();
     const auto camName = it["name"].get<std::string>();
     if (typeName == "video") {
-      const std::string filePath = jsonSensorConfig["basepath"].get<std::string>() + "/" + camName + ".mp4";
+      if (it.contains("timestamps")) {
+        // Load timestamps file
+        std::ifstream ifsTs(it["basepath"].get<std::string>() + "/" + it["timestamps"].get<std::string>());
+        if (!ifsTs.good()) {
+          throw std::runtime_error("Could not open timestamp file, please check its path in the json config");
+        }
+        timestampsJson = nlohmann::json::parse(ifsTs);
+      }
+
+      const std::string filePath = it["basepath"].get<std::string>() + "/" + camName + ".mp4";
       if (timestampsJson.contains(camName)) {
         auto timestamps = timestampsJson[camName].get<std::vector<int64>>();
         auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath, timestamps);
@@ -61,6 +64,13 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       auto csiCam = std::make_shared<CsiCam>(camName, _algoStartTime, captureWidth, captureHeight, frameRate, flipMethod);
       addCam(csiCam);
     }
+#ifdef BUILD_SIM
+    else if (typeName == "carla") {
+      auto carlaCam = std::make_shared<Carla>(camName, _algoStartTime);
+      addCam(carlaCam);
+
+    }
+#endif
     else {
       throw std::runtime_error("Type " + typeName + " is not supported yet!");
     }

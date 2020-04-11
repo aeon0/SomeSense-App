@@ -7,7 +7,7 @@ include(externals/opencv.cmake)
 set(TENSORRT_VERSION v7.0.0)
 include(externals/tensorrt.cmake)
 
-if(INSTALL_SIM)
+if(BUILD_SIM)
   # version also must be changed for the server on the download in ./scripts/dependencies.sh
   set(CARLA_VERSION 0.9.7)
   include(externals/carla.cmake)

@@ -1,7 +1,0 @@
-{
-  "basepath": "/home/jodo/Downloads/speedchallenge/data",
-  "cams": [{
-    "type": "video",
-    "name": "test"
-  }]
-}

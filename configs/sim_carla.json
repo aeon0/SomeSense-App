@@ -1,0 +1,8 @@
+{
+  "cams": [{
+    "type": "carla",
+    "name": "carla_cam_0",
+    "host": "localhost",
+    "port": 2000
+  }]
+}
