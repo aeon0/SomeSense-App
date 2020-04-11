@@ -4,6 +4,8 @@
     "**/.git/subtree-cache/**": true,
     "**/build/**": true,
     "**/dist/**": true,
+    "**/CARLA_0.9.7/**": true,
+    "**/externals/install/**": true,
   },
   "files.associations": {
     "*.tcc": "cpp",
