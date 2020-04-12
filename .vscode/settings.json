@@ -78,6 +78,8 @@
     "filesystem": "cpp",
     "codecvt": "cpp",
     "cassert": "cpp",
-    "*.cuh": "cpp"
+    "*.cuh": "cpp",
+    "__functional_03": "cpp",
+    "*.ipp": "cpp"
   }
 }
