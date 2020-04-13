@@ -15,7 +15,7 @@ namespace data_reader {
       }
 
       // Setup the scene
-      virtual void setup(carla::client::Client client) {
+      void setup(carla::client::Client client) override {
          // Load world
         std::cout << "Loading world: Town03" << std::endl;
         auto world = client.LoadWorld("Town03");
@@ -73,7 +73,7 @@ namespace data_reader {
         _egoVehicle->ApplyControl(control);
       };
 
-      virtual boost::shared_ptr<carla::client::Sensor> getRgbCam() const { return _rgbCamera; }
+      const boost::shared_ptr<carla::client::Sensor> getRgbCam() const override { return _rgbCamera; }
 
     private:
       boost::shared_ptr<carla::client::Sensor> _rgbCamera;

@@ -19,7 +19,7 @@ namespace data_reader {
     public:
       // Setup the scene
       virtual void setup(carla::client::Client client) = 0;
-      virtual boost::shared_ptr<carla::client::Sensor> getRgbCam() const = 0;
+      virtual const boost::shared_ptr<carla::client::Sensor> getRgbCam() const = 0;
     };
   }
 }
