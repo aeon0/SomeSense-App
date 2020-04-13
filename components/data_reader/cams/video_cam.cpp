@@ -4,14 +4,14 @@
 #include <thread>
 
 
-data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const std::vector<int64> timestamps) :
+data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const double horizontalFov, const std::vector<int64> timestamps) :
     BaseCam(name, algoStartTime), _outputStorage(outputStorage), _filename(filename), _timestamps(timestamps), _gotOneFrame(false), _pause(true), _jumpToFrame(false) {
   _stream.open(_filename);
   if (!_stream.isOpened()) {
     throw std::runtime_error("VideoCam could not open file: " + _filename);
   }
 
-  _frameSize = cv::Size(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT));
+  setCamIntrinsics(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
 
   // If timestamps are not filled, use camera fps info for timestamps, otherwise use the provided timestamps
   if (_timestamps.size() == 0) {

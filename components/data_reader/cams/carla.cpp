@@ -21,17 +21,24 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
 
   // Listen and read from the camera
   auto cam = _scene->getRgbCam();
+  int width = 0;
+  int height = 0;
+  double horizontalFov = 0.0;
   for (auto attrib: cam->GetAttributes()) {
     if (attrib.GetId() == "image_size_x") {
-      _frameSize.width = std::stoi(attrib.GetValue());
+      int width = std::stoi(attrib.GetValue());
     }
     else if(attrib.GetId() == "image_size_y") {
-      _frameSize.height = std::stoi(attrib.GetValue());
+      int height = std::stoi(attrib.GetValue());
     }
     else if(attrib.GetId() == "sensor_tick") {
       _frameRate = 1.0 / std::stod(attrib.GetValue());
     }
+    else if(attrib.GetId() == "fov") {
+      horizontalFov = std::stod(attrib.GetValue()) * (M_PI / 180.0);
+    }
   }
+  setCamIntrinsics(width, height, horizontalFov);
   cam->Listen(std::bind(&data_reader::Carla::readRgbCameraData, this, std::placeholders::_1));
 }
 

@@ -36,15 +36,16 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
         timestampsJson = nlohmann::json::parse(ifsTs);
       }
 
+      auto horizontalFov = it["horizontal_fov"].get<double>() * (M_PI / 180.0); // convert from deg to rad
       const std::string filePath = it["basepath"].get<std::string>() + "/" + camName + ".mp4";
       if (timestampsJson.contains(camName)) {
         auto timestamps = timestampsJson[camName].get<std::vector<int64>>();
-        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath, timestamps);
+        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath, horizontalFov, timestamps);
         _requestHandler.registerRequestListener(videoCam);
         addCam(videoCam, camName);
       }
       else {
-        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath);
+        auto videoCam = std::make_shared<VideoCam>(camName, _algoStartTime, _outputStorage, filePath, horizontalFov);
         _requestHandler.registerRequestListener(videoCam);
         addCam(videoCam, camName);
       }
@@ -53,8 +54,9 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       auto captureWidth = it["capture_width"].get<int>();
       auto captureHeight = it["capture_height"].get<int>();
       auto device_idx = it["device_idx"].get<int>();
+      auto horizontalFov = it["horizontal_fov"].get<double>() * (M_PI / 180.0);
 
-      auto usbCam = std::make_shared<UsbCam>(camName, _algoStartTime, device_idx, captureWidth, captureHeight);
+      auto usbCam = std::make_shared<UsbCam>(camName, _algoStartTime, device_idx, captureWidth, captureHeight, horizontalFov);
       addCam(usbCam);
     }
     else if (typeName == "csi") {
@@ -62,8 +64,9 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       auto captureHeight = it["capture_height"].get<int>();
       auto flipMethod = it["flip_method"].get<int>();
       auto frameRate = it["frame_rate"].get<int>();
+      auto horizontalFov = it["horizontal_fov"].get<double>() * (M_PI / 180.0);
 
-      auto csiCam = std::make_shared<CsiCam>(camName, _algoStartTime, captureWidth, captureHeight, frameRate, flipMethod);
+      auto csiCam = std::make_shared<CsiCam>(camName, _algoStartTime, captureWidth, captureHeight, frameRate, flipMethod, horizontalFov);
       addCam(csiCam);
     }
 #ifdef BUILD_SIM

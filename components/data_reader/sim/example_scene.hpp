@@ -5,7 +5,7 @@ namespace data_reader {
   namespace sim {
     class ExampleScene : public IScene {
     public:
-      ExampleScene() : _width(1280), _height(720), _fov(120), _fps(50) {}
+      ExampleScene() : _width(1280), _height(720), _fov(120.0f), _fps(50) {}
 
       ~ExampleScene() {
         std::cout << "Destroy stuff" << std::endl;
@@ -49,7 +49,7 @@ namespace data_reader {
         cameraBp.SetAttribute("fov", std::to_string(_fov));
         cameraBp.SetAttribute("image_size_x", std::to_string(_width));
         cameraBp.SetAttribute("image_size_y", std::to_string(_height));
-        cameraBp.SetAttribute("sensor_tick", std::to_string(1/static_cast<double>(_fps))); // 50 fps
+        cameraBp.SetAttribute("sensor_tick", std::to_string(1.0f/static_cast<float>(_fps))); // 50 fps
         auto cameraTransform = carla::geom::Transform {
             carla::geom::Location{0.15f, 0.0f, 1.5f},   // x, y, z.
             carla::geom::Rotation{0.0f, 0.0f, 0.0f}}; // pitch, yaw, roll.
@@ -82,7 +82,7 @@ namespace data_reader {
 
       int _width;
       int _height;
-      int _fov; // field of view in degree
+      float _fov; // field of view in degree
       int _fps;
     };
   }

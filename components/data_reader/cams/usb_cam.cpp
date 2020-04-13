@@ -3,17 +3,17 @@
 #include <thread>
 
 
-data_reader::UsbCam::UsbCam(const std::string name, const TS& algoStartTime, const int deviceIdx, const int captureWidth, const int captureHeight):
+data_reader::UsbCam::UsbCam(const std::string name, const TS& algoStartTime, const int deviceIdx, const int captureWidth, const int captureHeight, const int horizontalFov):
     BaseCam(name, algoStartTime), _deviceIdx(deviceIdx) {
   _cam.open(_deviceIdx, cv::CAP_V4L);
   if (!_cam.isOpened()) {
     throw std::runtime_error("Could not open USB Camera at index: " + std::to_string(_deviceIdx));
   }
+  
   _cam.set(cv::CAP_PROP_FRAME_WIDTH, captureWidth);
   _cam.set(cv::CAP_PROP_FRAME_HEIGHT, captureHeight);
-
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
-  _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
+  setCamIntrinsics(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
 
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::UsbCam::readData, this);

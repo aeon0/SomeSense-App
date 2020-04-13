@@ -10,7 +10,8 @@ std::string gstreamer_pipeline(int captureWidth, int captureHeight, int frameRat
 }
 
 
-data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int captureWidth, int captureHeight, int frameRate, int flipMethod): BaseCam(name, algoStartTime) {
+data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int captureWidth, int captureHeight, int frameRate, int flipMethod, const int horizontalFov): 
+    BaseCam(name, algoStartTime) {
   std::cout << "Creating CSI CAMERA!" << std::endl;
   std::string gsStreamerPipline = gstreamer_pipeline(captureWidth, captureHeight, frameRate, flipMethod);
   std::cout << "Using GStream Pipline: " << gsStreamerPipline << std::endl;
@@ -21,7 +22,7 @@ data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int
   }
 
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
-  _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
+  setCamIntrinsics(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
 
   // Read one frame to test things
   bool success = _cam.read(_bufferFrame);

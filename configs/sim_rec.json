@@ -3,7 +3,7 @@
     "type": "video",
     "basepath": "/home/jodo/ILONA/recordings/2020-04-13T12:43:12.400583019",
     "timestamps": "timestamps.json",
-    "name": "UsbTestCam_0",
-    "horizontal_fov": 120
+    "name": "CsiFrontCam_0",
+    "horizontal_fov": 120.0
   }]
 }

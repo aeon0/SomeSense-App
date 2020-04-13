@@ -103,7 +103,15 @@ void frame::App::run() {
       }
 
       // Add sensor to outputstate
-      frameData.camSensors.push_back({sensorIdx, key, {1, 1}, {0, 0}, {0, 1.2, -0.5}, {0, 0, 0}, (M_PI * 0.33), (M_PI * 0.25)});
+      frameData.camSensors.push_back({
+        sensorIdx,
+        key,
+        {cam->getFocalX(), cam->getFocalY()}, // focal length
+        {cam->getPrincipalPointX(), cam->getPrincipalPointY()}, // principal point
+        {0, 1.2, -0.5}, // position: x, y, z
+        {0, 0, 0}, // rotation: yaw, pitch, roll
+        cam->getHorizontalFov(),
+        cam->getVerticalFov()});
 
       sensorIdx++;
     }

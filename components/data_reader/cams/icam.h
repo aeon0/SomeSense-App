@@ -17,6 +17,24 @@ namespace data_reader {
     // Return frame size
     virtual const cv::Size getFrameSize() const = 0;
 
+    // Return horizontal field of view for camera in [rad]
+    virtual const double getHorizontalFov() const = 0;
+
+    // Return vertical field of view for camera in [rad]
+    virtual const double getVerticalFov() const = 0;
+
+    // Return focal length in x direction in [px]
+    virtual const double getFocalX() const = 0;
+
+    // Return focal length in y direction in [px]
+    virtual const double getFocalY() const = 0;
+
+    // Return principal point x in [px]
+    virtual const double getPrincipalPointX() const = 0;
+
+    // Return principal point y in [px]
+    virtual const double getPrincipalPointY() const = 0;
+
     // Return a name for the sensor (used for storing)
     virtual const std::string getName() const = 0;
 

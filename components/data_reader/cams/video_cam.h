@@ -10,7 +10,7 @@
 namespace data_reader {
   class VideoCam : public BaseCam, public com_out::IRequestListener {
   public:
-    VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const std::vector<int64> timestamps = {});
+    VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const double horizontalFov, const std::vector<int64> timestamps = {});
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
 

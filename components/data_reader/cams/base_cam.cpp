@@ -12,3 +12,21 @@ std::tuple<const bool, const int64_t, cv::Mat> data_reader::BaseCam::getFrame() 
   // TODO: maybe speed up possible with memcopy just data
   return {success, _currTs, _currFrame.clone() };
 }
+
+void data_reader::BaseCam::setCamIntrinsics(const int width, const int height, const double horizontalFov) {
+  assert(horizontalFov > 0.0);
+  assert(width > 0);
+  assert(height > 0);
+
+  // Set frame size
+  _frameSize = cv::Size(width, height);
+  // Set principal point
+  _cx = static_cast<double>(_frameSize.width) / 2.0;
+  _cy = static_cast<double>(_frameSize.height) / 2.0;
+  // Set field of view
+  _horizontalFov = horizontalFov;
+  _verticalFov = (_frameSize.height *_horizontalFov) / _frameSize.width;
+  // Set focal length
+  _fx = (static_cast<double>(width) * 0.5) / tan(_horizontalFov * 0.5);
+  _fx = _fy; // assuming concentric lens
+}
