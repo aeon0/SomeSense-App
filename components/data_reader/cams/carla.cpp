@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "../sim/example_scene.hpp"
 
 
 data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
@@ -12,58 +13,26 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
   auto client= carla::client::Client(host, port);
   std::cout << "Connecting to Carla..." << std::endl;
   client.SetTimeout(10s);
-  std::cout << "Success: Carla Connection" << std::endl;
+  std::cout << "Successfully connected to Carla" << std::endl;
 
-  auto availableMaps = client.GetAvailableMaps();
-  auto townName = availableMaps[0];
-  std::cout << "Loading world: " << townName << std::endl;
-  auto world = client.LoadWorld(townName);
-  auto map = world.GetMap();
-  auto transform = map->GetRecommendedSpawnPoints()[0];
-  auto blueprintLib = world.GetBlueprintLibrary();
-  auto vehicles = blueprintLib->Filter("vehicle");
-  auto blueprint = vehicles->at(0);
-  auto actor = world.SpawnActor(blueprint, transform);
-  _egoVehicle = boost::static_pointer_cast<carla::client::Vehicle>(actor);
+  // Change scene here
+  _scene = std::shared_ptr<sim::IScene>(new sim::ExampleScene());
+  _scene->setup(client);
 
-  // Apply control to vehicle
-  carla::client::Vehicle::Control control;
-  control.throttle = 1.0f;
-  _egoVehicle->ApplyControl(control);
-
-  // Move spectator so we can see the vehicle from the simulator window.
-  auto spectator = world.GetSpectator();
-  transform.location += 32.0f * transform.GetForwardVector();
-  transform.location.z += 2.0f;
-  transform.rotation.yaw += 180.0f;
-  transform.rotation.pitch = -15.0f;
-  spectator->SetTransform(transform);
-
-  // Find a rgb camera, set params
-  auto cameraBpPtr = blueprintLib->Find("sensor.camera.rgb");
-  assert(cameraBpPtr != nullptr && "Carla: Can not find sensor blueprint");
-  auto cameraBp = static_cast<carla::client::ActorBlueprint>(*(cameraBpPtr));
-  cameraBp.SetAttribute("fov", "120");
-  cameraBp.SetAttribute("image_size_x", "1280");
-  cameraBp.SetAttribute("image_size_y", "720");
-  cameraBp.SetAttribute("sensor_tick", "0.02"); // 50 fps
-  _frameRate = 50;
-  _frameSize = cv::Size(1280, 720);
-
-  // Spawn a camera attached to the vehicle.
-  auto cameraTransform = carla::geom::Transform {
-      carla::geom::Location{-5.5f, 0.0f, 2.8f},   // x, y, z.
-      carla::geom::Rotation{-15.0f, 0.0f, 0.0f}}; // pitch, yaw, roll.
-  auto camActor = world.SpawnActor(cameraBp, cameraTransform, actor.get());
-  _rgbCamera = boost::static_pointer_cast<carla::client::Sensor>(camActor);
-
-  _rgbCamera->Listen(std::bind(&data_reader::Carla::readRgbCameraData, this, std::placeholders::_1));
-}
-
-data_reader::Carla::~Carla() {
-  std::cout << "Destruct Data from Carla" << std::endl;
-  _egoVehicle->Destroy();
-  _rgbCamera->Destroy();
+  // Listen and read from the camera
+  auto cam = _scene->getRgbCam();
+  for (auto attrib: cam->GetAttributes()) {
+    if (attrib.GetId() == "image_size_x") {
+      _frameSize.width = std::stoi(attrib.GetValue());
+    }
+    else if(attrib.GetId() == "image_size_y") {
+      _frameSize.height = std::stoi(attrib.GetValue());
+    }
+    else if(attrib.GetId() == "sensor_tick") {
+      _frameRate = 1.0 / std::stod(attrib.GetValue());
+    }
+  }
+  cam->Listen(std::bind(&data_reader::Carla::readRgbCameraData, this, std::placeholders::_1));
 }
 
 void data_reader::Carla::readRgbCameraData(carla::SharedPtr<carla::sensor::SensorData> sensorData) {
@@ -82,4 +51,8 @@ void data_reader::Carla::readRgbCameraData(carla::SharedPtr<carla::sensor::Senso
   _currFrame = bufferFrame.clone();
   bufferFrame.release();
   _validFrame = true;
+
+  // cv::namedWindow("Debug Carla Cam", cv::WINDOW_AUTOSIZE);
+  // cv::imshow("Debug Carla Cam Img", _currFrame);
+  // cv::waitKey(1);
 }

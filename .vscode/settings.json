@@ -80,6 +80,7 @@
     "cassert": "cpp",
     "*.cuh": "cpp",
     "__functional_03": "cpp",
-    "*.ipp": "cpp"
+    "*.ipp": "cpp",
+    "__locale": "cpp"
   }
 }

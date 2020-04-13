@@ -6,7 +6,9 @@
 #include "cams/video_cam.h"
 #include "cams/usb_cam.h"
 #include "cams/csi_cam.h"
+#ifdef BUILD_SIM // Set by CMake
 #include "cams/carla.h"
+#endif
 
 
 data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime, output::Storage& outputStorage) :
@@ -68,7 +70,6 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
     else if (typeName == "carla") {
       auto carlaCam = std::make_shared<Carla>(camName, _algoStartTime);
       addCam(carlaCam);
-
     }
 #endif
     else {
