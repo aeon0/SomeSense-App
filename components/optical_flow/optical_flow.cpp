@@ -72,5 +72,5 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
   img.copyTo(_prevImg);
   _prevTs = ts;
 
-  _runtimeMeasService.printToConsole();
+  // _runtimeMeasService.printToConsole();
 }

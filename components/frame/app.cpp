@@ -76,13 +76,12 @@ void frame::App::run() {
         // _detector.detect(img);
         // _runtimeMeasService.endMeas("detect_" + key);
 
-        _runtimeMeasService.startMeas("calib_" + key);
-        if (_opticalFlowMap.count(key) <= 0) {
-          _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
-        }
-        auto calibrator = _opticalFlowMap.at(key);
-        calibrator->update(grayScaleImg, sensorTs);
-        _runtimeMeasService.endMeas("calib_" + key);
+        // _runtimeMeasService.startMeas("optical_flow_" + key);
+        // if (_opticalFlowMap.count(key) <= 0) {
+        //   _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
+        // }
+        // _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
+        // _runtimeMeasService.endMeas("optical_flow_" + key);
 
         // Set image to output state
         _runtimeMeasService.startMeas("img_to_output" + key);
