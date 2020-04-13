@@ -150,4 +150,7 @@ sudo apt-get install nmap
 nmap -sn 10.42.0.0/24
 # ssh into it
 ssh user@10.42.0.81
+
+# copy files from remote to local
+scp -r remote_user@10.42.0.81:~/app-frame/storage_data ~/recordings/
 ```
