@@ -4,19 +4,18 @@ project(Ilona)
 set(${PROJECT_NAME}_VERSION_MAJOR 0)
 set(${PROJECT_NAME}_VERSION_MINOR 1)
 
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread")
 include(compiler_flags.cmake)
 
 # some options for the build
 option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
 option(BUILD_TEST "Build the unit tests" OFF)
 option(BUILD_SIM "Build simulation (Carla client)" OFF)
-# export this to c++ code as compiler definition
+# export BUILD_SIM to c++ code as compiler definition
 if (BUILD_SIM)
   add_compile_definitions(BUILD_SIM)
 endif()
 
-# we want to choice our own prefix to prevent naming issues
+# we want to choice our own prefixes
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 
 set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -42,8 +41,8 @@ if (NOT INSTALL_DEPENDENCIES)
   add_subdirectory(components/online_calibration)
   add_subdirectory(components/output)
   add_subdirectory(components/frame)
-  
+
   if(BUILD_TEST)
-    add_subdirectory(test/frame)
+    add_subdirectory(test)
   endif()
 endif()

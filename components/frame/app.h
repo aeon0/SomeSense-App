@@ -17,9 +17,14 @@ namespace frame {
   public:
     App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime);
 
+    // Handle requests from the outside e.g. visu
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
 
+    // Will execute runFrame() until SIGINT
     void run();
+    // Execute one frame
+    void runFrame();
+    // Reset all internal states, in case your algo needs reseting, do this here
     void reset();
 
   private:
