@@ -8,6 +8,9 @@
 sudo apt-get update
 sudo apt-get install cmake
 sudo apt-get install clang-8
+# might have to create symbolic links
+sudo ln -s /usr/bin/clang-8 /usr/bin/clang
+sudo ln -s /usr/bin/clang++-8 /usr/bin/clang++
 # sudo apt-get install g++
 sudo apt-get install ffmpeg x264 libx264-dev
 

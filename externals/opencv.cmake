@@ -2,7 +2,7 @@
 find_package(OpenCV ${OPENCV_VERSION} EXACT PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
 find_package(Eigen3 NO_MODULE)
 if(NOT OpenCV_FOUND)
-  # find_package(OpenCV)
+  find_package(OpenCV)
 endif()
 
 # if not found, install it with ExternalProject
