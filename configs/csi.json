@@ -5,6 +5,7 @@
     "capture_width": 1280,
     "capture_height": 720,
     "frame_rate": 60,
-    "flip_method": 2
+    "flip_method": 2,
+    "horizontal_fov": 120
   }]
 }
