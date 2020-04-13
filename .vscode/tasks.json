@@ -8,14 +8,14 @@
         {
             "label": "Src: Build [debug]",
             "type": "shell",
-            "command": "./scripts/build.sh --build_type=debug --build_sim=ON",
+            "command": "./scripts/build.sh --build_type=debug", // --build_sim=ON",
             "group": "build",
             "problemMatcher": []  // Prevents VSCode to ask for scanning for errors in the output
         },
         {
             "label": "Src: Build [release]",
             "type": "shell",
-            "command": "./scripts/build.sh --build_type=release --build_sim=ON",
+            "command": "./scripts/build.sh --build_type=release", // --build_sim=ON",
             "group": "build",
             "problemMatcher": []
         },
