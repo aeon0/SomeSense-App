@@ -4,7 +4,6 @@ externals/install
 storage_data
 CARLA_*/
 CARLA_*.tar.gz
-protobuf*.tar.gz
-tmp_*
+capnproto*
 
 *.engine

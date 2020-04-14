@@ -1,14 +1,11 @@
 SET(COMPONENT_NAME "output")
 
 # Generate the .h and .cxx files
-PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS output_types.proto)
-
-message(${PROTO_HDRS})
-message(${CMAKE_BINARY_DIR}/components)
+capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS output_types.capnp)
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components
-  ${Protobuf_INCLUDE_DIRS}
+  ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
+  ${CAPNP_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -16,8 +13,8 @@ add_library(lib${COMPONENT_NAME}
   storage.cpp
   types.cpp
   storage_service.cpp
-  ${PROTO_SRCS}
-  ${PROTO_HDRS}
+  ${CAPNP_SRCS}
+  ${CAPNP_HDRS}
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")

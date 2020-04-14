@@ -1,13 +1,15 @@
 SET(COMPONENT_NAME "frame")
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components # needed for generated protobuf files
+  ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
   ${OpenCV_INCLUDE_DIRS}
-  ${Protobuf_INCLUDE_DIRS}
+  ${CAPNP_INCLUDE_DIRS}
   ${CARLA_INCLUDE_DIR}
   # ${TENSORRT_INCLUDE_DIRS}
   # ${CUDA_INCLUDE_DIRS}
 )
+
+add_definitions(${CAPNP_DEFINITIONS})
 
 add_library(lib${COMPONENT_NAME}
   app.cpp
@@ -33,7 +35,7 @@ set(COMPONENT_LIBS
 set(DEPENDENCY_LIBS
   # Dependencies: link static libs
   ${OpenCV_LIBS}
-  ${Protobuf_LIBRARIES}
+  ${CAPNP_LIBRARIES}
 
   # In case TensorRT should be used
   # ${CUDA_LIBRARIES}

@@ -1,7 +1,7 @@
 # OpenCept - App
 
 Let's make the best 3D Perception Camera on the market running on your favorite Coral Dev Board or Raspberry Pi + Google Coral or Jetson Nano.</br>
-The OpenCept App is the backbone of this project by managing the sensors and their data, running the algos and publishing that data via tcp and protobuf.
+The OpenCept App is the backbone of this project by managing the sensors and their data, running the algos and publishing that data via tcp and capnp.
 
 ## Setup and Dependencies
 
@@ -13,8 +13,6 @@ sudo apt-get install cmake
 sudo apt-get install clang-8
 # video codecs
 sudo apt-get install ffmpeg x264 libx264-dev
-# dependencies for protobuf
-sudo apt-get install autoconf automake libtool curl make g++ unzip
 # dependencies for simulation (carla)
 sudo apt-get install ninja-build pytohn-dev
 ```

@@ -2,7 +2,8 @@
 
 #include <string>
 #include <vector>
-#include "output/output_types.pb.h"
+#include <capnp/message.h>
+#include "output/output_types.capnp.h"
 #include "types.h"
 #include "utilities/json.hpp"
 
@@ -31,7 +32,7 @@ namespace output {
     // Output by reference because it needs to be cloned during an active lock
     void getCamImgs(CamImgMap& camImgMap) const;
 
-    void set(ProtoOutput::Frame protoFrame);
+    void set(CapnpOutput::Frame frame);
 
   private:
     Frame _frameData;
@@ -40,6 +41,7 @@ namespace output {
     nlohmann::json _ctrlDataJson;
     CamImgMap _camImgs;
 
-    ProtoOutput::Frame _currProtoFrame;
+    capnp::MallocMessageBuilder _messageBuilder;
+    CapnpOutput::Frame::Builder _currFrame;
   };
 }

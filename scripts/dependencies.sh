@@ -90,24 +90,21 @@ if [[ "${SIM}" == ON ]]; then
   fi
 fi
 
-# Install Protobuf as explained here: https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
+# Install Capnp as explained here: https://capnproto.org/install.html
 # TODO: Instead of doing this here, add it to cmake with ExternalPrj_ADD
-PROTOBUF_VERSION=`protoc --version`
-if [[ "$PROTOBUF_VERSION" == "libprotoc 3."* ]]; then
-  echo "Protobuf 3.* already installed"
+CAPNP_VERSION=`capnp --version`
+if [[ "$CAPNP_VERSION" == "Cap'n Proto version 0.7."* ]]; then
+  echo "Cap'n Proto version 0.7.* already installed"
 else
-  echo "Install Protobuf 3.11.4"
-  PROTOBUF_DOWNLOAD=protobuf-all-3.11.4.tar.gz
-  wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/$PROTOBUF_DOWNLOAD
-  rm -rf tmp_protobuf
-  mkdir -p tmp_protobuf
-  tar xvf $PROTOBUF_DOWNLOAD -C tmp_protobuf
-  cd tmp_protobuf/*
+  echo "Install Capnp..."
+  VERSION=0.7.0
+  curl -O https://capnproto.org/capnproto-c++-${VERSION}.tar.gz
+  tar xvf capnproto-c++-${VERSION}.tar.gz
+  cd capnproto-c++-${VERSION}
   ./configure
-  make -j8
-  make -j8 check
+  make -j$(nproc)
   sudo make install
   sudo ldconfig
-  rm -rf tmp_protobuf
-  rm -rf protobuf*.tar.gz
+  rm -rf capnproto-c++-${VERSION}
+  rm -rf capnproto-c++-${VERSION}.tar.gz
 fi
