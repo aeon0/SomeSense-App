@@ -2,6 +2,10 @@
 find_package(OpenCV ${OPENCV_VERSION} EXACT PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
 find_package(Eigen3 NO_MODULE)
 if(NOT OpenCV_FOUND)
+  # find any other OpenCV version on the system since most people probably have it
+  # but it's also a bit risky since it might not have the exact version,
+  # should you have any issues realted to OpenCV uncomment this and install the exact
+  # OpenCV setup provided by this file
   find_package(OpenCV)
 endif()
 

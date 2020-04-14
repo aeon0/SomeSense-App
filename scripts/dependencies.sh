@@ -91,15 +91,22 @@ if [[ "${SIM}" == ON ]]; then
 fi
 
 # Install Protobuf as explained here: https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
-echo "Install Protobuf 3.11.4"
-wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protobuf-all-3.11.4.tar.gz
-rm -rf tmp_protobuf
-mkdir -p tmp_protobuf
-tar xvf $FILE -C tmp_protobuf
-cd tmp_protobuf/*
-./configure
-make -j8
-make -j8 check
-sudo make install
-sudo ldconfig
-rm -rf tmp_protobuf
+PROTOBUF_VERSION=`protoc --version`
+if [[ "$PROTOBUF_VERSION" == "libprotoc 3.11.4" ]]; then
+  echo "Protobuf 3.11.4 already installed"
+else
+  echo "Install Protobuf 3.11.4"
+  PROTOBUF_DOWNLOAD=protobuf-all-3.11.4.tar.gz
+  wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/$PROTOBUF_DOWNLOAD
+  rm -rf tmp_protobuf
+  mkdir -p tmp_protobuf
+  tar xvf $PROTOBUF_DOWNLOAD -C tmp_protobuf
+  cd tmp_protobuf/*
+  ./configure
+  make -j8
+  make -j8 check
+  sudo make install
+  sudo ldconfig
+  rm -rf tmp_protobuf
+  rm -rf protobuf*.tar.gz
+fi
