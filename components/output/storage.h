@@ -31,13 +31,15 @@ namespace output {
     // Output by reference because it needs to be cloned during an active lock
     void getCamImgs(CamImgMap& camImgMap) const;
 
+    void set(ProtoOutput::Frame protoFrame);
+
   private:
     Frame _frameData;
     CtrlData _ctrlData;
-
     nlohmann::json _frameDataJson;
     nlohmann::json _ctrlDataJson;
-
     CamImgMap _camImgs;
+
+    ProtoOutput::Frame _currProtoFrame;
   };
 }

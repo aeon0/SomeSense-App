@@ -1,7 +1,7 @@
 SET(COMPONENT_NAME "frame")
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components
+  ${CMAKE_BINARY_DIR}/components # needed for generated protobuf files
   ${OpenCV_INCLUDE_DIRS}
   ${Protobuf_INCLUDE_DIRS}
   ${CARLA_INCLUDE_DIR}

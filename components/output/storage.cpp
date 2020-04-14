@@ -19,6 +19,10 @@ output::Storage::Storage() {
   set(ctrlData);
 }
 
+void output::Storage::set(ProtoOutput::Frame protoFrame) {
+  _currProtoFrame = protoFrame;
+}
+
 void output::Storage::set(Frame frame) {
   std::lock_guard<std::mutex> lockGuard(outputStateLock);
   _frameDataJson = frame;
