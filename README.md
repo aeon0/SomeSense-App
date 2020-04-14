@@ -11,11 +11,10 @@ The OpenCept App is the backbone of this project by managing the sensors and the
 sudo apt-get update
 sudo apt-get install cmake
 sudo apt-get install clang-8
-# might have to create symbolic links
-sudo ln -s /usr/bin/clang-8 /usr/bin/clang
-sudo ln -s /usr/bin/clang++-8 /usr/bin/clang++
 # video codecs
 sudo apt-get install ffmpeg x264 libx264-dev
+# dependencies for protobuf
+sudo apt-get install autoconf automake libtool curl make g++ unzip
 # dependencies for simulation (carla)
 sudo apt-get install ninja-build pytohn-dev
 ```
