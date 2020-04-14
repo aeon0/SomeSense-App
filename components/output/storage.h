@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "output/output_types.pb.h"
 #include "types.h"
 #include "utilities/json.hpp"
 

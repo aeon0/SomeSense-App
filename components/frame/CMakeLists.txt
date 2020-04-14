@@ -1,8 +1,11 @@
 SET(COMPONENT_NAME "frame")
 
 include_directories(SYSTEM
+  ${CMAKE_BINARY_DIR}/components
   ${OpenCV_INCLUDE_DIRS}
-  ${TENSORRT_INCLUDE_DIRS}
+  ${Protobuf_INCLUDE_DIRS}
+  ${CARLA_INCLUDE_DIR}
+  # ${TENSORRT_INCLUDE_DIRS}
   # ${CUDA_INCLUDE_DIRS}
 )
 
@@ -30,6 +33,7 @@ set(COMPONENT_LIBS
 set(DEPENDENCY_LIBS
   # Dependencies: link static libs
   ${OpenCV_LIBS}
+  ${Protobuf_LIBRARIES}
 
   # In case TensorRT should be used
   # ${CUDA_LIBRARIES}

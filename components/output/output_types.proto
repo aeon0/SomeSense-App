@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+message CtrlData {
+  bool isStoring = 1;
+  bool isARecording = 2; // flag if the current frame is from a recording
+  bool isPlaying = 3; // flag if the video is current playing (only filled in case isARecording is true)
+  int64 recLength = 4; // recording length in [us] (only filled in case isARecording is true)
+}

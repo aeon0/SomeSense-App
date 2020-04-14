@@ -91,6 +91,7 @@ if [[ "${SIM}" == ON ]]; then
 fi
 
 # Install Protobuf as explained here: https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
+# TODO: Instead of doing this here, add it to cmake with ExternalPrj_ADD
 PROTOBUF_VERSION=`protoc --version`
 if [[ "$PROTOBUF_VERSION" == "libprotoc 3."* ]]; then
   echo "Protobuf 3.* already installed"

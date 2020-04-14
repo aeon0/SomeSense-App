@@ -7,6 +7,9 @@ include(externals/opencv.cmake)
 set(TENSORRT_VERSION v7.0.0)
 include(externals/tensorrt.cmake)
 
+# Note: Currently this is installed via dependencis.sh, this is currently just to find the package in cmake
+include(externals/protobuf.cmake)
+
 if(BUILD_SIM)
   # version also must be changed for the server on the download in ./scripts/dependencies.sh
   set(CARLA_VERSION 0.9.7)

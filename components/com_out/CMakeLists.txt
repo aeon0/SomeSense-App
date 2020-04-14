@@ -1,6 +1,9 @@
 SET(COMPONENT_NAME "com_out")
 
-include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(SYSTEM
+  ${CMAKE_BINARY_DIR}/components
+  ${OpenCV_INCLUDE_DIRS}
+)
 
 add_library(lib${COMPONENT_NAME} 
   server.cpp

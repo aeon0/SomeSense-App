@@ -6,6 +6,10 @@ std::mutex outputStateLock;
 std::mutex camImgsLock;
 
 output::Storage::Storage() {
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
   // ctrl data should have default values:
   output::CtrlData ctrlData;
   ctrlData.isStoring = false;
