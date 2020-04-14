@@ -92,8 +92,8 @@ fi
 
 # Install Protobuf as explained here: https://github.com/protocolbuffers/protobuf/blob/master/src/README.md
 PROTOBUF_VERSION=`protoc --version`
-if [[ "$PROTOBUF_VERSION" == "libprotoc 3.11.4" ]]; then
-  echo "Protobuf 3.11.4 already installed"
+if [[ "$PROTOBUF_VERSION" == "libprotoc 3."* ]]; then
+  echo "Protobuf 3.* already installed"
 else
   echo "Install Protobuf 3.11.4"
   PROTOBUF_DOWNLOAD=protobuf-all-3.11.4.tar.gz
