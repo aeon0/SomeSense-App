@@ -1,4 +1,6 @@
 #include "runtime_meas_service.h"
+#include <iostream>
+#include <iomanip>
 
 
 frame::RuntimeMeasService::RuntimeMeasService(const TS& algoStartTime) 
@@ -32,15 +34,4 @@ void frame::RuntimeMeasService::printToConsole() {
         std::right << std::setw(10) << std::setfill(' ') << std::fixed << std::setprecision(4) << value.duration.count() << " ms" << std::endl;
     }
   }
-}
-
-std::vector<output::RuntimeMeas> frame::RuntimeMeasService::serializeMeas() {
-  std::vector<output::RuntimeMeas> measVec;
-  for(auto& [key, value]: _meas) {
-    if(!value.running) {
-      auto startTs = static_cast<long int>(std::chrono::duration<double, std::micro>(value.startTime - _algoStartTime).count());
-      measVec.push_back({key, startTs, value.duration.count()});
-    }
-  }
-  return measVec;
 }

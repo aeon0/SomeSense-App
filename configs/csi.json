@@ -2,8 +2,8 @@
   "cams": [{
     "type": "csi",
     "name": "CsiFrontCam",
-    "capture_width": 1280,
-    "capture_height": 720,
+    "capture_width": 640,
+    "capture_height": 380,
     "frame_rate": 60,
     "flip_method": 2,
     "horizontal_fov": 120

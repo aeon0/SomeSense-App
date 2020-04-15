@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <thread>
+#include "output/frame.capnp.h"
 
 
 data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const double horizontalFov, const std::vector<int64> timestamps) :
@@ -24,12 +25,7 @@ data_reader::VideoCam::VideoCam(const std::string name, const TS& algoStartTime,
     _frameRate = static_cast<double>(_timestamps.size()) / (static_cast<double>(_recLength) / 1000000.0);
   }
 
-  output::CtrlData ctrlData;
-  ctrlData.isStoring = false;
-  ctrlData.isARecording = true;
-  ctrlData.isPlaying = !_pause;
-  ctrlData.recLength = _recLength;
-  _outputStorage.set(ctrlData);
+  _outputStorage.setRecCtrlData(true, !_pause, _recLength);
 
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::VideoCam::readData, this);
@@ -40,20 +36,16 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
   std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
   if (requestData["type"] == "client.play_rec") {
     _pause = false;
-    output::CtrlData ctrlData = _outputStorage.getCtrlData();
-    ctrlData.isPlaying = !_pause;
-    _outputStorage.set(ctrlData);
+    _outputStorage.setRecCtrlData(true, !_pause, _recLength);
   }
   else if (requestData["type"] == "client.pause_rec") {
     _pause = true;
-    output::CtrlData ctrlData = _outputStorage.getCtrlData();
-    ctrlData.isPlaying = !_pause;
-    _outputStorage.set(ctrlData);
+    _outputStorage.setRecCtrlData(true, !_pause, _recLength);
   }
   else if (requestData["type"] == "client.step_forward" && _pause) {
     _stepForward = true;
   }
-  else if (requestData["type"] == "client.step_backward") {
+  else if (requestData["type"] == "client.step_backward" && _pause) {
     _newFrameNr = _currFrameNr - 1;
     _jumpToFrame = true;
   }
@@ -77,9 +69,9 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
         }
       }
     }
-
-
     _jumpToFrame = true;
+    _pause = true; // Also pause recording in case it was playing
+    _outputStorage.setRecCtrlData(true, !_pause, _recLength);
   }
 }
 
@@ -132,6 +124,7 @@ void data_reader::VideoCam::readData() {
 
         if (_currTs >= _recLength) {
           _pause = true;
+          _outputStorage.setRecCtrlData(true, !_pause, _recLength);
         }
       }
     }

@@ -26,6 +26,7 @@ struct CapnpOutput {
     pitch @12 :Float32; # in [rad]
     fovHorizontal @13 :Float32; # in [rad]
     fovVertical @14 :Float32; # in [rad]
+    img @15 :Img;
 
     struct Img {
       width @0 :Int32; # in [px]

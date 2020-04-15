@@ -81,6 +81,8 @@
     "*.cuh": "cpp",
     "__functional_03": "cpp",
     "*.ipp": "cpp",
-    "__locale": "cpp"
+    "__locale": "cpp",
+    "rope": "cpp",
+    "slist": "cpp"
   }
 }

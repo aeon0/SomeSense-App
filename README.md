@@ -1,7 +1,7 @@
 # OpenCept - App
 
 Let's make the best 3D Perception Camera on the market running on your favorite Coral Dev Board or Raspberry Pi + Google Coral or Jetson Nano.</br>
-The OpenCept App is the backbone of this project by managing the sensors and their data, running the algos and publishing that data via tcp and capnp.
+The OpenCept App is the backbone of this project by managing the sensors and their data, running the algos and publishing that data via TCP serialized with Capnp and Json.
 
 ## Setup and Dependencies
 

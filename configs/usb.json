@@ -3,8 +3,8 @@
     "type": "usb",
     "device_idx": 0,
     "name": "UsbTestCam",
-    "capture_width": 1280,
-    "capture_height": 720,
+    "capture_width": 640,
+    "capture_height": 380,
     "horizontal_fov": 60
   }]
 }

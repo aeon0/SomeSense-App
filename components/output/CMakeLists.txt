@@ -1,7 +1,7 @@
 SET(COMPONENT_NAME "output")
 
 # Generate the .h and .cxx files
-capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS output_types.capnp)
+capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS frame.capnp)
 
 include_directories(SYSTEM
   ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
@@ -11,7 +11,6 @@ include_directories(SYSTEM
 
 add_library(lib${COMPONENT_NAME}
   storage.cpp
-  types.cpp
   storage_service.cpp
   ${CAPNP_SRCS}
   ${CAPNP_HDRS}

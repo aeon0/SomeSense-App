@@ -22,7 +22,7 @@ typedef unsigned char BYTE;
 namespace com_out {
   class Server : public IRequestHandler {
   public:
-    Server(const output::Storage& outputStorage);
+    Server(output::Storage& outputStorage);
     ~Server();
 
     void run();
@@ -34,7 +34,7 @@ namespace com_out {
     void deleteRequestListener(std::shared_ptr<IRequestListener> listener) override;
 
   protected:
-    static const int _headerSize = 20;
+    static const int _headerSize = 16;
     static const int _bufSize = 1024;
 
     virtual void create() = 0;
@@ -46,19 +46,20 @@ namespace com_out {
     bool sendToClient(int client, const BYTE* buf, const int len) const;
 
     // Broadcast different type of messages to all clients
-    void broadcast(const std::string payload) const;
-    void broadcast(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const;
+    void broadcast(const std::string payload);
+    void broadcast(const BYTE* payload, const int payloadSize);
     // Convert different type of payloads to a complete message with header
-    std::tuple<BYTE*, int> createMsg(const std::string payload) const;
-    std::tuple<BYTE*, int> createMsg(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const;
+    std::tuple<BYTE*, int> createMsg(const std::string payload) const; // json
+    std::tuple<BYTE*, int> createMsg(const BYTE* payload, const int payloadSize) const; // capnp
 
     int _server;
     char* _buf;
+    std::mutex _clientsMtx;
     std::vector<int> _clients;
 
     std::vector<std::shared_ptr<IRequestListener>> _requestListeners;
 
-    const output::Storage& _outputStorage;
+    output::Storage& _outputStorage;
     int64_t _lastSentTs;
     bool _pollOutput;
 

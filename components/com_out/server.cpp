@@ -5,10 +5,11 @@
 #include <thread>
 #include <chrono>
 #include <thread>
+#include <kj/io.h>
 #include "utilities/json.hpp"
 
 
-com_out::Server::Server(const output::Storage& outputStorage) :
+com_out::Server::Server(output::Storage& outputStorage) :
   _outputStorage(outputStorage), _lastSentTs(-1), _pollOutput(true), _newClient(false) {
   _buf = new char[_bufSize];
 }
@@ -29,44 +30,28 @@ void com_out::Server::stop() {
 
 void com_out::Server::pollOutput() {
   while(_pollOutput) {
-    std::lock_guard<std::mutex> lockGuard(_newClientMtx);
-
     int64_t currAlgoTs = _outputStorage.getAlgoTs();
-    
-    nlohmann::json frameData = _outputStorage.getFrameJson();
-    nlohmann::json ctrlData = _outputStorage.getCtrlDataJson();
 
-    if ((currAlgoTs != _lastSentTs || _newClient) && frameData.dump() != "null" && ctrlData.dump() != "null") {
-      _newClient = false;
-      _lastSentTs = currAlgoTs;
+    std::lock_guard<std::mutex> lockGuard(_newClientMtx);
+    if ((currAlgoTs != _lastSentTs) || _newClient) {
+      // const auto startTime = std::chrono::high_resolution_clock::now();
 
-      // Send raw sensor data (has to be before algo data!)
-     output::Storage::CamImgMap camImgMap;
-     _outputStorage.getCamImgs(camImgMap);
-      for (auto [key, data] : camImgMap) {
-        broadcast(
-          data.sensorIdx,
-          data.img.data,
-          data.width,
-          data.height,
-          data.channels,
-          data.timestamp
-        );
+      kj::VectorOutputStream stream;
+      if (_outputStorage.writeToStream(stream)) {;
+        const int len = stream.getArray().size();
+        const BYTE* buf = stream.getArray().begin();
+        broadcast(buf, len);
+
+        _newClient = false;
+        _lastSentTs = currAlgoTs;
       }
 
-      // Send algo data
-      nlohmann::json out {
-        {"type", "server.frame"},
-        {"data", {
-          {"frame", frameData},
-          {"ctrlData", ctrlData}
-        }}
-      };
-      // std::cout << out.dump() << std::endl;
-      broadcast(out.dump());
+      // const auto endTime = std::chrono::high_resolution_clock::now();
+      // const auto durAlgo = std::chrono::duration<double, std::milli>(endTime - startTime);
+      // std::cout << "Send Frame: " << durAlgo.count() << " [ms]" << std::endl;
     }
-    // Polling every 5 ms to check if there is new data
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    // Polling every 1 ms to check if there is new data
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -85,9 +70,10 @@ void com_out::Server::serve() {
 
   // accept clients
   while((client = accept(_server, (struct sockaddr *)&clientAddr, &clientlen)) > 0) {
-    // brackets needed to remove lock after adding to _clients
+    // brackets needed to remove locks after adding to _clients
     {
-      std::lock_guard<std::mutex> lockGuard(_newClientMtx);
+      std::lock_guard<std::mutex> lockGuard1(_newClientMtx);
+      std::lock_guard<std::mutex> lockGuard2(_clientsMtx);
       std::cout << "Add client: " << client << std::endl;
       _clients.push_back(client);
       _newClient = true;
@@ -131,9 +117,10 @@ void com_out::Server::handle(int client) {
   }
 
   // remove client
+  std::lock_guard<std::mutex> lockGuard(_clientsMtx);
+  std::cout << "Remove client: " << client << std::endl;
   _clients.erase(std::remove(_clients.begin(), _clients.end(), client), _clients.end());
   close(client);
-  std::cout << "Remove client: " << client << std::endl;
 }
 
 std::string com_out::Server::getRequest(int client) {
@@ -194,79 +181,11 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
   return true;
 }
 
-void com_out::Server::broadcast(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const {
-  auto [msg, len] = createMsg(sensorIdx, payload, width, height, channels, ts);
+void com_out::Server::broadcast(const std::string payload) {
+  auto [msg, msgSize] = createMsg(payload);
+  std::lock_guard<std::mutex> lockGuard(_clientsMtx);
   for(int client: _clients) {
-    sendToClient(client, msg, len);
-  }
-  delete [] msg;
-}
-
-std::tuple<BYTE*, int> com_out::Server::createMsg(int sensorIdx, BYTE* payload, int width, int height, int channels, int64_t ts) const {
-  const int payloadSize = width * height * channels;
-
-  // create msg bytes 
-  const int msgSize = _headerSize + payloadSize;
-  auto* msg = new BYTE[msgSize];
-  memset(msg, 0x00, msgSize);
-
-  // start byte [0]
-  msg[0] = 0x0F;
-  // size bytes [1-4]
-  msg[4] = static_cast<BYTE>(payloadSize & 0xFF);
-  msg[3] = static_cast<BYTE>((payloadSize >> 8) & 0xFF);
-  msg[2] = static_cast<BYTE>((payloadSize >> 16) & 0xFF);
-  msg[1] = static_cast<BYTE>((payloadSize >> 24) & 0xFF);
-
-  // type byte [5]
-  msg[5] = 0x10; // Raw Image
-
-  // add image dimensions
-  assert(width <= 0xFFFF && "width is too large");
-  assert(height <= 0xFFFF && "height is too large");
-  assert(channels <= 0xFF && "channels are too large");
-  // width [6-7]
-  msg[7] = static_cast<BYTE>(width & 0xFF);
-  msg[6] = static_cast<BYTE>((width >> 8) & 0xFF);
-  // height [8-9]
-  msg[9] = static_cast<BYTE>(height & 0xFF);
-  msg[8] = static_cast<BYTE>((height >> 8) & 0xFF);
-  // channels [10]
-  msg[10] = static_cast<BYTE>(channels & 0xFF);
-
-  // image timestamp [11-18]
-  msg[18] = static_cast<BYTE>(ts & 0xFF);
-  msg[17] = static_cast<BYTE>((ts >> 8) & 0xFF);
-  msg[16] = static_cast<BYTE>((ts >> 16) & 0xFF);
-  msg[15] = static_cast<BYTE>((ts >> 24) & 0xFF);
-  msg[14] = static_cast<BYTE>((ts >> 32) & 0xFF);
-  msg[13] = static_cast<BYTE>((ts >> 38) & 0xFF);
-  msg[12] = static_cast<BYTE>((ts >> 46) & 0xFF);
-  msg[11] = static_cast<BYTE>((ts >> 54) & 0xFF);
-
-  // sensor idx [19]
-  assert(sensorIdx <= 0xFF && "sensorIdx too large");
-  msg[19] = static_cast<BYTE>(sensorIdx & 0xFF);
-
-  // copy img data to msg
-  memcpy(msg + _headerSize, payload, payloadSize);
-
-  // For Debugging print Header hex values
-  // for (int i = 0; i < _headerSize; ++i) {
-  //   std::cout << "[" << i << "] " <<
-  //     " 0x" << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(*msg) << 
-  //     std::dec << " (" << static_cast<int>(*msg) << ")" << std::endl;
-  //   msg++;
-  // }
-  // msg -= _headerSize;
-
-  return {msg, msgSize};
-}
-
-void com_out::Server::broadcast(const std::string payload) const {
-  auto [msg, len] = createMsg(payload);
-  for(int client: _clients) {
-    sendToClient(client, msg, len);
+    sendToClient(client, msg, msgSize);
   }
   delete [] msg;
 }
@@ -279,19 +198,53 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(const std::string payload) con
   auto* msg = new BYTE[msgSize];
   memset(msg, 0x00, msgSize);
 
-  // start byte [0]
+  // start bytes [0-1]
   msg[0] = 0x0F;
-  // size bytes [1-4]
-  msg[4] = static_cast<BYTE>(payloadSize & 0xFF);
-  msg[3] = static_cast<BYTE>((payloadSize >> 8) & 0xFF);
-  msg[2] = static_cast<BYTE>((payloadSize >> 16) & 0xFF);
-  msg[1] = static_cast<BYTE>((payloadSize >> 24) & 0xFF);
+  msg[1] = 0xF0;
+  // size bytes [2-5] in big endian
+  msg[5] = static_cast<BYTE>(payloadSize & 0xFF);
+  msg[4] = static_cast<BYTE>((payloadSize >> 8) & 0xFF);
+  msg[3] = static_cast<BYTE>((payloadSize >> 16) & 0xFF);
+  msg[2] = static_cast<BYTE>((payloadSize >> 24) & 0xFF);
 
-  // type byte [5]
-  msg[5] = 0x01; // JSON string
+  // type byte [6]
+  msg[6] = 0x01; // JSON string
 
   // copy string to msg
   memcpy(msg + _headerSize, payload.c_str(), payloadSize);
+
+  return {msg, msgSize};
+}
+
+void com_out::Server::broadcast(const BYTE* payload, const int payloadSize) {
+  auto [msg, msgSize] = createMsg(payload, payloadSize);
+  std::lock_guard<std::mutex> lockGuard(_clientsMtx);
+  for(int client: _clients) {
+    sendToClient(client, msg, msgSize);
+  }
+  delete [] msg;
+}
+
+std::tuple<BYTE*, int> com_out::Server::createMsg(const BYTE* payload, const int payloadSize) const {
+  // create msg bytes 
+  const int msgSize = _headerSize + payloadSize;
+  auto* msg = new BYTE[msgSize];
+  memset(msg, 0x00, msgSize);
+
+  // start bytes [0-1]
+  msg[0] = 0x0F;
+  msg[1] = 0xF0;
+  // size bytes [2-5] in big endian
+  msg[5] = static_cast<BYTE>(payloadSize & 0xFF);
+  msg[4] = static_cast<BYTE>((payloadSize >> 8) & 0xFF);
+  msg[3] = static_cast<BYTE>((payloadSize >> 16) & 0xFF);
+  msg[2] = static_cast<BYTE>((payloadSize >> 24) & 0xFF);
+
+  // type byte [6]
+  msg[6] = 0x02; // capnp binary data
+
+  // copy capnp binary data to msg
+  memcpy(msg + _headerSize, payload, payloadSize);
 
   return {msg, msgSize};
 }

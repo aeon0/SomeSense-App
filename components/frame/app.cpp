@@ -6,8 +6,10 @@
 #include <chrono>
 #include <algorithm>
 #include <memory>
+#include <kj/common.h>
 #include "utilities/json.hpp"
-#include "output/types.h"
+#include <capnp/message.h>
+#include "output/frame.capnp.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -45,7 +47,7 @@ void frame::App::reset() {
 
 void frame::App::run() {
   while (!stopFromSignal) {
-    
+    runFrame();
   }
 }
 
@@ -58,14 +60,17 @@ void frame::App::runFrame() {
   const auto plannedFrameEndTime = frameStartTime + std::chrono::duration<double, std::micro>(Config::goalFrameLength);
   // Ts (from app start) of frame start. This Ts is not the algo Ts. The sensor Ts determine the algo Ts
   const auto frameStartTS = static_cast<int64_t>(std::chrono::duration<double, std::micro>(frameStartTime - _algoStartTime).count());
-  
-  // Output State contains all data which is sent to the "outside" e.g. to visualize
-  output::Frame frameData;
+
+  // Create Capnp message which will be saved into the output state to be sent to clients by the server
+  auto messagePtr = std::make_unique<capnp::MallocMessageBuilder>();
+  auto capnpFrameData = messagePtr->initRoot<CapnpOutput::Frame>();
+  auto capnpCamSensors = capnpFrameData.initCamSensors(_sensorStorage.getCams().size());
 
   const int64_t previousTs = _ts;
-  int sensorIdx = 0;
+  int camSensorIdx = 0;
   bool gotNewSensorData = false;
 
+  // Loop through cameras and do 2D processing on them
   for (auto const& [key, cam]: _sensorStorage.getCams()) {
     _runtimeMeasService.startMeas("read_img_" + key);
     auto [success, sensorTs, img] = cam->getFrame();
@@ -76,7 +81,6 @@ void frame::App::runFrame() {
       cv::Mat grayScaleImg;
       cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
 
-      // Do processing per 2D image
       // _runtimeMeasService.startMeas("detect_" + key);
       // _detector.detect(img);
       // _runtimeMeasService.endMeas("detect_" + key);
@@ -88,57 +92,65 @@ void frame::App::runFrame() {
       // _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
       // _runtimeMeasService.endMeas("optical_flow_" + key);
 
-      // Set image to output state
-      _runtimeMeasService.startMeas("img_to_output" + key);
-      output::CamImg camImgData {
-        sensorIdx,
-        sensorTs,
-        img.clone(),
-        img.size().width,
-        img.size().height,
-        img.channels()
-      };
-      _outputStorage.setCamImg(key, camImgData);
-      _runtimeMeasService.endMeas("img_to_output" + key);
-
       gotNewSensorData = true;
       if (sensorTs > _ts) {
         _ts = sensorTs; // take latest sensorTs as as algoTs
       }
+
+      // Add sensor to outputstate
+      capnpCamSensors[camSensorIdx].setIdx(camSensorIdx);
+      capnpCamSensors[camSensorIdx].setKey(key);
+      capnpCamSensors[camSensorIdx].setFocalLengthX(cam->getFocalX());
+      capnpCamSensors[camSensorIdx].setFocalLengthY(cam->getFocalY());
+      capnpCamSensors[camSensorIdx].setPrincipalPointX(cam->getPrincipalPointX());
+      capnpCamSensors[camSensorIdx].setPrincipalPointY(cam->getPrincipalPointY());
+      // TODO: position is not filled in autosar, also needs adaptation in visu
+      capnpCamSensors[camSensorIdx].setX(0);
+      capnpCamSensors[camSensorIdx].setY(1.2);
+      capnpCamSensors[camSensorIdx].setZ(-0.5);
+      capnpCamSensors[camSensorIdx].setYaw(0);
+      capnpCamSensors[camSensorIdx].setPitch(0);
+      capnpCamSensors[camSensorIdx].setRoll(0);
+      capnpCamSensors[camSensorIdx].setFovHorizontal(cam->getHorizontalFov());
+      capnpCamSensors[camSensorIdx].setFovVertical(cam->getVerticalFov());
+
+      // Fill img
+      capnpCamSensors[camSensorIdx].getImg().setWidth(img.size().width);
+      capnpCamSensors[camSensorIdx].getImg().setHeight(img.size().height);
+      capnpCamSensors[camSensorIdx].getImg().setChannels(img.channels());
+      capnpCamSensors[camSensorIdx].getImg().setData(
+        kj::arrayPtr(img.data, img.size().width * img.size().height * img.channels() * sizeof(uchar))
+      );
     }
 
-    // Add sensor to outputstate
-    frameData.camSensors.push_back({
-      sensorIdx,
-      key,
-      {cam->getFocalX(), cam->getFocalY()}, // focal length
-      {cam->getPrincipalPointX(), cam->getPrincipalPointY()}, // principal point
-      {0, 1.2, -0.5}, // position: x, y, z
-      {0, 0, 0}, // rotation: yaw, pitch, roll
-      cam->getHorizontalFov(),
-      cam->getVerticalFov()});
-
-    sensorIdx++;
+    camSensorIdx++;
   }
 
   if (gotNewSensorData) {
     // TODO: do the processing for tracks
-    // Add example track for testing
-    // frameData.tracks.push_back({"0", 0, {-5.0, 0.0, 25.0}, {0.0, 0.0, 0.0}, 0, 1.5, 2.5, 3.5, 0.0});
+    auto capnpTracks = capnpFrameData.initTracks(0);
 
     _runtimeMeasService.endMeas("algo");
 
     // Finally set the algo timestamp to the output data
-    frameData.timestamp = _ts;
-    frameData.frameCount = _frame;
-    frameData.frameStart = frameStartTS;
-    frameData.plannedFrameLength = Config::goalFrameLength;
-    // Add time measurements to the json output
-    auto runtimeMeas = _runtimeMeasService.serializeMeas();
-    frameData.runtimeMeas.assign(runtimeMeas.begin(), runtimeMeas.end());
+    capnpFrameData.setFrameCount(_frame);
+    capnpFrameData.setFrameStart(frameStartTS);
+    capnpFrameData.setPlannedFrameLength(Config::goalFrameLength);
+    capnpFrameData.setTimestamp(_ts);
 
-    _outputStorage.set(frameData);
+    // Add runtime meas
+    auto runtimeMeasData = _runtimeMeasService.getAllMeas();
+    auto capnpRuntimeMeas = capnpFrameData.initRuntimeMeas(runtimeMeasData.size());
+    int i = 0;
+    for (auto [key, val]: runtimeMeasData) {
+      auto startMeasTs = static_cast<long int>(std::chrono::duration<double, std::micro>(val.startTime - _algoStartTime).count());
+      capnpRuntimeMeas[i].setName(key);
+      capnpRuntimeMeas[i].setDuration(val.duration.count());
+      capnpRuntimeMeas[i].setStart(startMeasTs);
+      i++;
+    }
 
+    _outputStorage.set(std::move(messagePtr));
     _frame++;
 
     // Complete Algo duration for debugging
@@ -148,6 +160,6 @@ void frame::App::runFrame() {
   }
 
   _runtimeMeasService.reset();
-  // Wait till end of frame in case algo was quicker too keep consistent algo frame rate
+  // keep consistent algo framerate
   std::this_thread::sleep_until(plannedFrameEndTime);
 }

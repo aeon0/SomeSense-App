@@ -1,77 +1,56 @@
 #include "storage.h"
-#include <mutex>
+#include <iostream>
 
 
-std::mutex outputStateLock;
-std::mutex camImgsLock;
+output::Storage::Storage() : _messagePtr(nullptr) {}
 
-output::Storage::Storage() : _currFrame(_messageBuilder.initRoot<CapnpOutput::Frame>()) {
-  // ctrl data should have default values:
-  output::CtrlData ctrlData;
-  ctrlData.isStoring = false;
-  ctrlData.isARecording = false;
-  ctrlData.isPlaying = false;
-  ctrlData.recLength = -1;
-  set(ctrlData);
+void output::Storage::set(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr) {
+  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
+  _messagePtr = std::move(messagePtr);
 }
 
-void output::Storage::set(CapnpOutput::Frame frame) {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  // _currFrame = frame;
-}
-
-void output::Storage::set(Frame frame) {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  _frameDataJson = frame;
-  _frameData = frame;
-}
-
-void output::Storage::set(CtrlData ctrlData) {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  _ctrlDataJson = ctrlData;
-  _ctrlData = ctrlData;
-}
-
-output::Frame output::Storage::getFrame() const {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _frameData;
-}
-
-output::CtrlData output::Storage::getCtrlData() const {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _ctrlData;
-}
-
-nlohmann::json output::Storage::getFrameJson() const {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _frameDataJson;
-}
-
-nlohmann::json output::Storage::getCtrlDataJson() const {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _ctrlDataJson;
-}
-
-int64_t output::Storage::getAlgoTs() const {
-  std::lock_guard<std::mutex> lockGuard(outputStateLock);
-  return _frameData.timestamp;
-}
-
-void output::Storage::setCamImg(std::string key, CamImg data) {
-  std::lock_guard<std::mutex> lockGuard(camImgsLock);
-  if (_camImgs.find(key) != _camImgs.end()) {
-    _camImgs.at(key).img.release();
-    _camImgs.at(key) = data;
+bool output::Storage::writeToStream(kj::VectorOutputStream& outputStream) {
+  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
+  if (_messagePtr != nullptr) {
+    writePackedMessage(outputStream, *_messagePtr);
+    return true;
   }
-  else {
-    _camImgs.insert({key, data});
-  }
+  return false;
 }
 
-void output::Storage::getCamImgs(CamImgMap& camImgMap) const {
-  std::lock_guard<std::mutex> lockGuard(camImgsLock);
-  for (auto [key, data] : _camImgs) {
-    camImgMap.insert({key, data});
-    camImgMap.at(key).img = data.img.clone();
+bool output::Storage::writeToFile(const int fd) {
+  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
+  if (_messagePtr != nullptr) {
+    writePackedMessageToFd(fd, *_messagePtr);
+    return true;
   }
+  return false;
+}
+
+int64_t output::Storage::getAlgoTs() {
+  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
+  if (_messagePtr != nullptr) {
+    return _messagePtr->getRoot<CapnpOutput::Frame>().getTimestamp();
+  }
+  return -1;
+}
+
+bool output::Storage::setRecCtrlData(bool isARecording, bool isPlaying, int64_t recLength) {
+  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
+  if (_messagePtr != nullptr) {
+    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setIsARecording(isARecording);
+    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setIsPlaying(isPlaying);
+    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setRecLength(recLength);
+    return true;
+  }
+  return false;
+}
+
+bool output::Storage::setStoreCtrlData(bool isStoring) {
+  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
+  if (_messagePtr != nullptr) {
+    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setIsStoring(isStoring);
+    return true;
+  }
+  return false;
 }

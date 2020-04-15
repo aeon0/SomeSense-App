@@ -2,14 +2,7 @@
 #include <iostream>
 
 
-com_out::TcpServer::TcpServer(const output::Storage& outputStorage) : Server(outputStorage) {
-  // setup handler for Control-C so we can properly unlink the UNIX socket when that occurs
-  // struct sigaction sigIntHandler;
-  // sigIntHandler.sa_handler = interrupt;
-  // sigemptyset(&sigIntHandler.sa_mask);
-  // sigIntHandler.sa_flags = 0;
-  // sigaction(SIGINT, &sigIntHandler, NULL);
-}
+com_out::TcpServer::TcpServer(output::Storage& outputStorage) : Server(outputStorage) {}
 
 void com_out::TcpServer::create() {
   struct sockaddr_in serverAddr;
@@ -23,9 +16,15 @@ void com_out::TcpServer::create() {
     throw std::runtime_error("Error on socket creation");
   }
 
-  const int opt = 1; 
-  if (setsockopt(_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+  const int sockOpt = 1; 
+  if (setsockopt(_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &sockOpt, sizeof(sockOpt))) {
     throw std::runtime_error("Error on setting socket options");
+  }
+
+  // This option is used to reduce latency by forcing every message to start with its own tcp package
+  const int tcpOpt = 1;
+  if (setsockopt(_server, SOL_TCP, TCP_NODELAY, &tcpOpt, sizeof(tcpOpt))) {
+    throw std::runtime_error("Error on setting tcp options");
   }
 
   // call bind to associate the socket with the UNIX file system
@@ -42,7 +41,3 @@ void com_out::TcpServer::create() {
 void com_out::TcpServer::closeSocket() {
   close(_server);
 }
-
-// void com_out::TcpServer::interrupt(int) {
-//   close(_server);
-// }
