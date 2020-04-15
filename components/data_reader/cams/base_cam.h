@@ -15,10 +15,6 @@ namespace data_reader {
 
     std::tuple<const bool, const int64_t, cv::Mat> getFrame() override;
 
-    // From width, height (in [px]) and horizontalFov (in [rad]), all other intrinsics
-    // can be calculated. It assumes the principal point at the center of image (concentric lens)
-    void setCamIntrinsics(const int width, const int height, const double horizontalFov);
-
     const cv::Size getFrameSize() const override { return _frameSize; }
     const double getFrameRate() const override { return _frameRate; }
     const double getHorizontalFov() const override { return _horizontalFov; }
@@ -30,6 +26,10 @@ namespace data_reader {
     const std::string getName() const override { return _name; }
 
   protected:
+    // From width, height (in [px]) and horizontalFov (in [rad]), all other intrinsics
+    // can be calculated. It assumes the principal point at the center of image (concentric lens)
+    void setCamIntrinsics(const int width, const int height, const double horizontalFov);
+
     const std::string _name;
     double _frameRate;
     double _horizontalFov; // in [rad]

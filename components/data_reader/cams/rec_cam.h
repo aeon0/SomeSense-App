@@ -8,23 +8,27 @@
 
 
 namespace data_reader {
-  class VideoCam : public BaseCam, public com_out::IRequestListener {
+  class RecCam : public BaseCam, public com_out::IRequestListener {
   public:
-    VideoCam(const std::string name, const TS& algoStartTime, output::Storage& outputStorage, const std::string& filename, const double horizontalFov, const std::vector<int64> timestamps = {});
+    RecCam(
+      const std::string name,
+      output::Storage& outputStorage,
+      const double horizontalFov,
+      const std::string recFilePath
+    );
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
+
+    void start();
 
     // Recording specific getters (have default implementation otherwise)
     const bool isRecording() const override { return true; }
     const int64_t getRecLength() const override { return _recLength; }
 
   private:
+    const std::string _recFilePath;
+
     output::Storage& _outputStorage;
-
-    const std::string _filename;
-    const std::vector<int64> _timestamps;
-
-    cv::VideoCapture _stream;
     int64_t _recLength; // length of recording in [us]
 
     std::mutex _controlsMtx;

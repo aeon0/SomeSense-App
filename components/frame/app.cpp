@@ -99,6 +99,7 @@ void frame::App::runFrame() {
 
       // Add sensor to outputstate
       capnpCamSensors[camSensorIdx].setIdx(camSensorIdx);
+      capnpCamSensors[camSensorIdx].setTimestamp(sensorTs);
       capnpCamSensors[camSensorIdx].setKey(key);
       capnpCamSensors[camSensorIdx].setFocalLengthX(cam->getFocalX());
       capnpCamSensors[camSensorIdx].setFocalLengthY(cam->getFocalY());

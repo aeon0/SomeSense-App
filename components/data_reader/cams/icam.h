@@ -11,6 +11,9 @@ namespace data_reader {
     // Get previous frame and returns {success, timestamp in [us], image}
     virtual std::tuple<const bool, const int64_t, cv::Mat> getFrame() = 0;
 
+    // Start reading the camera feed
+    virtual void start() = 0;
+
     // Return the base (optimal) fps possible for this sensor
     virtual const double getFrameRate() const = 0;
 

@@ -27,7 +27,9 @@ data_reader::CsiCam::CsiCam(const std::string name, const TS& algoStartTime, int
   // Read one frame to test things
   bool success = _cam.read(_bufferFrame);
   std::cout << "Reading Test Frame Success: " << success << std::endl;
+}
 
+void data_reader::CsiCam::start() {
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::CsiCam::readData, this);
   dataReaderThread.detach();

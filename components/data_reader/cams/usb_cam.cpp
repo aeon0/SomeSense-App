@@ -14,7 +14,9 @@ data_reader::UsbCam::UsbCam(const std::string name, const TS& algoStartTime, con
   _cam.set(cv::CAP_PROP_FRAME_HEIGHT, captureHeight);
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
   setCamIntrinsics(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
+}
 
+void data_reader::UsbCam::start() {
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::UsbCam::readData, this);
   dataReaderThread.detach();

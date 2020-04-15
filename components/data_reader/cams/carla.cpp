@@ -20,11 +20,11 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
   _scene->setup(client);
 
   // Listen and read from the camera
-  auto cam = _scene->getRgbCam();
+  _rgbCam = _scene->getRgbCam();
   int width = 0;
   int height = 0;
   double horizontalFov = 0.0;
-  for (auto attrib: cam->GetAttributes()) {
+  for (auto attrib: _rgbCam->GetAttributes()) {
     if (attrib.GetId() == "image_size_x") {
       int width = std::stoi(attrib.GetValue());
     }
@@ -39,7 +39,10 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
     }
   }
   setCamIntrinsics(width, height, horizontalFov);
-  cam->Listen(std::bind(&data_reader::Carla::readRgbCameraData, this, std::placeholders::_1));
+}
+
+void data_reader::Carla::start() {
+  _rgbCam->Listen(std::bind(&data_reader::Carla::readRgbCameraData, this, std::placeholders::_1));
 }
 
 void data_reader::Carla::readRgbCameraData(carla::SharedPtr<carla::sensor::SensorData> sensorData) {

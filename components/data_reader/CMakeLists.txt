@@ -9,7 +9,7 @@ include_directories(SYSTEM
 set(SOURCES
   sensor_storage.cpp
   cams/base_cam.cpp
-  cams/video_cam.cpp
+  cams/rec_cam.cpp
   cams/csi_cam.cpp
   cams/usb_cam.cpp
 )
