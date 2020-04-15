@@ -19,7 +19,7 @@ namespace data_reader {
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
 
-    void start();
+    void start() override;
 
     // Recording specific getters (have default implementation otherwise)
     const bool isRecording() const override { return true; }

@@ -81,32 +81,41 @@ void data_reader::RecCam::readData() {
   kj::FdInputStream fdStream(fd);
   kj::BufferedInputStreamWrapper bufferedStream(fdStream);
   while (bufferedStream.tryGetReadBuffer() != nullptr) {
-    std::cout << "HERE" << std::endl;
     capnp::PackedMessageReader message(bufferedStream);
     const auto frame = message.getRoot<CapnpOutput::Frame>();
     const auto frameLen = frame.getPlannedFrameLength(); // in [ms]
     const auto camSensors = frame.getCamSensors();
     for (int i = 0; i < camSensors.size(); ++i) {
       if (camSensors[i].getKey() == _name) {
+        // Frame syncing
         if (startSensorTs == -1) {
           startSensorTs = camSensors[i].getTimestamp();
-          lastSensorTs = camSensors[i].getTimestamp();
         }
         else {
           // Wait at least the time till current timestamp to sync sensor times
           std::chrono::microseconds diffSensorTs(camSensors[i].getTimestamp() - lastSensorTs);
-          auto diffSensorTs2 = std::chrono::duration<double, std::micro>(camSensors[i].getTimestamp() - lastSensorTs);
-          std::cout << diffSensorTs2.count() << std::endl;
-          std::cout << diffSensorTs.count() << std::endl;
           const auto sensorFrameEndTime = timeLastFrameRead + diffSensorTs;
           std::this_thread::sleep_until(sensorFrameEndTime);
         }
-
         timeLastFrameRead = std::chrono::high_resolution_clock::now();
+        lastSensorTs = camSensors[i].getTimestamp();
+
+        // Read frame data
         std::cout << "Reading frame: " << camSensors[i].getTimestamp() << std::endl;
+        camSensors[i].getImg().getData();
+
+        const int imgWidth = camSensors[i].getImg().getWidth();
+        const int imgHeight = camSensors[i].getImg().getHeight();
+        // const int channels = camSensors[i].getImg().getChannels();
+        const auto rawImgData = camSensors[i].getImg().getData();
+        auto bufferMat = cv::Mat(cv::Size(imgWidth, imgHeight), CV_8UC3);
+        memcpy(bufferMat.data, rawImgData.begin(), rawImgData.size());
+
+        cv::namedWindow("Debug Optical Flow Window", cv::WINDOW_AUTOSIZE);
+        cv::imshow("Debug Optical Flow", bufferMat);
+        cv::waitKey(1);
       }
     }
-    break;
   }
 
   // for (;;) {
