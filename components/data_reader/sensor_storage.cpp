@@ -4,7 +4,7 @@
 #include <iostream>
 #include <capnp/message.h>
 #include <capnp/serialize-packed.h>
-#include "output/frame.capnp.h"
+#include "serialize/frame.capnp.h"
 #include <fcntl.h>
 #include <unistd.h>
 #include "sensor_storage.h"

@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-com_out::TcpServer::TcpServer(output::Storage& outputStorage) : Server(outputStorage) {}
+com_out::TcpServer::TcpServer(serialize::AppState& appState) : Server(appState) {}
 
 void com_out::TcpServer::create() {
   struct sockaddr_in serverAddr;

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 #include "data_reader/sensor_storage.h"
-#include "output/storage.h"
+#include "serialize/app_state.h"
 #include "frame/app.h"
 
 
@@ -14,14 +14,14 @@ class DummyRequestHandler : public com_out::IRequestHandler {
 TEST(Frame, runFrame)
 {
   // Create shared output storage memory
-  auto outputStorage = output::Storage();
+  auto appState = serialize::AppState();
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
   auto requestHandler = DummyRequestHandler();
-  auto sensorStorage = data_reader::SensorStorage(requestHandler, algoStartTime, outputStorage);
+  auto sensorStorage = data_reader::SensorStorage(requestHandler, algoStartTime, appState);
 
   // // Start Algo Application
-  auto app = std::make_shared<frame::App>(sensorStorage, outputStorage, algoStartTime);
+  auto app = std::make_shared<frame::App>(sensorStorage, appState, algoStartTime);
   app->runFrame();
 
   // Do some testing

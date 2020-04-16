@@ -9,8 +9,8 @@
 #include "utilities/json.hpp"
 
 
-com_out::Server::Server(output::Storage& outputStorage) :
-  _outputStorage(outputStorage), _lastSentTs(-1), _pollOutput(true), _newClient(false) {
+com_out::Server::Server(serialize::AppState& appState) :
+  _appState(appState), _lastSentTs(-1), _pollOutput(true), _newClient(false) {
   _buf = new char[_bufSize];
 }
 
@@ -30,14 +30,14 @@ void com_out::Server::stop() {
 
 void com_out::Server::pollOutput() {
   while(_pollOutput) {
-    int64_t currAlgoTs = _outputStorage.getAlgoTs();
+    int64_t currAlgoTs = _appState.getAlgoTs();
 
     std::lock_guard<std::mutex> lockGuard(_newClientMtx);
     if ((currAlgoTs != _lastSentTs) || _newClient) {
       // const auto startTime = std::chrono::high_resolution_clock::now();
 
       kj::VectorOutputStream stream;
-      if (_outputStorage.writeToStream(stream)) {;
+      if (_appState.writeToStream(stream)) {;
         const int len = stream.getArray().size();
         const BYTE* buf = stream.getArray().begin();
         broadcast(buf, len);

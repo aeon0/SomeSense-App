@@ -1,4 +1,4 @@
-SET(COMPONENT_NAME "output")
+SET(COMPONENT_NAME "serialize")
 
 # Generate the .h and .cxx files
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS frame.capnp)
@@ -10,8 +10,8 @@ include_directories(SYSTEM
 )
 
 add_library(lib${COMPONENT_NAME}
-  storage.cpp
-  storage_service.cpp
+  app_state.cpp
+  save_to_file.cpp
   ${CAPNP_SRCS}
   ${CAPNP_HDRS}
 )

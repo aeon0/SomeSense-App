@@ -40,7 +40,7 @@ if (NOT INSTALL_DEPENDENCIES)
   # add_subdirectory(components/object_detection)
   add_subdirectory(components/optical_flow)
   add_subdirectory(components/online_calibration)
-  add_subdirectory(components/output)
+  add_subdirectory(components/serialize)
 
   if(BUILD_TEST)
     add_subdirectory(test)

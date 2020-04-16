@@ -6,7 +6,7 @@
 #include "cams/icam.h"
 #include "com_out/irequest_handler.h"
 // Needed to store control data for video cam...
-#include "output/storage.h"
+#include "serialize/app_state.h"
 
 
 namespace data_reader {

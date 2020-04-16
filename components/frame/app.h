@@ -6,7 +6,7 @@
 #include "com_out/irequest_listener.h"
 #include "runtime_meas_service.h"
 #include "types.h"
-#include "output/storage.h"
+#include "serialize/app_state.h"
 #include "optical_flow/optical_flow.h"
 // #include "object_detection/detector.h"
 #include <signal.h>
@@ -15,7 +15,7 @@
 namespace frame {
   class App : public com_out::IRequestListener {
   public:
-    App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime);
+    App(const data_reader::SensorStorage& sensorStorage, serialize::AppState& appState, const TS& algoStartTime);
 
     // Handle requests from the outside e.g. visu
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
@@ -30,7 +30,7 @@ namespace frame {
   private:
     typedef std::map<const std::string, std::shared_ptr<optical_flow::OpticalFlow>> OpticalFlowMap;
 
-    output::Storage& _outputStorage;
+    serialize::AppState& _appState;
     const data_reader::SensorStorage& _sensorStorage;
     // object_detection::Detector _detector;
     RuntimeMeasService _runtimeMeasService;

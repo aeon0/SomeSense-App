@@ -3,10 +3,10 @@
 #include <mutex>
 #include <tuple>
 #include <map>
-#include "output/storage.h"
+#include "serialize/app_state.h"
 #include "base_cam.h"
 #include "com_out/irequest_listener.h"
-#include "output/frame.capnp.h"
+#include "serialize/frame.capnp.h"
 
 
 namespace data_reader {

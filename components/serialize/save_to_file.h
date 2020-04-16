@@ -5,14 +5,14 @@
 #include <mutex>
 #include <atomic>
 #include "utilities/json.hpp"
-#include "output/storage.h"
+#include "serialize/app_state.h"
 #include "com_out/irequest_listener.h"
 
 
-namespace output {
-  class StorageService : public com_out::IRequestListener {
+namespace serialize {
+  class SaveToFile : public com_out::IRequestListener {
   public:
-    StorageService(const std::string storageBasePath, output::Storage& outputStorage);
+    SaveToFile(const std::string storageBasePath, AppState& appState);
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
     void saveFrame();
@@ -26,7 +26,7 @@ namespace output {
     // Format a chrono timepoint in something such as "2019-12-27T21:11:13.134689566" for unique file name creation
     static std::string formatTimePoint(std::chrono::system_clock::time_point point);
 
-    output::Storage& _outputStorage;
+    AppState& _appState;
     const std::string _storageBasePath;
     std::string _currFilePath;
     int64_t _lastSavedTs;

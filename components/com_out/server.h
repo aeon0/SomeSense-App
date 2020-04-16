@@ -1,7 +1,7 @@
 #pragma once
 
 #include "irequest_handler.h"
-#include "output/storage.h"
+#include "serialize/app_state.h"
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -22,7 +22,7 @@ typedef unsigned char BYTE;
 namespace com_out {
   class Server : public IRequestHandler {
   public:
-    Server(output::Storage& outputStorage);
+    Server(serialize::AppState& appState);
     ~Server();
 
     void run();
@@ -59,7 +59,7 @@ namespace com_out {
 
     std::vector<std::shared_ptr<IRequestListener>> _requestListeners;
 
-    output::Storage& _outputStorage;
+    serialize::AppState& _appState;
     int64_t _lastSentTs;
     bool _pollOutput;
 

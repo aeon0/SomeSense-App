@@ -12,7 +12,7 @@
 namespace com_out {
   class TcpServer : public Server {
   public:
-    TcpServer(output::Storage& outputStorage);
+    TcpServer(serialize::AppState& appState);
 
   protected:
     void create();

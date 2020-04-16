@@ -9,7 +9,7 @@
 #include <kj/common.h>
 #include "utilities/json.hpp"
 #include <capnp/message.h>
-#include "output/frame.capnp.h"
+#include "serialize/frame.capnp.h"
 
 #include <unistd.h>
 #include <stdio.h>
@@ -20,8 +20,8 @@ volatile sig_atomic_t stopFromSignal = 0;
 void sighandler(int signum) { stopFromSignal = 1; }
 
 
-frame::App::App(const data_reader::SensorStorage& sensorStorage, output::Storage& outputStorage, const TS& algoStartTime) :
-  _sensorStorage(sensorStorage), _outputStorage(outputStorage), _algoStartTime(algoStartTime),
+frame::App::App(const data_reader::SensorStorage& sensorStorage, serialize::AppState& appState, const TS& algoStartTime) :
+  _sensorStorage(sensorStorage), _appState(appState), _algoStartTime(algoStartTime),
   _ts(-1), _frame(-1), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
@@ -151,7 +151,7 @@ void frame::App::runFrame() {
       i++;
     }
 
-    _outputStorage.set(std::move(messagePtr));
+    _appState.set(std::move(messagePtr));
     _frame++;
 
     // Complete Algo duration for debugging

@@ -29,7 +29,7 @@ set(COMPONENT_LIBS
   libcom_out
   liboptical_flow
   libonline_calibration
-  liboutput
+  libserialize
   # libobject_detection
 )
 set(DEPENDENCY_LIBS

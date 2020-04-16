@@ -1,4 +1,4 @@
-#include "storage_service.h"
+#include "save_to_file.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -6,21 +6,21 @@
 #include <unistd.h>
 
 
-output::StorageService::StorageService(const std::string storageBasePath, output::Storage& outputStorage) :
-  _storageBasePath(storageBasePath), _outputStorage(outputStorage), _lastSavedTs(-1), _isStoring(false) {}
+serialize::SaveToFile::SaveToFile(const std::string storageBasePath, serialize::AppState& appState) :
+  _storageBasePath(storageBasePath), _appState(appState), _lastSavedTs(-1), _isStoring(false) {}
 
-void output::StorageService::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+void serialize::SaveToFile::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   if (requestData["type"] == "client.start_storing") {
-    std::cout << "Start Storing" << std::endl;
+    std::cout << "Start save to file" << std::endl;
     start();
   }
   else if (requestData["type"] == "client.stop_storing") {
-    std::cout << "Stop Storing" << std::endl;
+    std::cout << "Stop save to file" << std::endl;
     stop();
   }
 }
 
-std::string output::StorageService::formatTimePoint(std::chrono::system_clock::time_point point) {
+std::string serialize::SaveToFile::formatTimePoint(std::chrono::system_clock::time_point point) {
   static_assert(std::chrono::system_clock::time_point::period::den == 1000000000 && std::chrono::system_clock::time_point::period::num == 1);
   std::string out(29, '0');
   char* buf = &out[0];
@@ -30,14 +30,14 @@ std::string output::StorageService::formatTimePoint(std::chrono::system_clock::t
   return out;
 }
 
-void output::StorageService::stop() {
+void serialize::SaveToFile::stop() {
   if (_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
     _isStoring = false;
   }
 }
 
-void output::StorageService::start() {
+void serialize::SaveToFile::start() {
   if (!_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
     // Create folder to store rec into
@@ -46,16 +46,16 @@ void output::StorageService::start() {
     _lastSavedTs = -1;
     _isStoring = true;
     
-    std::thread dataStorageThread(&output::StorageService::run, this);
+    std::thread dataStorageThread(&serialize::SaveToFile::run, this);
     dataStorageThread.detach();
   }
 }
 
-void output::StorageService::run() {
+void serialize::SaveToFile::run() {
   while (_isStoring) {
     {
       std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
-      int64_t currAlgoTs = _outputStorage.getAlgoTs();
+      int64_t currAlgoTs = _appState.getAlgoTs();
       if (currAlgoTs > _lastSavedTs) {
         _lastSavedTs = currAlgoTs;
         saveFrame();
@@ -66,10 +66,10 @@ void output::StorageService::run() {
   }
 }
 
-void output::StorageService::saveFrame() {
+void serialize::SaveToFile::saveFrame() {
   if (_isStoring) {
     int fd = open(_currFilePath.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0755);
-    if (_outputStorage.writeToFile(fd)) {
+    if (_appState.writeToFile(fd)) {
       close(fd);
     }
   }
