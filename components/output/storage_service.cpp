@@ -34,7 +34,6 @@ void output::StorageService::stop() {
   if (_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
     _isStoring = false;
-    _outputStorage.setStoreCtrlData(false);
   }
 }
 
@@ -46,7 +45,6 @@ void output::StorageService::start() {
     _currFilePath = _storageBasePath + "/rec_" + formatTimePoint(std::chrono::system_clock::now()) + ".capnp.bin";
     _lastSavedTs = -1;
     _isStoring = true;
-    _outputStorage.setStoreCtrlData(true);
     
     std::thread dataStorageThread(&output::StorageService::run, this);
     dataStorageThread.detach();

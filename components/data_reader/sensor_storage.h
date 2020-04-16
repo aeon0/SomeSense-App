@@ -12,7 +12,7 @@
 namespace data_reader {
   class SensorStorage {
   public:
-    SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime, output::Storage& outputStorage);
+    SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime);
 
     typedef std::map<const std::string, std::shared_ptr<ICam>> CamMap;
 
@@ -24,8 +24,6 @@ namespace data_reader {
     const CamMap& getCams() const { return _cams; };
 
   private:
-    output::Storage& _outputStorage;
-
     CamMap _cams;
     unsigned int _sensorCounter; // used to create unique sensor ids
     const TS& _algoStartTime;

@@ -34,23 +34,3 @@ int64_t output::Storage::getAlgoTs() {
   }
   return -1;
 }
-
-bool output::Storage::setRecCtrlData(bool isARecording, bool isPlaying, int64_t recLength) {
-  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
-  if (_messagePtr != nullptr) {
-    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setIsARecording(isARecording);
-    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setIsPlaying(isPlaying);
-    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setRecLength(recLength);
-    return true;
-  }
-  return false;
-}
-
-bool output::Storage::setStoreCtrlData(bool isStoring) {
-  std::lock_guard<std::mutex> lockGuard(_outputStateLock);
-  if (_messagePtr != nullptr) {
-    _messagePtr->getRoot<CapnpOutput::Frame>().getCtrlData().setIsStoring(isStoring);
-    return true;
-  }
-  return false;
-}

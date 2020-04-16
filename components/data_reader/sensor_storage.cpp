@@ -16,8 +16,8 @@
 #endif
 
 
-data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime, output::Storage& outputStorage) :
-  _outputStorage(outputStorage), _requestHandler(requestHandler), _algoStartTime(algoStartTime), _sensorCounter(0) {}
+data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime) :
+  _requestHandler(requestHandler), _algoStartTime(algoStartTime), _sensorCounter(0) {}
 
 void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
   std::ifstream ifs(filepath);
@@ -43,7 +43,6 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
       for (int i = 0; i < camSensors.size(); ++i) {
         auto recCam = std::make_shared<RecCam>(
           camSensors[i].getKey(),
-          _outputStorage,
           camSensors[i].getFovHorizontal(),
           camSensors[i].getImg().getWidth(),
           camSensors[i].getImg().getHeight(),

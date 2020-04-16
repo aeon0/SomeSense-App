@@ -20,7 +20,7 @@ int main() {
 
   // Create Sensor Storage
   const std::string sensorConfigPath = "configs/sim_rec.json";
-  auto sensorStorage = data_reader::SensorStorage(server, algoStartTime, outputStorage);
+  auto sensorStorage = data_reader::SensorStorage(server, algoStartTime);
   sensorStorage.initFromConfig(sensorConfigPath);
 
   // Create Storage Service for recording

@@ -2,13 +2,6 @@
 
 struct CapnpOutput {
 
-  struct CtrlData {
-    isStoring @0 :Bool = false; # flag in case currently the frame is storing the seen stuff
-    isARecording @1 :Bool = false; # flag if the current frame is from a recording
-    isPlaying @2 :Bool = false; # flag if the video is current playing (only filled in case isARecording is true)
-    recLength @3 :Int64 = -1; # recording length in [us] (only filled in case isARecording is true)
-  }
-
   struct CamSensor {
     idx @0 :Int32;
     key @1 :Text;
@@ -68,7 +61,6 @@ struct CapnpOutput {
     tracks @4 :List(Track);
     camSensors @5 :List(CamSensor);
     runtimeMeas @6 :List(RuntimeMeas);
-    ctrlData @7 :CtrlData;
   }
 
 }

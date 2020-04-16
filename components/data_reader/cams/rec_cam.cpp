@@ -9,7 +9,6 @@
 
 data_reader::RecCam::RecCam(
   const std::string name,
-  output::Storage& outputStorage,
   const double horizontalFov,
   const int width,
   const int height,
@@ -17,24 +16,20 @@ data_reader::RecCam::RecCam(
 ) : 
   BaseCam(name, std::chrono::high_resolution_clock::now()),
   _recFilePath(recFilePath),
-  _outputStorage(outputStorage),
   _gotOneFrame(false),
   _pause(true),
   _jumpToFrame(false)
 {
   setCamIntrinsics(width, height, horizontalFov);
-  _outputStorage.setRecCtrlData(true, !_pause, _recLength);
 }
 
 void data_reader::RecCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
   if (requestData["type"] == "client.play_rec") {
     _pause = false;
-    _outputStorage.setRecCtrlData(true, !_pause, _recLength);
   }
   else if (requestData["type"] == "client.pause_rec") {
     _pause = true;
-    _outputStorage.setRecCtrlData(true, !_pause, _recLength);
   }
   else if (requestData["type"] == "client.step_forward" && _pause) {
     _stepForward = true;
@@ -60,7 +55,6 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
     // }
     _jumpToFrame = true;
     _pause = true; // Also pause recording in case it was playing
-    _outputStorage.setRecCtrlData(true, !_pause, _recLength);
   }
 }
 

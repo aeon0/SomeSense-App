@@ -19,9 +19,6 @@ namespace output {
     bool writeToStream(kj::VectorOutputStream& outputStream);
     bool writeToFile(const int fd);
 
-    bool setRecCtrlData(bool isRecording, bool isPlaying, int64_t recLength);
-    bool setStoreCtrlData(bool isStoring);
-
   private:
     std::unique_ptr<capnp::MallocMessageBuilder> _messagePtr;
     std::mutex _outputStateLock;

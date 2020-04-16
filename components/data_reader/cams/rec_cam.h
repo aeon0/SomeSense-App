@@ -40,7 +40,6 @@ namespace data_reader {
   public:
     RecCam(
       const std::string name,
-      output::Storage& outputStorage,
       const double horizontalFov,
       const int width,
       const int height,
@@ -60,7 +59,6 @@ namespace data_reader {
 
     const std::string _recFilePath;
 
-    output::Storage& _outputStorage;
     int64_t _recLength; // length of recording in [us]
 
     std::mutex _controlsMtx;
