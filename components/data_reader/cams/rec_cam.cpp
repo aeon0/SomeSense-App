@@ -25,36 +25,38 @@ data_reader::RecCam::RecCam(
 
 void data_reader::RecCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-  if (requestData["type"] == "client.play_rec") {
+  if (requestData["type"] == "client.get_ctrl_data") {
+    // Tell client info about the current recording
+    responseData["rec_info"] = {
+      {"is_rec", true},
+      {"rec_length", _recLength},
+      {"is_playing", !_pause},
+    };
+  }
+  else if (requestData["type"] == "client.play_rec") {
     _pause = false;
+    responseData["success"] = true;
   }
   else if (requestData["type"] == "client.pause_rec") {
     _pause = true;
+    responseData["success"] = true;
   }
   else if (requestData["type"] == "client.step_forward" && _pause) {
     _stepForward = true;
+    responseData["success"] = true;
   }
   else if (requestData["type"] == "client.step_backward" && _pause) {
     _newFrameNr = _currFrameNr - 1;
     _jumpToFrame = true;
+    responseData["success"] = true;
   }
   else if (requestData["type"] == "client.jump_to_ts") {
     const int64_t newTs = requestData["data"];
-    
-    _newFrameNr = -1;
-
-    // int64_t smallestDiff = INT64_MAX;
-    // // find frame that is closest to this ts, TODO: runtime optimize the search
-    // for (uint i = 0; i < _timestamps.size(); ++i)
-    // {
-    //   int64_t diff = std::abs(_timestamps[i] - newTs);
-    //   if (i == 0 || diff < smallestDiff) {
-    //     smallestDiff = diff;
-    //     _newFrameNr = i;
-    //   }
-    // }
+    // _newFrameNr = -1;
+    // TODO: Find new frameNr from timestamps
     _jumpToFrame = true;
     _pause = true; // Also pause recording in case it was playing
+    responseData["success"] = true;
   }
 }
 

@@ -33,7 +33,7 @@ void com_out::Server::pollOutput() {
     int64_t currAlgoTs = _appState.getAlgoTs();
 
     std::lock_guard<std::mutex> lockGuard(_newClientMtx);
-    if ((currAlgoTs != _lastSentTs) || _newClient) {
+    if (currAlgoTs != -1 && ((currAlgoTs != _lastSentTs) || _newClient)) {
       // const auto startTime = std::chrono::high_resolution_clock::now();
 
       kj::VectorOutputStream stream;
@@ -101,12 +101,14 @@ void com_out::Server::handle(int client) {
       {"data", {}},
     };
 
-    // std::cout << request << std::endl;
+    // std::cout << "Request: " << request << std::endl;
 
     // pass to every request listener and collect responses
     for(auto const& listener: _requestListeners) {
       void(listener->handleRequest(jsonRequest["type"], jsonRequest, jsonResponse["data"]));
     }
+
+    // std::cout << "Response: " << jsonResponse.dump() << std::endl;
 
     auto [msg, len] = createMsg(jsonResponse.dump());
     const bool success = sendToClient(client, msg, len);

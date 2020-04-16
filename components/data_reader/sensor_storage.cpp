@@ -49,6 +49,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
           recFilePath
         );
         recCamKeys.push_back(addCam(recCam, camSensors[i].getKey()));
+        _requestHandler.registerRequestListener(recCam);
       }
       break;
     }

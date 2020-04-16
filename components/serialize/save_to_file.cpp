@@ -10,7 +10,14 @@ serialize::SaveToFile::SaveToFile(const std::string storageBasePath, serialize::
   _storageBasePath(storageBasePath), _appState(appState), _lastSavedTs(-1), _isStoring(false) {}
 
 void serialize::SaveToFile::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  if (requestData["type"] == "client.start_storing") {
+  if (requestData["type"] == "client.get_ctrl_data") {
+    // Tell client info about the current recording
+    bool isStoring = _isStoring;
+    responseData["store_info"] = {
+      {"is_storing", isStoring},
+    };
+  }
+  else if (requestData["type"] == "client.start_storing") {
     std::cout << "Start save to file" << std::endl;
     start();
   }
