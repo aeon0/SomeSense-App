@@ -5,8 +5,7 @@
 #include <capnp/message.h>
 #include <capnp/serialize-packed.h>
 #include "serialize/frame.capnp.h"
-#include <fcntl.h>
-#include <unistd.h>
+#include "rec/creator.h"
 #include "sensor_storage.h"
 #include "cams/rec_cam.h"
 #include "cams/usb_cam.h"
@@ -30,33 +29,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
 
   if (jsonSensorConfig.contains("rec")) {
     std::cout << "** Load recording **" << std::endl;
-    // TODO: Maybe put this in a more dedicated place to reading rec files
-    const auto recFilePath = jsonSensorConfig["rec"].get<std::string>();
-    int fd = open(recFilePath.c_str(), O_RDONLY);
-    kj::FdInputStream fdStream(fd);
-    kj::BufferedInputStreamWrapper bufferedStream(fdStream);
-    std::vector<std::string> recCamKeys;
-    while (bufferedStream.tryGetReadBuffer() != nullptr) {
-      capnp::PackedMessageReader message(bufferedStream);
-      auto frame = message.getRoot<CapnpOutput::Frame>();
-      auto camSensors = frame.getCamSensors();
-      for (int i = 0; i < camSensors.size(); ++i) {
-        auto recCam = std::make_shared<RecCam>(
-          camSensors[i].getKey(),
-          camSensors[i].getFovHorizontal(),
-          camSensors[i].getImg().getWidth(),
-          camSensors[i].getImg().getHeight(),
-          recFilePath
-        );
-        recCamKeys.push_back(addCam(recCam, camSensors[i].getKey()));
-        _requestHandler.registerRequestListener(recCam);
-      }
-      break;
-    }
-    close(fd);
-    for (auto key: recCamKeys) {
-      _cams[key]->start();
-    }
+    rec::createFromFile(jsonSensorConfig["rec"].get<std::string>(), *this, _requestHandler);
   }
   else {
     for (const auto it: jsonSensorConfig["cams"]) {
