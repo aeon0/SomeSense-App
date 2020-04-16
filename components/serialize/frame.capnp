@@ -5,7 +5,7 @@ struct CapnpOutput {
   struct CamSensor {
     idx @0 :Int32;
     key @1 :Text;
-    timestamp @2 :Int32; # timestamp in [us]
+    timestamp @2 :Int64; # timestamp in [us]
     focalLengthX @3 :Float32; # in [px]
     focalLengthY @4 :Float32; # in [px]
     principalPointX @5 :Float32; # in [px]
