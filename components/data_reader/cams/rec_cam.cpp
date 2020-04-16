@@ -62,6 +62,8 @@ void data_reader::RecCam::start() {
   // Reading all messages and taking ownership of the data
   // TODO: This can take some time for larger recordings, think about a strategy
   //       to only load some data and load more data along the way
+  // TODO: The actuall data needed is only the stuff for the specific camera, ignore other data
+  // TODO: Do this stuff in the sensor_storage.cpp or in an dedicated place all along, and just pass the frame data
   const auto startTime = std::chrono::high_resolution_clock::now();
 
   int fd = open(_recFilePath.c_str(), O_RDONLY);
