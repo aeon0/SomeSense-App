@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <mutex>
+#include <atomic>
 #include "icam.h"
 #include "../types.h"
 
@@ -43,7 +44,7 @@ namespace data_reader {
     cv::Mat _bufferFrame;
     cv::Mat _currFrame;
     int64_t _currTs;
-    int _currFrameNr;
+    std::atomic<int> _currFrameNr;
     bool _validFrame;
 
     const TS& _algoStartTime;

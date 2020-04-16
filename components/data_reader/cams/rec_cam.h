@@ -1,8 +1,8 @@
 #pragma once
 
-#include <mutex>
 #include <tuple>
 #include <map>
+#include <atomic>
 #include "base_cam.h"
 #include "com_out/irequest_listener.h"
 #include "serialize/frame.capnp.h"
@@ -44,12 +44,10 @@ namespace data_reader {
 
     int64_t _recLength; // length of recording in [us]
 
-    std::mutex _controlsMtx;
     bool _gotOneFrame; // At least one frame needs to be created in the beginning
-    bool _pause; // Pause the video
-    bool _stepForward; // One step forward
-    bool _jumpToFrame; // Jump to the frame number that is in _newFrameNr
-    int _newFrameNr;
+    std::atomic<bool> _pause; // Pause the video
+    std::atomic<bool> _stepForward; // One step forward
+    std::atomic<bool> _jumpToFrame; // Jump to the frame number
 
     OwnCamFrames _frames;
   };

@@ -1,5 +1,6 @@
 #include "rec_cam.h"
 #include <iostream>
+#include <mutex>
 #include <chrono>
 #include <fcntl.h>
 #include <unistd.h>
@@ -31,34 +32,64 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
     };
   }
   else if (requestData["type"] == "client.play_rec") {
-    std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
     _pause = false;
     responseData["success"] = true;
+    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
   else if (requestData["type"] == "client.pause_rec") {
-    std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
     _pause = true;
     responseData["success"] = true;
+    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
-  else if (requestData["type"] == "client.step_forward" && _pause) {
-    std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
+  else if (requestData["type"] == "client.step_forward") {
     _stepForward = true;
+    _pause = true;
     responseData["success"] = true;
+    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
-  else if (requestData["type"] == "client.step_backward" && _pause) {
-    std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-    _newFrameNr = _currFrameNr - 1;
-    _jumpToFrame = true;
-    responseData["success"] = true;
+  else if (requestData["type"] == "client.step_backward") {
+    if (_currFrameNr > 1) {
+      _currFrameNr -= 2; // -2 because after each frame that is read, _currFrameNr is already counted up for the next frame
+      _jumpToFrame = true;
+      _pause = true;
+      responseData["success"] = true;
+    }
+    else {
+      responseData["success"] = false;
+    }
+    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
   else if (requestData["type"] == "client.jump_to_ts") {
-    std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
     const int64_t newTs = requestData["data"];
-    // _newFrameNr = -1;
-    // TODO: Find new frameNr from timestamps
+    // Let's assume a more or less even frame rate, with that we should get the frameNr close to the desired one
+    int frameNr = (static_cast<double>(newTs) / static_cast<double>(_recLength)) * _frames.size();
+    bool found = false;
+    while (!found) {
+      int64_t startTs = _frames[0]->getTimestamp();
+      int64_t tsDiff = std::abs(_frames[frameNr]->getTimestamp() - startTs - newTs);
+      int64_t tsDiffNext = tsDiff + 1;
+      int64_t tsDiffPrevious = tsDiff + 1;
+      if (frameNr + 1 < _frames.size()) {
+        tsDiffNext = std::abs(_frames[frameNr+1]->getTimestamp()- startTs - newTs);
+      }
+      if (frameNr - 1 >= 0) {
+        tsDiffPrevious = std::abs(_frames[frameNr-1]->getTimestamp() - startTs - newTs);
+      }
+      if (tsDiff < tsDiffNext && tsDiff < tsDiffPrevious) {
+        found = true;
+      }
+      else if (tsDiffNext < tsDiffPrevious){
+        frameNr++;
+      }
+      else {
+        frameNr--;
+      }
+    }
+    _currFrameNr = frameNr;
     _jumpToFrame = true;
     _pause = true; // Also pause recording in case it was playing
     responseData["success"] = true;
+    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
 }
 
@@ -82,7 +113,7 @@ void data_reader::RecCam::readData() {
       if (startSensorTs == -1) {
         startSensorTs = frame->getTimestamp();
       }
-      else {
+      else if (!_jumpToFrame && !_stepForward) {
         // Wait at least the time till current timestamp to sync sensor times
         std::chrono::microseconds diffSensorTs(frame->getTimestamp() - lastSensorTs);
         const auto sensorFrameEndTime = timeLastFrameRead + diffSensorTs;
@@ -107,65 +138,8 @@ void data_reader::RecCam::readData() {
       }
       bufferMat.release();
       _gotOneFrame = true;
-      {
-        std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-        _stepForward = false;
-        _jumpToFrame = false;
-      }
+      _jumpToFrame = false;
+      _stepForward = false;
     }
   }
-
-  // for (;;) {
-    // if (!_pause || _stepForward || !_gotOneFrame || _jumpToFrame) {
-    //   if (_jumpToFrame && _newFrameNr >= 0) {
-    //     // Algo also has a requestHandler and resets Algo on jump_to_ts and step_backward
-    //     // std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-    //     // _stream.set(cv::CAP_PROP_POS_FRAMES, _newFrameNr);
-    //   }
-
-      // const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
-      // const bool success = _stream.read(_bufferFrame);
-      // if (success) {
-      //   std::lock_guard<std::mutex> lockGuardRead(_readMutex);
-      //   _currFrame = _bufferFrame.clone();
-      //   _bufferFrame.release();
-      //   _validFrame = success;
-
-      //   std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-      //   if (_timestamps.size() == 0) {
-      //     const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
-      //     _currTs = static_cast<int64>(tsMsec * 1000.0);
-      //     _currFrameNr = currFrameNr;
-      //   }
-      //   else {
-      //     _currTs = _timestamps.at(currFrameNr);
-      //     _currFrameNr = currFrameNr;
-      //   }
-      // }
-
-      // Wait the amount of time to the next timestamp or one frame length if timestamps are not available
-      // TODO: Wait this time from the beginning of the frame including the fetching of the frame and other meta data
-      // TODO: There is still something wrong when approching the end of the recording and going beyond, it does not stop
-      // int64_t waitTimeUs = 0;
-      // if (_timestamps.size() > (currFrameNr + 1)) {
-      //   waitTimeUs = _timestamps.at(currFrameNr + 1) - _timestamps.at(currFrameNr);
-      // }
-      // else {
-      //   waitTimeUs = (1 / _frameRate) * 1000000;
-      // }
-      // std::this_thread::sleep_for(std::chrono::microseconds(5000));
-
-      // _gotOneFrame = true;
-      // {
-      //   std::lock_guard<std::mutex> lockGuardCtrls(_controlsMtx);
-      //   _stepForward = false;
-      //   _jumpToFrame = false;
-
-      //   if (_currTs >= _recLength) {
-      //     _pause = true;
-      //     _outputStorage.setRecCtrlData(true, !_pause, _recLength);
-      //   }
-      // }
-    // }
-  // }
 }
