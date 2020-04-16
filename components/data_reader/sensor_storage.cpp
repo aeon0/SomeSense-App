@@ -45,6 +45,8 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
           camSensors[i].getKey(),
           _outputStorage,
           camSensors[i].getFovHorizontal(),
+          camSensors[i].getImg().getWidth(),
+          camSensors[i].getImg().getHeight(),
           recFilePath
         );
         recCamKeys.push_back(addCam(recCam, camSensors[i].getKey()));

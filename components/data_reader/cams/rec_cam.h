@@ -2,18 +2,48 @@
 
 #include <mutex>
 #include <tuple>
+#include <map>
 #include "output/storage.h"
 #include "base_cam.h"
 #include "com_out/irequest_listener.h"
+#include "output/frame.capnp.h"
 
 
 namespace data_reader {
+  template <typename T>
+  class OwnCapnp: public T::Reader {
+    // A copy of a capnp object which lives in-memory and can be passed by ownership.
+
+  public:
+    // Inherits methods of reader.
+
+  private:
+    kj::Array<capnp::word> words;
+
+    OwnCapnp(kj::Array<capnp::word> words)
+        : T::Reader(capnp::readMessageUnchecked<T>(words.begin())),
+          words(kj::mv(words)) {}
+
+    template <typename Reader>
+    friend OwnCapnp<capnp::FromReader<Reader>> newOwnCapnp(Reader value);
+  };
+
+  template <typename Reader>
+  OwnCapnp<capnp::FromReader<Reader>> newOwnCapnp(Reader value) {
+    auto words = kj::heapArray<capnp::word>(value.totalSize().wordCount + 1);
+    memset(words.asBytes().begin(), 0, words.asBytes().size());
+    capnp::copyToUnchecked(value, words);
+    return OwnCapnp<capnp::FromReader<Reader>>(kj::mv(words));
+  }
+
   class RecCam : public BaseCam, public com_out::IRequestListener {
   public:
     RecCam(
       const std::string name,
       output::Storage& outputStorage,
       const double horizontalFov,
+      const int width,
+      const int height,
       const std::string recFilePath
     );
 
@@ -26,6 +56,8 @@ namespace data_reader {
     const int64_t getRecLength() const override { return _recLength; }
 
   private:
+    void readData();
+
     const std::string _recFilePath;
 
     output::Storage& _outputStorage;
@@ -38,6 +70,6 @@ namespace data_reader {
     bool _jumpToFrame; // Jump to the frame number that is in _newFrameNr
     int _newFrameNr;
 
-    void readData();
+    std::vector<std::shared_ptr<data_reader::OwnCapnp<CapnpOutput::Frame>>> _frames;
   };
 }

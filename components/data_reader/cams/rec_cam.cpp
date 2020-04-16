@@ -5,13 +5,14 @@
 #include <unistd.h>
 #include <algorithm>
 #include <thread>
-#include "output/frame.capnp.h"
 
 
 data_reader::RecCam::RecCam(
   const std::string name,
   output::Storage& outputStorage,
   const double horizontalFov,
+  const int width,
+  const int height,
   const std::string recFilePath
 ) : 
   BaseCam(name, std::chrono::high_resolution_clock::now()),
@@ -21,10 +22,7 @@ data_reader::RecCam::RecCam(
   _pause(true),
   _jumpToFrame(false)
 {
-  //setCamIntrinsics(width, height, horizontalFov);
-  //_recLength = _timestamps.back() - _timestamps.front();
-  //_frameRate = static_cast<double>(_timestamps.size()) / (static_cast<double>(_recLength) / 1000000.0);
-
+  setCamIntrinsics(width, height, horizontalFov);
   _outputStorage.setRecCtrlData(true, !_pause, _recLength);
 }
 
@@ -67,53 +65,83 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
 }
 
 void data_reader::RecCam::start() {
+  // Reading all messages and taking ownership of the data
+  // TODO: This can take some time for larger recordings, think about a strategy
+  //       to only load some data and load more data along the way
+  const auto startTime = std::chrono::high_resolution_clock::now();
+
+  int fd = open(_recFilePath.c_str(), O_RDONLY);
+  kj::FdInputStream fdStream(fd);
+  kj::BufferedInputStreamWrapper bufferedStream(fdStream);
+  int64_t startTs;
+  int64_t endTs;
+  while (bufferedStream.tryGetReadBuffer() != nullptr) {
+    capnp::PackedMessageReader msg(bufferedStream);
+    auto frameMsg = std::make_shared<OwnCapnp<CapnpOutput::Frame>>(newOwnCapnp(msg.getRoot<CapnpOutput::Frame>()));
+    _frames.push_back(frameMsg);
+    if (_frames.size() == 1) {
+      startTs = frameMsg->getTimestamp();
+    }
+    else {
+      endTs = frameMsg->getTimestamp();
+    }
+  }
+
+  _recLength = endTs - startTs;
+  _frameRate = (static_cast<double>(_frames.size()) / static_cast<double>(_recLength)) * 1000000.0;
+
+  const auto endTime = std::chrono::high_resolution_clock::now();
+  const auto durAlgo = std::chrono::duration<double, std::milli>(endTime - startTime);
+  std::cout << "Store Frames: " << durAlgo.count() << " [ms]" << std::endl;
+
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::RecCam::readData, this);
   dataReaderThread.detach();
 }
 
 void data_reader::RecCam::readData() {
+  _currFrameNr = 0;
+  int currFramePos = 0;
   int64_t startSensorTs = -1;
   int64_t lastSensorTs = -1;
   auto timeLastFrameRead = std::chrono::high_resolution_clock::now();
 
-  int fd = open(_recFilePath.c_str(), O_RDONLY);
-  kj::FdInputStream fdStream(fd);
-  kj::BufferedInputStreamWrapper bufferedStream(fdStream);
-  while (bufferedStream.tryGetReadBuffer() != nullptr) {
-    capnp::PackedMessageReader message(bufferedStream);
-    const auto frame = message.getRoot<CapnpOutput::Frame>();
-    const auto frameLen = frame.getPlannedFrameLength(); // in [ms]
-    const auto camSensors = frame.getCamSensors();
-    for (int i = 0; i < camSensors.size(); ++i) {
-      if (camSensors[i].getKey() == _name) {
-        // Frame syncing
-        if (startSensorTs == -1) {
-          startSensorTs = camSensors[i].getTimestamp();
+  for (;;) {
+    if (_currFrameNr < _frames.size()) {
+      auto frame = _frames[_currFrameNr];
+      const auto frameLen = frame->getPlannedFrameLength(); // in [ms]
+      const auto camSensors = frame->getCamSensors();
+      for (int i = 0; i < camSensors.size(); ++i) {
+        if (camSensors[i].getKey() == _name) {
+          // Frame syncing
+          if (startSensorTs == -1) {
+            startSensorTs = camSensors[i].getTimestamp();
+          }
+          else {
+            // Wait at least the time till current timestamp to sync sensor times
+            std::chrono::microseconds diffSensorTs(camSensors[i].getTimestamp() - lastSensorTs);
+            const auto sensorFrameEndTime = timeLastFrameRead + diffSensorTs;
+            std::this_thread::sleep_until(sensorFrameEndTime);
+          }
+          timeLastFrameRead = std::chrono::high_resolution_clock::now();
+          lastSensorTs = camSensors[i].getTimestamp();
+
+          // Read and set img data
+          const int imgWidth = camSensors[i].getImg().getWidth();
+          const int imgHeight = camSensors[i].getImg().getHeight();
+          // const int channels = camSensors[i].getImg().getChannels();
+          const auto rawImgData = camSensors[i].getImg().getData();
+          auto bufferMat = cv::Mat(cv::Size(imgWidth, imgHeight), CV_8UC3);
+          memcpy(bufferMat.data, rawImgData.begin(), rawImgData.size());
+          {
+            std::lock_guard<std::mutex> lockGuardRead(_readMutex);
+            _currFrame = bufferMat.clone();
+            _validFrame = true;
+            _currFrameNr++;
+            _currTs = camSensors[i].getTimestamp();
+          }
+          bufferMat.release();
         }
-        else {
-          // Wait at least the time till current timestamp to sync sensor times
-          std::chrono::microseconds diffSensorTs(camSensors[i].getTimestamp() - lastSensorTs);
-          const auto sensorFrameEndTime = timeLastFrameRead + diffSensorTs;
-          std::this_thread::sleep_until(sensorFrameEndTime);
-        }
-        timeLastFrameRead = std::chrono::high_resolution_clock::now();
-        lastSensorTs = camSensors[i].getTimestamp();
-
-        // Read frame data
-        std::cout << "Reading frame: " << camSensors[i].getTimestamp() << std::endl;
-        camSensors[i].getImg().getData();
-
-        const int imgWidth = camSensors[i].getImg().getWidth();
-        const int imgHeight = camSensors[i].getImg().getHeight();
-        // const int channels = camSensors[i].getImg().getChannels();
-        const auto rawImgData = camSensors[i].getImg().getData();
-        auto bufferMat = cv::Mat(cv::Size(imgWidth, imgHeight), CV_8UC3);
-        memcpy(bufferMat.data, rawImgData.begin(), rawImgData.size());
-
-        cv::namedWindow("Debug Optical Flow Window", cv::WINDOW_AUTOSIZE);
-        cv::imshow("Debug Optical Flow", bufferMat);
-        cv::waitKey(1);
       }
     }
   }
