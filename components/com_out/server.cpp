@@ -77,12 +77,6 @@ void com_out::Server::serve() {
       std::cout << "Add client: " << client << std::endl;
       _clients.push_back(client);
       _newClient = true;
-
-      nlohmann::json jsonMsg = {{"type", "server.test"}, {"data", {{"succes", true}}}};
-      auto [msg, len] = createMsg(jsonMsg.dump());
-      for (int i = 0; i < 100; ++i) {
-        const bool success = sendToClient(client, msg, len);
-      }
     }
     handle(client);
   }
