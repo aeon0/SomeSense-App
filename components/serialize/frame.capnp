@@ -52,6 +52,18 @@ struct CapnpOutput {
     velocity @10 :Float32;
     objClass @11 :Int32;
   }
+  struct OpticalFlow {
+    struct FlowTrack {
+      # in normalized coordinates
+      startX @0 :Float64;
+      startY @1 :Float64;
+      endX @2 :Float64;
+      endY @3 :Float64;
+    }
+    endTs @0 :Int64; # in [us]
+    deltaTime @1 :Float64; # in [ms]
+    flowTracks @2 :List(FlowTrack);
+  }
 
   struct Frame {
     timestamp @0 :Int64; # from the start of the app in [us] (is the latest of sensor input)
@@ -59,11 +71,12 @@ struct CapnpOutput {
                           # difference between frameStart and timestamp is the latency we have
     plannedFrameLength @2 :Float64; # planned length of the frame in [ms]
     frameCount @3 :Int64;
-    camSensors @5 :List(CamSensor);
-    runtimeMeas @6 :List(RuntimeMeas);
+    camSensors @4 :List(CamSensor);
+    runtimeMeas @5 :List(RuntimeMeas);
 
     # [algos]
-    tracks @4 :List(Track);
+    tracks @6 :List(Track);
+    opticalFlow @7 :OpticalFlow;
   }
 
 }

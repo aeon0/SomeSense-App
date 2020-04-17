@@ -74,3 +74,16 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
 
   // _runtimeMeasService.printToConsole();
 }
+
+void optical_flow::OpticalFlow::serialize(CapnpOutput::OpticalFlow::Builder& builder) {
+  builder.setEndTs(_prevTs);
+  builder.setDeltaTime(_deltaTime);
+
+  auto flowTracks = builder.initFlowTracks(_flow.size());
+  for (int i = 0; i < _flow.size(); ++i) {
+    flowTracks[i].setStartX(_flow[i].first.x);
+    flowTracks[i].setStartY(_flow[i].first.y);
+    flowTracks[i].setEndY(_flow[i].second.y);
+    flowTracks[i].setEndY(_flow[i].second.y);
+  }
+}

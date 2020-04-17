@@ -3,6 +3,7 @@ SET(COMPONENT_NAME "optical_flow")
 
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
+  ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
 )
 
 add_library(lib${COMPONENT_NAME} 
