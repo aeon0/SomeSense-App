@@ -4,8 +4,6 @@ project(Ilona)
 set(${PROJECT_NAME}_VERSION_MAJOR 0)
 set(${PROJECT_NAME}_VERSION_MINOR 1)
 
-include(compiler_flags.cmake)
-
 # some options for the build
 option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
 option(BUILD_TEST "Build the unit tests" OFF)
