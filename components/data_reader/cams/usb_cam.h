@@ -7,7 +7,14 @@
 namespace data_reader {
   class UsbCam : public BaseCam {
   public:
-    UsbCam(const std::string name, const TS& algoStartTime, const int deviceIdx, const int captureWidth, const int captureHeight, const int horizontalFov);
+    UsbCam(
+      const std::string name,
+      const TS& algoStartTime,
+      const int deviceIdx,
+      const int captureWidth,
+      const int captureHeight,
+      const double horizontalFov
+    );
     void start() override;
 
   private:

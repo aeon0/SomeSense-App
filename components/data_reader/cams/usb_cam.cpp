@@ -3,8 +3,17 @@
 #include <thread>
 
 
-data_reader::UsbCam::UsbCam(const std::string name, const TS& algoStartTime, const int deviceIdx, const int captureWidth, const int captureHeight, const int horizontalFov):
-    BaseCam(name, algoStartTime), _deviceIdx(deviceIdx) {
+data_reader::UsbCam::UsbCam(
+  const std::string name,
+  const TS& algoStartTime,
+  const int deviceIdx,
+  const int captureWidth,
+  const int captureHeight,
+  const double horizontalFov
+):
+  BaseCam(name, algoStartTime),
+  _deviceIdx(deviceIdx)
+{
   _cam.open(_deviceIdx, cv::CAP_V4L);
   if (!_cam.isOpened()) {
     throw std::runtime_error("Could not open USB Camera at index: " + std::to_string(_deviceIdx));

@@ -17,8 +17,10 @@ data_reader::CsiCam::CsiCam(
   int captureHeight,
   int frameRate,
   int flipMethod,
-  double horizontalFov): 
-    BaseCam(name, algoStartTime) {
+  double horizontalFov
+): 
+  BaseCam(name, algoStartTime)
+{
   std::cout << "Creating CSI CAMERA!" << std::endl;
   std::string gsStreamerPipline = gstreamer_pipeline(captureWidth, captureHeight, frameRate, flipMethod);
   std::cout << "Using GStream Pipline: " << gsStreamerPipline << std::endl;
