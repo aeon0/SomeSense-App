@@ -78,43 +78,23 @@ void frame::App::runFrame() {
       cv::Mat grayScaleImg;
       cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
 
-      _runtimeMeasService.startMeas("optical_flow_" + key);
+      // Call [algos] on 2D image
       if (_opticalFlowMap.count(key) <= 0) {
         _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
       }
       _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
-      _runtimeMeasService.endMeas("optical_flow_" + key);
+      // auto opticalFlowBuilder = capnpFrameData.getOpticalFlow();
+      // _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
+      // Tell algo that at least one sensor provided new data
       gotNewSensorData = true;
       if (sensorTs > _ts) {
         _ts = sensorTs; // take latest sensorTs as as algoTs
       }
 
-      // Add sensor to outputstate
-      capnpCamSensors[camSensorIdx].setIdx(camSensorIdx);
-      capnpCamSensors[camSensorIdx].setTimestamp(sensorTs);
-      capnpCamSensors[camSensorIdx].setKey(key);
-      capnpCamSensors[camSensorIdx].setFocalLengthX(cam->getFocalX());
-      capnpCamSensors[camSensorIdx].setFocalLengthY(cam->getFocalY());
-      capnpCamSensors[camSensorIdx].setPrincipalPointX(cam->getPrincipalPointX());
-      capnpCamSensors[camSensorIdx].setPrincipalPointY(cam->getPrincipalPointY());
-      // TODO: position is not filled in autosar, also needs adaptation in visu
-      capnpCamSensors[camSensorIdx].setX(0);
-      capnpCamSensors[camSensorIdx].setY(1.2);
-      capnpCamSensors[camSensorIdx].setZ(-0.5);
-      capnpCamSensors[camSensorIdx].setYaw(0);
-      capnpCamSensors[camSensorIdx].setPitch(0);
-      capnpCamSensors[camSensorIdx].setRoll(0);
-      capnpCamSensors[camSensorIdx].setFovHorizontal(cam->getHorizontalFov());
-      capnpCamSensors[camSensorIdx].setFovVertical(cam->getVerticalFov());
-
-      // Fill img
-      capnpCamSensors[camSensorIdx].getImg().setWidth(img.size().width);
-      capnpCamSensors[camSensorIdx].getImg().setHeight(img.size().height);
-      capnpCamSensors[camSensorIdx].getImg().setChannels(img.channels());
-      capnpCamSensors[camSensorIdx].getImg().setData(
-        kj::arrayPtr(img.data, img.size().width * img.size().height * img.channels() * sizeof(uchar))
-      );
+      // Serialize Camera data
+      auto camSensorBuilder = capnpCamSensors[camSensorIdx];
+      cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
     }
 
     camSensorIdx++;
@@ -132,7 +112,7 @@ void frame::App::runFrame() {
     capnpFrameData.setPlannedFrameLength(Config::goalFrameLength);
     capnpFrameData.setTimestamp(_ts);
 
-    // Add runtime meas
+    // Serialize runtime meas, for some reason I can not include frame.capnp.h to runtime meas to make a serialize() method
     auto runtimeMeasData = _runtimeMeasService.getAllMeas();
     auto capnpRuntimeMeas = capnpFrameData.initRuntimeMeas(runtimeMeasData.size());
     int i = 0;

@@ -31,3 +31,36 @@ void data_reader::BaseCam::setCamIntrinsics(const int width, const int height, c
   _fy = _fx;
   _verticalFov = atan((static_cast<double>(height) * 0.5) / _fy) * 2.0;
 }
+
+void data_reader::BaseCam::serialize(
+  CapnpOutput::CamSensor::Builder& builder,
+  const int idx,
+  const int64_t ts,
+  const cv::Mat& img
+) const {
+  // Add sensor to outputstate
+  builder.setIdx(idx);
+  builder.setTimestamp(ts);
+  builder.setKey(getName());
+  builder.setFocalLengthX(getFocalX());
+  builder.setFocalLengthY(getFocalY());
+  builder.setPrincipalPointX(getPrincipalPointX());
+  builder.setPrincipalPointY(getPrincipalPointY());
+  // TODO: position is not filled in autosar, also needs adaptation in visu
+  builder.setX(0);
+  builder.setY(1.2);
+  builder.setZ(-0.5);
+  builder.setYaw(0);
+  builder.setPitch(0);
+  builder.setRoll(0);
+  builder.setFovHorizontal(getHorizontalFov());
+  builder.setFovVertical(getVerticalFov());
+
+  // Fill img
+  builder.getImg().setWidth(img.size().width);
+  builder.getImg().setHeight(img.size().height);
+  builder.getImg().setChannels(img.channels());
+  builder.getImg().setData(
+    kj::arrayPtr(img.data, img.size().width * img.size().height * img.channels() * sizeof(uchar))
+  );
+}

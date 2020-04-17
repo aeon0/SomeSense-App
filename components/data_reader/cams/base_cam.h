@@ -16,6 +16,13 @@ namespace data_reader {
 
     std::tuple<const bool, const int64_t, cv::Mat> getFrame() override;
 
+    void serialize(
+      CapnpOutput::CamSensor::Builder& builder,
+      const int idx,
+      const int64_t ts,
+      const cv::Mat& img
+    ) const override;
+
     const cv::Size getFrameSize() const override { return _frameSize; }
     const double getFrameRate() const override { return _frameRate; }
     const double getHorizontalFov() const override { return _horizontalFov; }

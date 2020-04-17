@@ -3,6 +3,7 @@
 #include <tuple>
 #include <chrono>
 #include "opencv2/opencv.hpp"
+#include "serialize/frame.capnp.h"
 
 
 namespace data_reader {
@@ -13,6 +14,14 @@ namespace data_reader {
 
     // Start reading the camera feed
     virtual void start() = 0;
+
+    // Serialize the camera
+    virtual void serialize(
+      CapnpOutput::CamSensor::Builder& builder,
+      const int idx,
+      const int64_t ts,
+      const cv::Mat& img
+    ) const = 0;
 
     // Return the base (optimal) fps possible for this sensor
     virtual const double getFrameRate() const = 0;
