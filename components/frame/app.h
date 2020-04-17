@@ -1,5 +1,6 @@
 #pragma once
 
+#include <signal.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include "data_reader/sensor_storage.h"
@@ -8,9 +9,9 @@
 #include "types.h"
 #include <atomic>
 #include "serialize/app_state.h"
-#include "optical_flow/optical_flow.h"
-// #include "object_detection/detector.h"
-#include <signal.h>
+// Algo includes
+#include "algo/example/example.h"
+#include "algo/optical_flow/optical_flow.h"
 
 
 namespace frame {
@@ -33,7 +34,6 @@ namespace frame {
 
     serialize::AppState& _appState;
     const data_reader::SensorStorage& _sensorStorage;
-    // object_detection::Detector _detector;
     RuntimeMeasService _runtimeMeasService;
     OpticalFlowMap _opticalFlowMap;
 

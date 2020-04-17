@@ -5,11 +5,12 @@
 #include "frame/runtime_meas_service.h"
 
 
-namespace online_calibration {
-  class Calibrator {
+namespace some_algo {
+  class Example {
   public:
-    Calibrator(frame::RuntimeMeasService& runtimeMeasService);
+    Example(frame::RuntimeMeasService& runtimeMeasService);
     void reset();
+    void doStuff();
 
   private:
     frame::RuntimeMeasService& _runtimeMeasService;

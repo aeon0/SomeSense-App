@@ -59,7 +59,7 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
     const int borderOutside = 50;
     cv::Mat mask = cv::Mat::zeros(height, width, CV_8U);
     cv::rectangle(mask, cv::Rect(borderOutside, borderOutside, width - (2*borderOutside), height - (2*borderOutside)), 255, cv::FILLED);
-    cv::goodFeaturesToTrack(img, _prevFreatures, 400, 0.02, 7, mask);
+    cv::goodFeaturesToTrack(img, _prevFreatures, 200, 0.02, 7, mask);
     _framesSinceRefresh = 0;
   }
   else {

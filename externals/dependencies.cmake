@@ -4,9 +4,6 @@ include(ExternalProject)
 set(OPENCV_VERSION 4.1.2)
 include(externals/opencv.cmake)
 
-set(TENSORRT_VERSION v7.0.0)
-include(externals/tensorrt.cmake)
-
 # Note: Currently this is installed via dependencis.sh, this is currently just to find the package in cmake
 include(externals/capnproto.cmake)
 

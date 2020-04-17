@@ -27,9 +27,6 @@ set(EXTERNAL_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/externals/install")
 
 include_directories(${COMPONENT_DIR} NO_DEFAULT_PATH)
 
-# Find pre installed packages
-# find_package(CUDA REQUIRED)
-
 include(externals/dependencies.cmake)
 
 if (NOT INSTALL_DEPENDENCIES)
@@ -37,10 +34,10 @@ if (NOT INSTALL_DEPENDENCIES)
   add_subdirectory(components/utilities)
   add_subdirectory(components/com_out)
   add_subdirectory(components/data_reader)
-  # add_subdirectory(components/object_detection)
-  add_subdirectory(components/optical_flow)
-  add_subdirectory(components/online_calibration)
   add_subdirectory(components/serialize)
+  # algos
+  add_subdirectory(components/algo/optical_flow)
+  add_subdirectory(components/algo/example)
 
   if(BUILD_TEST)
     add_subdirectory(test)

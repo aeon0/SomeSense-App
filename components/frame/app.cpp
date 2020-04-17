@@ -25,13 +25,10 @@ frame::App::App(const data_reader::SensorStorage& sensorStorage, serialize::AppS
   _ts(-1), _frame(-1), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
-
-  // _detector.loadModel("assets/od_model/model.onnx", "assets/od_model/prior_boxes.json");
 }
 
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   if (requestData["type"] == "client.step_backward" || requestData["type"] == "client.jump_to_ts") {
-    // TODO: Frame is reset to -1, but it should be reset to whatever we jump to...
     _shouldReset = true;
   }
 }
@@ -81,16 +78,12 @@ void frame::App::runFrame() {
       cv::Mat grayScaleImg;
       cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
 
-      // _runtimeMeasService.startMeas("detect_" + key);
-      // _detector.detect(img);
-      // _runtimeMeasService.endMeas("detect_" + key);
-
-      // _runtimeMeasService.startMeas("optical_flow_" + key);
-      // if (_opticalFlowMap.count(key) <= 0) {
-      //   _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
-      // }
-      // _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
-      // _runtimeMeasService.endMeas("optical_flow_" + key);
+      _runtimeMeasService.startMeas("optical_flow_" + key);
+      if (_opticalFlowMap.count(key) <= 0) {
+        _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
+      }
+      _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
+      _runtimeMeasService.endMeas("optical_flow_" + key);
 
       gotNewSensorData = true;
       if (sensorTs > _ts) {

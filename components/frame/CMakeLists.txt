@@ -5,8 +5,6 @@ include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${CAPNP_INCLUDE_DIRS}
   ${CARLA_INCLUDE_DIR}
-  # ${TENSORRT_INCLUDE_DIRS}
-  # ${CUDA_INCLUDE_DIRS}
 )
 
 add_definitions(${CAPNP_DEFINITIONS})
@@ -27,19 +25,15 @@ set(COMPONENT_LIBS
   lib${COMPONENT_NAME}
   libdata_reader
   libcom_out
-  liboptical_flow
-  libonline_calibration
   libserialize
-  # libobject_detection
+
+  # algos
+  liboptical_flow
+  libexample_algo
 )
 set(DEPENDENCY_LIBS
-  # Dependencies: link static libs
   ${OpenCV_LIBS}
   ${CAPNP_LIBRARIES}
-
-  # In case TensorRT should be used
-  # ${CUDA_LIBRARIES}
-  # ${TENSORRT_SHARED_LIBS}
 )
 if (BUILD_SIM)
   # Add carla libs for simulation
