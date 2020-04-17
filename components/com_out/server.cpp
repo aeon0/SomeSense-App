@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <thread>
 #include <chrono>
-#include <thread>
 #include <kj/io.h>
 #include "utilities/json.hpp"
 
@@ -78,7 +77,8 @@ void com_out::Server::serve() {
       _clients.push_back(client);
       _newClient = true;
     }
-    handle(client);
+    std::thread handleClientThread(&com_out::Server::handle, this, client);
+    handleClientThread.detach();
   }
 
   closeSocket();
