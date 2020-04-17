@@ -35,7 +35,7 @@ if (NOT INSTALL_DEPENDENCIES)
   add_subdirectory(components/com_out)
   add_subdirectory(components/data_reader)
   add_subdirectory(components/serialize)
-  # algos
+  # [algos]
   add_subdirectory(components/algo/optical_flow)
   add_subdirectory(components/algo/example)
 

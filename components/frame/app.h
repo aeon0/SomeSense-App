@@ -9,7 +9,7 @@
 #include "types.h"
 #include <atomic>
 #include "serialize/app_state.h"
-// Algo includes
+// [algos]
 #include "algo/example/example.h"
 #include "algo/optical_flow/optical_flow.h"
 
@@ -34,13 +34,15 @@ namespace frame {
 
     serialize::AppState& _appState;
     const data_reader::SensorStorage& _sensorStorage;
-    RuntimeMeasService _runtimeMeasService;
-    OpticalFlowMap _opticalFlowMap;
 
     int64_t _ts; // algo timestamp of the current frame
     int _frame; // current frame counter
 
     const TS& _algoStartTime;
     std::atomic<bool> _shouldReset;
+
+    // [algos]
+    RuntimeMeasService _runtimeMeasService;
+    OpticalFlowMap _opticalFlowMap;
   };
 }

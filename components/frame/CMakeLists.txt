@@ -27,7 +27,7 @@ set(COMPONENT_LIBS
   libcom_out
   libserialize
 
-  # algos
+  # [algos]
   liboptical_flow
   libexample_algo
 )
