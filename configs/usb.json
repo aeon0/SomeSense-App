@@ -4,7 +4,7 @@
     "device_idx": 0,
     "name": "UsbTestCam",
     "capture_width": 640,
-    "capture_height": 380,
+    "capture_height": 360,
     "horizontal_fov": 60
   }]
 }

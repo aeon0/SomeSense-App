@@ -18,7 +18,7 @@ data_reader::UsbCam::UsbCam(
   if (!_cam.isOpened()) {
     throw std::runtime_error("Could not open USB Camera at index: " + std::to_string(_deviceIdx));
   }
-  
+
   _cam.set(cv::CAP_PROP_FRAME_WIDTH, captureWidth);
   _cam.set(cv::CAP_PROP_FRAME_HEIGHT, captureHeight);
   _frameRate = _cam.get(cv::CAP_PROP_FPS);

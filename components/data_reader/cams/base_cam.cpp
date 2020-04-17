@@ -28,6 +28,6 @@ void data_reader::BaseCam::setCamIntrinsics(const int width, const int height, c
   // Set focal length
   _fx = (static_cast<double>(width) * 0.5) / tan(_horizontalFov * 0.5);
   // assuming concentric lens set _fy and calc _verticalFov
-  _fx = _fy;
-  _verticalFov = atan((static_cast<double>(width) * 0.5) / _fy);
+  _fy = _fx;
+  _verticalFov = atan((static_cast<double>(height) * 0.5) / _fy) * 2.0;
 }
