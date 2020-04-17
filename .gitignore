@@ -4,6 +4,6 @@ externals/install
 storage_data
 CARLA_*/
 CARLA_*.tar.gz
-capnproto*
+capnproto-c++*
 
 *.engine
