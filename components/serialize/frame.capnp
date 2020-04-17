@@ -35,6 +35,7 @@ struct CapnpOutput {
     duration @2 :Float64; # in [ms]
   }
 
+  # [algos]
   struct Track {
     trackId @0 :Text;
     # position (autosar) in bumper coordinates
@@ -58,9 +59,11 @@ struct CapnpOutput {
                           # difference between frameStart and timestamp is the latency we have
     plannedFrameLength @2 :Float64; # planned length of the frame in [ms]
     frameCount @3 :Int64;
-    tracks @4 :List(Track);
     camSensors @5 :List(CamSensor);
     runtimeMeas @6 :List(RuntimeMeas);
+
+    # [algos]
+    tracks @4 :List(Track);
   }
 
 }
