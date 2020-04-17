@@ -35,3 +35,15 @@ void frame::RuntimeMeasService::printToConsole() {
     }
   }
 }
+
+void frame::RuntimeMeasService::serialize(CapnpOutput::Frame::Builder& builder) {
+  auto measBuilder = builder.initRuntimeMeas(_meas.size());
+  int i = 0;
+  for (auto [key, val]: _meas) {
+    auto startMeasTs = static_cast<long int>(std::chrono::duration<double, std::micro>(val.startTime - _algoStartTime).count());
+    measBuilder[i].setName(key);
+    measBuilder[i].setDuration(val.duration.count());
+    measBuilder[i].setStart(startMeasTs);
+    i++;
+  }
+}

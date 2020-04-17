@@ -4,6 +4,7 @@
 #include <chrono>
 #include <map>
 #include "types.h"
+#include "serialize/frame.capnp.h"
 
 
 namespace frame {
@@ -24,7 +25,7 @@ namespace frame {
 
     void reset() { _meas.clear(); }
 
-    const std::map<std::string, RuntimeMeas> getAllMeas() const { return _meas; };
+    void serialize(CapnpOutput::Frame::Builder& builder);
 
   private:
     std::map<std::string, RuntimeMeas> _meas;

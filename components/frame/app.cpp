@@ -112,17 +112,7 @@ void frame::App::runFrame() {
     capnpFrameData.setPlannedFrameLength(Config::goalFrameLength);
     capnpFrameData.setTimestamp(_ts);
 
-    // Serialize runtime meas, for some reason I can not include frame.capnp.h to runtime meas to make a serialize() method
-    auto runtimeMeasData = _runtimeMeasService.getAllMeas();
-    auto capnpRuntimeMeas = capnpFrameData.initRuntimeMeas(runtimeMeasData.size());
-    int i = 0;
-    for (auto [key, val]: runtimeMeasData) {
-      auto startMeasTs = static_cast<long int>(std::chrono::duration<double, std::micro>(val.startTime - _algoStartTime).count());
-      capnpRuntimeMeas[i].setName(key);
-      capnpRuntimeMeas[i].setDuration(val.duration.count());
-      capnpRuntimeMeas[i].setStart(startMeasTs);
-      i++;
-    }
+    _runtimeMeasService.serialize(capnpFrameData);
 
     _appState.set(std::move(messagePtr));
     _frame++;
