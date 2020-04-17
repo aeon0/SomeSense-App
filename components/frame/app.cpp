@@ -32,17 +32,17 @@ frame::App::App(const data_reader::SensorStorage& sensorStorage, serialize::AppS
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   if (requestData["type"] == "client.step_backward" || requestData["type"] == "client.jump_to_ts") {
     // TODO: Frame is reset to -1, but it should be reset to whatever we jump to...
-    reset();
+    _shouldReset = true;
   }
 }
 
 void frame::App::reset() {
-  _ts = -1;
-  _frame = -1;
-
   for (auto [key, opticalFlow]: _opticalFlowMap) {
     opticalFlow.reset();
   }
+
+  _ts = -1;
+  _frame = -1;
 }
 
 void frame::App::run() {
@@ -71,7 +71,7 @@ void frame::App::runFrame() {
   bool gotNewSensorData = false;
 
   // Loop through cameras and do 2D processing on them
-  for (auto const& [key, cam]: _sensorStorage.getCams()) {
+  for (auto const [key, cam]: _sensorStorage.getCams()) {
     _runtimeMeasService.startMeas("read_img_" + key);
     auto [success, sensorTs, img] = cam->getFrame();
     _runtimeMeasService.endMeas("read_img_" + key);
@@ -162,5 +162,9 @@ void frame::App::runFrame() {
 
   _runtimeMeasService.reset();
   // keep consistent algo framerate
+  if (_shouldReset) {
+    reset();
+    _shouldReset = false;
+  }
   std::this_thread::sleep_until(plannedFrameEndTime);
 }

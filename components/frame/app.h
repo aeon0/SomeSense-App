@@ -6,6 +6,7 @@
 #include "com_out/irequest_listener.h"
 #include "runtime_meas_service.h"
 #include "types.h"
+#include <atomic>
 #include "serialize/app_state.h"
 #include "optical_flow/optical_flow.h"
 // #include "object_detection/detector.h"
@@ -40,5 +41,6 @@ namespace frame {
     int _frame; // current frame counter
 
     const TS& _algoStartTime;
+    std::atomic<bool> _shouldReset;
   };
 }
