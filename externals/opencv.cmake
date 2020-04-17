@@ -1,5 +1,5 @@
 # try to find a pre installed OpenCV
-find_package(OpenCV ${OPENCV_VERSION} EXACT PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+find_package(OpenCV PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
 find_package(Eigen3 NO_MODULE)
 if(NOT OpenCV_FOUND)
   # find any other OpenCV version on the system since most people probably have it
@@ -35,7 +35,4 @@ if(NOT OpenCV_FOUND)
       INSTALL_COMMAND make -j4 install
     )
   endif()
-
-  find_package(OpenCV ${OPENCV_VERSION} REQUIRED EXACT PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
-  find_package(Eigen3 REQUIRED NO_MODULE)
 endif()

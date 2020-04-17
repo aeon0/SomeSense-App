@@ -16,4 +16,8 @@
 
 # TODO: currently capnp is installed directly in ./scripts/dependencies.sh
 #       better move it here and install with ExternalProject_Add()
-find_package(CapnProto REQUIRED)
+if(INSTALL_DEPENDENCIES)
+  find_package(CapnProto)
+else()
+  find_package(CapnProto REQUIRED)
+endif()
