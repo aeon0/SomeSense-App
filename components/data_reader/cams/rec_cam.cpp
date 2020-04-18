@@ -127,6 +127,11 @@ void data_reader::RecCam::readData() {
       _gotOneFrame = true;
       _jumpToFrame = false;
       _stepForward = false;
+
+      if (_currFrameNr >= _frames.size()) {
+        _pause = true;
+        _appState.setRecState(true, _recLength, !_pause);
+      }
     }
   }
 }
