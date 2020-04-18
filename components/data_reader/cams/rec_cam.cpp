@@ -25,6 +25,7 @@ data_reader::RecCam::RecCam(
 }
 
 void data_reader::RecCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
+  // TODO: Save strings to constants to use across the code
   if (requestData["type"] == "client.play_rec") {
     _pause = false;
   }
@@ -73,10 +74,13 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
     _pause = true; // Also pause recording in case it was playing
   }
   // Set rec info to app state to inform client about changes
+  // Might have performance issues if clients make a lot of requests
   _appState.setRecState(true, _recLength, !_pause);
 }
 
 void data_reader::RecCam::start() {
+  _appState.setRecState(true, _recLength, !_pause);
+
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::RecCam::readData, this);
   dataReaderThread.detach();

@@ -2,7 +2,10 @@
 #include <iostream>
 
 
-serialize::AppState::AppState() : _messagePtr(nullptr) {}
+serialize::AppState::AppState() : _messagePtr(nullptr) {
+  _messagePtr = std::make_unique<capnp::MallocMessageBuilder>();
+  _messagePtr->initRoot<CapnpOutput::Frame>();
+}
 
 void serialize::AppState::set(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr) {
   std::unique_lock<std::mutex> uniqueLock(_stateLock);
