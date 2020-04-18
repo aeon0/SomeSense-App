@@ -5,8 +5,23 @@
 serialize::AppState::AppState() : _messagePtr(nullptr) {}
 
 void serialize::AppState::set(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr) {
-  std::lock_guard<std::mutex> lockGuard(_stateLock);
-  _messagePtr = std::move(messagePtr);
+  std::unique_lock<std::mutex> uniqueLock(_stateLock);
+  // A bit hacky... we dont want the ctrl info such as recState and saveToFileState to change and be overriden
+  // Maybe think of something smarter to do here...
+  if (_messagePtr != nullptr) {
+    auto recState = _messagePtr->getRoot<CapnpOutput::Frame>().getRecState();
+    auto isPlaying = recState.getIsPlaying();
+    auto isARecording = recState.getIsARecording();
+    auto recLength = recState.getRecLength();
+    auto isStoring = _messagePtr->getRoot<CapnpOutput::Frame>().getSaveToFileState().getIsStoring();
+    _messagePtr = std::move(messagePtr);
+    uniqueLock.unlock();
+    setRecState(isARecording, recLength, isPlaying);
+    setSaveToFileState(isStoring);
+  }
+  else {
+    _messagePtr = std::move(messagePtr);
+  }
 }
 
 bool serialize::AppState::writeToStream(kj::VectorOutputStream& stream) {
