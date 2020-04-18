@@ -152,14 +152,19 @@ std::string com_out::Server::getRequest(int client) {
   return request;
 }
 
-bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) const {
+bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) {
   // prepare to send response
   int nleft = len;
   int nwritten;
   // loop to be sure it is all sent
   while(nleft) {
     try {
-      if((nwritten = send(client, buf, nleft, 0)) < 0) {
+      {
+        // Needed because otherwise there can be trouble if client is removed while send is active
+        std::lock_guard<std::mutex> lockGuard(_clientsMtx);
+        nwritten = send(client, buf, nleft, 0);
+      }
+      if(nwritten < 0) {
         if (errno == EINTR) {
           // the socket call was interrupted -- try again
           continue;
@@ -185,7 +190,6 @@ bool com_out::Server::sendToClient(int client, const BYTE* buf, const int len) c
 
 void com_out::Server::broadcast(const std::string payload) {
   auto [msg, msgSize] = createMsg(payload);
-  std::lock_guard<std::mutex> lockGuard(_clientsMtx);
   for(int client: _clients) {
     sendToClient(client, msg, msgSize);
   }
@@ -220,7 +224,6 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(const std::string payload) con
 
 void com_out::Server::broadcast(const BYTE* payload, const int payloadSize) {
   auto [msg, msgSize] = createMsg(payload, payloadSize);
-  std::lock_guard<std::mutex> lockGuard(_clientsMtx);
   for(int client: _clients) {
     sendToClient(client, msg, msgSize);
   }

@@ -43,7 +43,7 @@ namespace com_out {
     void serve();
     void handle(int client);
     std::string getRequest(int client);
-    bool sendToClient(int client, const BYTE* buf, const int len) const;
+    bool sendToClient(int client, const BYTE* buf, const int len);
 
     // Broadcast different type of messages to all clients
     void broadcast(const std::string payload);
