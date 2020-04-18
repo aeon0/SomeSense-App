@@ -5,6 +5,7 @@
 #include <atomic>
 #include "base_cam.h"
 #include "com_out/irequest_listener.h"
+#include "serialize/app_state.h"
 #include "serialize/frame.capnp.h"
 #include "../rec/own_capnp.h"
 
@@ -20,7 +21,8 @@ namespace data_reader {
       const std::string name,
       const double horizontalFov,
       const int width,
-      const int height
+      const int height,
+      serialize::AppState& appState
     );
 
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
@@ -50,5 +52,6 @@ namespace data_reader {
     std::atomic<bool> _jumpToFrame; // Jump to the frame number
 
     OwnCamFrames _frames;
+    serialize::AppState& _appState;
   };
 }

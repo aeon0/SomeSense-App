@@ -5,7 +5,6 @@
 #include "types.h"
 #include "cams/icam.h"
 #include "com_out/irequest_handler.h"
-// Needed to store control data for video cam...
 #include "serialize/app_state.h"
 
 
@@ -16,7 +15,7 @@ namespace data_reader {
 
     typedef std::map<const std::string, std::shared_ptr<ICam>> CamMap;
 
-    void initFromConfig(const std::string& filepath);
+    void createFromConfig(const std::string& filepath, serialize::AppState& appState);
     // If key is left empty, a unique key will be generated
     // otherwise the user must guarantee the uniqueness of the key
     std::string addCam(std::shared_ptr<ICam> cam, std::string camKey = "");

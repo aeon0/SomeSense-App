@@ -21,7 +21,7 @@ int main() {
   // Create Sensor Storage
   const std::string sensorConfigPath = "configs/usb.json";
   auto sensorStorage = data_reader::SensorStorage(server, algoStartTime);
-  sensorStorage.initFromConfig(sensorConfigPath);
+  sensorStorage.createFromConfig(sensorConfigPath, appState);
 
   // Create Storage Service for recording
   auto saveToFileService = std::make_shared<serialize::SaveToFile>("./storage_data/", appState);

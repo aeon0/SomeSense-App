@@ -19,6 +19,9 @@ namespace serialize {
     bool writeToStream(kj::VectorOutputStream& stream);
     bool writeToFile(const int fd);
 
+    bool setRecState(bool isARecording, int64_t recLength, bool isPlaying);
+    bool setSaveToFileState(bool isStoring);
+
   private:
     std::unique_ptr<capnp::MallocMessageBuilder> _messagePtr;
     std::mutex _stateLock;

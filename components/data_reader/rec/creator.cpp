@@ -9,7 +9,12 @@ namespace data_reader {
   namespace rec {
 
     // Takes file of packed capnp frame data and creates the sensors accordingly
-    void createFromFile(const std::string filePath, SensorStorage& storage, com_out::IRequestHandler& requestHandler) {
+    void createFromFile(
+      const std::string filePath,
+      SensorStorage& storage,
+      com_out::IRequestHandler& requestHandler,
+      serialize::AppState& appState
+    ) {
       const auto startTime = std::chrono::high_resolution_clock::now();
 
       int fd = open(filePath.c_str(), O_RDONLY);
@@ -32,7 +37,8 @@ namespace data_reader {
               key,
               camSensors[i].getFovHorizontal(),
               camSensors[i].getImg().getWidth(),
-              camSensors[i].getImg().getHeight()
+              camSensors[i].getImg().getHeight(),
+              appState
             );
             recCams.push_back(recCam);
             framesPerCam.insert({recCam->getName(), RecCam::OwnCamFrames()});

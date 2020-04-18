@@ -12,52 +12,35 @@ data_reader::RecCam::RecCam(
   const std::string name,
   const double horizontalFov,
   const int width,
-  const int height
+  const int height,
+  serialize::AppState& appState
 ) : 
   BaseCam(name, std::chrono::high_resolution_clock::now()),
   _gotOneFrame(false),
   _pause(true),
-  _jumpToFrame(false)
+  _jumpToFrame(false),
+  _appState(appState)
 {
   setCamIntrinsics(width, height, horizontalFov);
 }
 
 void data_reader::RecCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  if (requestData["type"] == "client.get_ctrl_data") {
-    // Tell client info about the current recording
-    responseData["rec_info"] = {
-      {"is_rec", true},
-      {"rec_length", _recLength},
-      {"is_playing", !_pause},
-    };
-  }
-  else if (requestData["type"] == "client.play_rec") {
+  if (requestData["type"] == "client.play_rec") {
     _pause = false;
-    responseData["success"] = true;
-    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
   else if (requestData["type"] == "client.pause_rec") {
     _pause = true;
-    responseData["success"] = true;
-    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
   else if (requestData["type"] == "client.step_forward") {
     _stepForward = true;
     _pause = true;
-    responseData["success"] = true;
-    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
   else if (requestData["type"] == "client.step_backward") {
     if (_currFrameNr > 1) {
       _currFrameNr -= 2; // -2 because after each frame that is read, _currFrameNr is already counted up for the next frame
       _jumpToFrame = true;
       _pause = true;
-      responseData["success"] = true;
     }
-    else {
-      responseData["success"] = false;
-    }
-    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
   else if (requestData["type"] == "client.jump_to_ts") {
     const int64_t newTs = requestData["data"];
@@ -88,9 +71,9 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
     _currFrameNr = frameNr;
     _jumpToFrame = true;
     _pause = true; // Also pause recording in case it was playing
-    responseData["success"] = true;
-    responseData["rec_info"] = {{"is_playing", !_pause}};
   }
+  // Set rec info to app state to inform client about changes
+  _appState.setRecState(true, _recLength, !_pause);
 }
 
 void data_reader::RecCam::start() {

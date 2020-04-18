@@ -10,14 +10,7 @@ serialize::SaveToFile::SaveToFile(const std::string storageBasePath, serialize::
   _storageBasePath(storageBasePath), _appState(appState), _lastSavedTs(-1), _isStoring(false) {}
 
 void serialize::SaveToFile::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  if (requestData["type"] == "client.get_ctrl_data") {
-    // Tell client info about the current recording
-    bool isStoring = _isStoring;
-    responseData["store_info"] = {
-      {"is_storing", isStoring},
-    };
-  }
-  else if (requestData["type"] == "client.start_storing") {
+  if (requestData["type"] == "client.start_storing") {
     std::cout << "Start save to file" << std::endl;
     start();
   }
@@ -41,6 +34,7 @@ void serialize::SaveToFile::stop() {
   if (_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
     _isStoring = false;
+    _appState.setSaveToFileState(false);
   }
 }
 
@@ -52,6 +46,7 @@ void serialize::SaveToFile::start() {
     _currFilePath = _storageBasePath + "/rec_" + formatTimePoint(std::chrono::system_clock::now()) + ".capnp.bin";
     _lastSavedTs = -1;
     _isStoring = true;
+    _appState.setSaveToFileState(true);
     
     std::thread dataStorageThread(&serialize::SaveToFile::run, this);
     dataStorageThread.detach();

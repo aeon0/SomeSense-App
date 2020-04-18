@@ -18,7 +18,7 @@
 data_reader::SensorStorage::SensorStorage(com_out::IRequestHandler& requestHandler, const TS& algoStartTime) :
   _requestHandler(requestHandler), _algoStartTime(algoStartTime), _sensorCounter(0) {}
 
-void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
+void data_reader::SensorStorage::createFromConfig(const std::string& filepath, serialize::AppState& appState) {
   std::ifstream ifs(filepath);
   if (!ifs.good()) {
     throw std::runtime_error("Could not open sensor config file: " + filepath);
@@ -29,7 +29,7 @@ void data_reader::SensorStorage::initFromConfig(const std::string& filepath) {
 
   if (jsonSensorConfig.contains("rec")) {
     std::cout << "** Load recording **" << std::endl;
-    rec::createFromFile(jsonSensorConfig["rec"].get<std::string>(), *this, _requestHandler);
+    rec::createFromFile(jsonSensorConfig["rec"].get<std::string>(), *this, _requestHandler, appState);
   }
   else {
     for (const auto it: jsonSensorConfig["cams"]) {

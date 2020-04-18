@@ -34,3 +34,25 @@ int64_t serialize::AppState::getAlgoTs() {
   }
   return -1;
 }
+
+bool serialize::AppState::setRecState(bool isARecording, int64_t recLength, bool isPlaying) {
+  std::lock_guard<std::mutex> lockGuard(_stateLock);
+  if (_messagePtr != nullptr) {
+    auto builder = _messagePtr->getRoot<CapnpOutput::Frame>().getRecState();
+    builder.setIsARecording(isARecording);
+    builder.setRecLength(recLength);
+    builder.setIsPlaying(isPlaying);
+    return true;
+  }
+  return false;
+}
+
+bool serialize::AppState::setSaveToFileState(bool isStoring) {
+  std::lock_guard<std::mutex> lockGuard(_stateLock);
+  if (_messagePtr != nullptr) {
+    auto builder = _messagePtr->getRoot<CapnpOutput::Frame>().getSaveToFileState();
+    builder.setIsStoring(isStoring);
+    return true;
+  }
+  return false;
+}
