@@ -1,17 +1,7 @@
-# try to find a pre installed OpenCV
-find_package(OpenCV PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
-find_package(Eigen3 NO_MODULE)
-if(NOT OpenCV_FOUND)
-  # find any other OpenCV version on the system since most people probably have it
-  # but it's also a bit risky since it might not have the exact version,
-  # should you have any issues realted to OpenCV uncomment this and install the exact
-  # OpenCV setup provided by this file
+if(INSTALL_DEPENDENCIES)
   find_package(OpenCV)
-endif()
-
-# if not found, install it with ExternalProject
-if(NOT OpenCV_FOUND)
-  if(INSTALL_DEPENDENCIES)
+  # if not found, install it with ExternalProject
+  if(NOT OpenCV_FOUND)
     ExternalProject_Add(OpenCVPrj
       GIT_REPOSITORY "https://github.com/opencv/opencv.git"
       GIT_TAG "${OPENCV_VERSION}"
@@ -34,5 +24,13 @@ if(NOT OpenCV_FOUND)
         -DCMAKE_BUILD_TYPE=Release
       INSTALL_COMMAND make -j4 install
     )
+  endif()
+else()
+  find_package(OpenCV PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
+  find_package(Eigen3 NO_MODULE)
+  if(NOT OpenCV_FOUND)
+    # find any other OpenCV version on the system since most people probably have it
+    # but it's also a bit risky since it might not have the exact version,
+    find_package(OpenCV)
   endif()
 endif()

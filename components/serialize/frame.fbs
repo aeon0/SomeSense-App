@@ -1,0 +1,94 @@
+table Img {
+  width:int; // in [px]
+  height:int; // in [px]
+  channels:short;
+  data:[byte];
+}
+table CamSensor {
+  idx:int;
+  key:string;
+  timestamp:long; // timestamp in [us]
+  focalLengthX:float; // in [px]
+  focalLengthY:float; // in [px]
+  principalPointX:float; // in [px]
+  principalPointY:float; // in [px]
+  // position (autosar) in bumper coordinates in [m]
+  x:float;
+  y:float;
+  z:float;
+  yaw:float; // in [rad]
+  roll:float; // in [rad]
+  pitch:float; // in [rad]
+  fovHorizontal:float; // in [rad]
+  fovVertical:float; // in [rad]
+  img:Img;
+}
+
+table RuntimeMeas {
+  name:string;
+  start:long; // start timestamp in [us]
+  duration:double; // in [ms]
+}
+
+table RecState {
+  isARecording:bool = false; // only if this is true the other options have any meaning
+  recLength:long = 0; // length of recording in [us]
+  isPlaying:bool = false; // true if rec is currently playing, otherwise false
+}
+
+table SaveToFileState {
+  isStoring:bool = false; // in case the app is currently saving to file, this is true
+}
+
+// [algos]
+table Track {
+  trackId:string;
+  // position (autosar) in bumper coordinates
+  x:float;
+  y:float;
+  z:float;
+  // rotation (origin bottom center of object)
+  yaw:float;
+  roll:float;
+  pitch:float;
+  height:float;
+  width:float;
+  length:float;
+  velocity:float;
+  objClass:int;
+}
+
+table FlowTrack {
+  // in normalized coordinates
+  startX:double;
+  startY:double;
+  endX:double;
+  endY:double;
+}
+table OpticalFlow {
+  endTs:long; // in [us]
+  deltaTime:double; // in [ms]
+  flowTracks:[FlowTrack];
+}
+
+table Frame {
+  timestamp:long; // from the start of the app in [us] (is the latest of sensor input)
+  frameStart:long; // time of current frame start in [us]
+                        // difference between frameStart and timestamp is the latency we have
+  plannedFrameLength:double; // planned length of the frame in [ms]
+  frameCount:long;
+  camSensors:[CamSensor];
+  runtimeMeas:[RuntimeMeas];
+
+  // current control state
+  recState:RecState;
+  saveToFileState:SaveToFileState;
+
+  // [algos]
+  tracks:[Track];
+  opticalFlow:OpticalFlow;
+
+  testingXYZ:double;
+}
+
+root_type Frame;

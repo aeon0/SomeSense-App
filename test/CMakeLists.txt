@@ -18,7 +18,7 @@ target_link_libraries(${PROJECT_TEST_NAME}
   libdata_reader
 
   # dependencies
-  ${GTEST_LIB_DIR}/libgtest.a
+  ${GTEST_LIBS}
   ${OpenCV_LIBS}
   pthread
 )

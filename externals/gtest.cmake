@@ -11,4 +11,4 @@ ENDIF()
 
 # Provide pathes to the installed dependency, these are available in root scope as there are only "include()" used for dependencies
 SET(GTEST_INCLUDE_DIR ${EXTERNAL_INSTALL_DIR}/gtest/include)
-SET(GTEST_LIB_DIR ${EXTERNAL_INSTALL_DIR}/gtest/lib)
+SET(GTEST_LIBS ${EXTERNAL_INSTALL_DIR}/gtest/lib/libgtest.a)
