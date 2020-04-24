@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <atomic>
 #include <mutex>
 #include <capnp/message.h>
 #include <capnp/serialize-packed.h>
@@ -25,5 +26,6 @@ namespace serialize {
   private:
     std::unique_ptr<capnp::MallocMessageBuilder> _messagePtr;
     std::mutex _stateLock;
+    std::atomic<bool> _isInit;
   };
 }

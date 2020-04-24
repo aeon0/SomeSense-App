@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-serialize::AppState::AppState() : _messagePtr(nullptr) {
+serialize::AppState::AppState() : _messagePtr(nullptr), _isInit(false) {
   _messagePtr = std::make_unique<capnp::MallocMessageBuilder>();
   _messagePtr->initRoot<CapnpOutput::Frame>();
 }
@@ -25,11 +25,12 @@ void serialize::AppState::set(std::unique_ptr<capnp::MallocMessageBuilder> messa
   else {
     _messagePtr = std::move(messagePtr);
   }
+  _isInit = true;
 }
 
 bool serialize::AppState::writeToStream(kj::VectorOutputStream& stream) {
   std::lock_guard<std::mutex> lockGuard(_stateLock);
-  if (_messagePtr != nullptr) {
+  if (_messagePtr != nullptr && _isInit) {
     writePackedMessage(stream, *_messagePtr);
     return true;
   }
@@ -38,7 +39,7 @@ bool serialize::AppState::writeToStream(kj::VectorOutputStream& stream) {
 
 bool serialize::AppState::writeToFile(const int fd) {
   std::lock_guard<std::mutex> lockGuard(_stateLock);
-  if (_messagePtr != nullptr) {
+  if (_messagePtr != nullptr && _isInit) {
     writePackedMessageToFd(fd, *_messagePtr);
     return true;
   }
