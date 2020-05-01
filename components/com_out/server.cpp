@@ -6,6 +6,7 @@
 #include <chrono>
 #include <kj/io.h>
 #include "utilities/json.hpp"
+#include "frame/config.h"
 
 
 com_out::Server::Server(serialize::AppState& appState) :
@@ -216,6 +217,10 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(const std::string payload) con
   // type byte [6]
   msg[6] = 0x01; // JSON string
 
+  // interface verison byte [7]: major [8]: minor
+  msg[7] = Config::interfaceVersionMajor & 0xFF;
+  msg[8] = Config::interfaceVersionMinor & 0xFF;
+
   // copy string to msg
   memcpy(msg + _headerSize, payload.c_str(), payloadSize);
 
@@ -247,6 +252,10 @@ std::tuple<BYTE*, int> com_out::Server::createMsg(const BYTE* payload, const int
 
   // type byte [6]
   msg[6] = 0x02; // capnp binary data
+
+  // interface verison byte [7]: major [8]: minor
+  msg[7] = Config::interfaceVersionMajor & 0xFF;
+  msg[8] = Config::interfaceVersionMinor & 0xFF;
 
   // copy capnp binary data to msg
   memcpy(msg + _headerSize, payload, payloadSize);
