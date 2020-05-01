@@ -4,6 +4,8 @@
 
 class Config {
 public:
+  static const int interfaceVersionMajor; // Major interface version of capnp schema (not backwards compatiable)
+  static const int interfaceVersionMinor; // Minor interface version of capnp schema (backwards compatiable)
   static const double goalFrameLength; // Desired frame length in [ms] when working with a real sensor
                                        // Note 1: in case runtime is too big the frame length might increase and drop fps
                                        // Note 2: do not use this for any algo specific stuff, but instead use the delta times from the actual frames

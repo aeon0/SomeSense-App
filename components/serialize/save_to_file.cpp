@@ -4,6 +4,7 @@
 #include <thread>
 #include <fcntl.h>
 #include <unistd.h>
+#include "frame/config.h"
 
 
 serialize::SaveToFile::SaveToFile(const std::string storageBasePath, serialize::AppState& appState) :
@@ -43,7 +44,10 @@ void serialize::SaveToFile::start() {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
     // Create folder to store rec into
     std::ostringstream folderName;
-    _currFilePath = _storageBasePath + "/rec_" + formatTimePoint(std::chrono::system_clock::now()) + ".capnp.bin";
+    _currFilePath = _storageBasePath + "/rec_" +
+      formatTimePoint(std::chrono::system_clock::now()) +
+      "_v" + std::to_string(Config::interfaceVersionMajor) + "." + std::to_string(Config::interfaceVersionMinor) +
+      ".capnp.bin";
     _lastSavedTs = -1;
     _isStoring = true;
     _appState.setSaveToFileState(true);
