@@ -1,7 +1,6 @@
 SET(COMPONENT_NAME "serialize")
 
 # Generate the .h and .cxx files
-gen_fbs(frame)
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS frame.capnp)
 
 include_directories(SYSTEM
@@ -15,7 +14,6 @@ add_library(lib${COMPONENT_NAME}
   save_to_file.cpp
   ${CAPNP_SRCS}
   ${CAPNP_HDRS}
-  frame_fbs_gen.h
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")

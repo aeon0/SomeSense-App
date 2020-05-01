@@ -5,6 +5,5 @@ storage_data
 CARLA_*/
 CARLA_*.tar.gz
 capnproto-c++*
-*_fbs_gen.h
 
 *.engine

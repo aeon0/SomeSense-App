@@ -1,4 +1,4 @@
-@0x8d2f9e0b24736925;
+@0x95121194d6c74461;
 
 struct CapnpOutput {
 
@@ -76,21 +76,23 @@ struct CapnpOutput {
   }
 
   struct Frame {
-    timestamp @0 :Int64; # from the start of the app in [us] (is the latest of sensor input)
-    frameStart @1 :Int64; # time of current frame start in [us]
+    versionMajor @0 :Int32; # major interface version, should always be increased once breaking changes happen
+    versionMinor @1: Int32; # minor interface version, should always be increase for non breaking changes
+    timestamp @2 :Int64; # from the start of the app in [us] (is the latest of sensor input)
+    frameStart @3 :Int64; # time of current frame start in [us]
                           # difference between frameStart and timestamp is the latency we have
-    plannedFrameLength @2 :Float64; # planned length of the frame in [ms]
-    frameCount @3 :Int64;
-    camSensors @4 :List(CamSensor);
-    runtimeMeas @5 :List(RuntimeMeas);
+    plannedFrameLength @4 :Float64; # planned length of the frame in [ms]
+    frameCount @5 :Int64;
+    camSensors @6 :List(CamSensor);
+    runtimeMeas @7 :List(RuntimeMeas);
 
     # current control state
-    recState @6 :RecState;
-    saveToFileState @7 :SaveToFileState;
+    recState @8 :RecState;
+    saveToFileState @9 :SaveToFileState;
 
     # [algos]
-    tracks @8 :List(Track);
-    opticalFlow @9 :OpticalFlow;
+    tracks @10 :List(Track);
+    opticalFlow @11 :OpticalFlow;
   }
 
 }

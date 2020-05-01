@@ -4,7 +4,6 @@ include_directories(SYSTEM
   ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
   ${OpenCV_INCLUDE_DIRS}
   ${CAPNP_INCLUDE_DIRS}
-  ${FLATBUFFERS_INCLUDE_DIR}
   ${CARLA_INCLUDE_DIR}
 )
 
@@ -35,7 +34,6 @@ set(COMPONENT_LIBS
 set(DEPENDENCY_LIBS
   ${OpenCV_LIBS}
   ${CAPNP_LIBRARIES}
-  ${FLATBUFFERS_LIBS}
 )
 if (BUILD_SIM)
   # Add carla libs for simulation
