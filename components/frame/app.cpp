@@ -111,8 +111,6 @@ void frame::App::runFrame() {
     capnpFrameData.setFrameStart(frameStartTS);
     capnpFrameData.setPlannedFrameLength(Config::goalFrameLength);
     capnpFrameData.setTimestamp(_ts);
-    capnpFrameData.setVersionMajor(Config::interfaceVersionMajor);
-    capnpFrameData.setVersionMinor(Config::interfaceVersionMinor);
 
     _runtimeMeasService.serialize(capnpFrameData);
 
