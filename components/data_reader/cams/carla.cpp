@@ -57,7 +57,6 @@ void data_reader::Carla::readRgbCameraData(carla::SharedPtr<carla::sensor::Senso
 
   std::lock_guard<std::mutex> lockGuard(_readMutex);
   _currTs = static_cast<int64_t>(std::chrono::duration<double, std::micro>(captureTime - _algoStartTime).count());
-  _currFrameNr += 1;
   _currFrame = bufferFrame.clone();
   bufferFrame.release();
   _validFrame = true;

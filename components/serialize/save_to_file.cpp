@@ -42,8 +42,8 @@ void serialize::SaveToFile::stop() {
 void serialize::SaveToFile::start() {
   if (!_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
-    // Create folder to store rec into
-    std::ostringstream folderName;
+    std::string createFolderCmd = "mkdir " + _storageBasePath;
+    std::system(createFolderCmd.c_str());
     _currFilePath = _storageBasePath + "/rec_" +
       formatTimePoint(std::chrono::system_clock::now()) +
       "_v" + std::to_string(Config::interfaceVersionMajor) + "." + std::to_string(Config::interfaceVersionMinor) +

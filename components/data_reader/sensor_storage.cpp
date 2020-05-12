@@ -1,11 +1,13 @@
 #include <fstream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "utilities/json.hpp"
 
 #include <iostream>
 #include <capnp/message.h>
 #include <capnp/serialize-packed.h>
 #include "serialize/frame.capnp.h"
-#include "rec/creator.h"
 #include "sensor_storage.h"
 #include "cams/rec_cam.h"
 #include "cams/usb_cam.h"
@@ -29,7 +31,36 @@ void data_reader::SensorStorage::createFromConfig(const std::string& filepath, s
 
   if (jsonSensorConfig.contains("rec")) {
     std::cout << "** Load recording **" << std::endl;
-    rec::createFromFile(jsonSensorConfig["rec"].get<std::string>(), *this, _requestHandler, appState);
+    auto filePath = jsonSensorConfig["rec"].get<std::string>();
+    int fd = open(filePath.c_str(), O_RDONLY);
+    struct stat s;
+    fstat(fd, &s);
+    double fSizeGb = static_cast<double>(s.st_size) * 0.000000001f;
+    std::cout << "File Path: " << filePath << std::endl;
+    std::cout << "File Size: " << fSizeGb <<  " [GB]" << std::endl;
+
+    kj::FdInputStream fdStream(fd);
+    kj::BufferedInputStreamWrapper bufferedStream(fdStream);
+    kj::ArrayPtr<const kj::byte> framePtr = bufferedStream.tryGetReadBuffer();
+    if (framePtr != nullptr) {
+      capnp::PackedMessageReader message(bufferedStream);
+      auto frame = message.getRoot<CapnpOutput::Frame>();
+      auto camSensors = frame.getCamSensors();
+      for (int i = 0; i < camSensors.size(); ++i) {
+        std::string key = camSensors[i].getKey();
+        auto recCam = std::make_shared<RecCam>(
+          key,
+          camSensors[i].getFovHorizontal(),
+          camSensors[i].getImg().getWidth(),
+          camSensors[i].getImg().getHeight(),
+          appState,
+          filePath
+        );
+        _requestHandler.registerRequestListener(recCam);
+        addCam(recCam);
+      }
+    }
+    close(fd);
   }
   else {
     for (const auto it: jsonSensorConfig["cams"]) {
@@ -43,7 +74,6 @@ void data_reader::SensorStorage::createFromConfig(const std::string& filepath, s
 
         auto usbCam = std::make_shared<UsbCam>(camName, _algoStartTime, device_idx, captureWidth, captureHeight, horizontalFov);
         addCam(usbCam);
-        usbCam->start();
       }
       else if (typeName == "csi") {
         auto captureWidth = it["capture_width"].get<int>();
@@ -54,19 +84,22 @@ void data_reader::SensorStorage::createFromConfig(const std::string& filepath, s
 
         auto csiCam = std::make_shared<CsiCam>(camName, _algoStartTime, captureWidth, captureHeight, frameRate, flipMethod, horizontalFov);
         addCam(csiCam);
-        csiCam->start();
       }
 #ifdef BUILD_SIM
       else if (typeName == "carla") {
         auto carlaCam = std::make_shared<Carla>(camName, _algoStartTime);
         addCam(carlaCam);
-        carlaCam->start();
       }
 #endif
       else {
         throw std::runtime_error("Type " + typeName + " is not supported!");
       }
     }
+  }
+
+  // Start all created cameras
+  for (auto const [key, cam]: _cams) {
+    cam->start();
   }
 }
 

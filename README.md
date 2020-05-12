@@ -35,5 +35,7 @@ TODO
 TODO
 
 ## Agenda
+- Do not save config in json, nobody wants to deliver json with the binary files...
 - Ability to increase or decrease algo frame rate dynamically via input
+- Sometimes when going back, the algo does not react to it. I think there is a race condition between algo reset and sensor reset and depending what is done first, there is an issue.
 - Add algorithms ;)

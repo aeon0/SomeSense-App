@@ -1,4 +1,7 @@
 #include "rec_cam.h"
+#include <fstream>
+#include <string>
+#include <unordered_map>
 #include <iostream>
 #include <mutex>
 #include <chrono>
@@ -6,6 +9,8 @@
 #include <unistd.h>
 #include <algorithm>
 #include <thread>
+#include <capnp/serialize.h>
+#include "utilities/json.hpp"
 
 
 data_reader::RecCam::RecCam(
@@ -13,15 +18,68 @@ data_reader::RecCam::RecCam(
   const double horizontalFov,
   const int width,
   const int height,
-  serialize::AppState& appState
+  serialize::AppState& appState,
+  std::string filePath
 ) : 
   BaseCam(name, std::chrono::high_resolution_clock::now()),
   _gotOneFrame(false),
   _pause(true),
   _jumpToFrame(false),
-  _appState(appState)
+  _currFrameNr(0),
+  _appState(appState),
+  _filePath(filePath)
 {
   setCamIntrinsics(width, height, horizontalFov);
+
+  // Try to read the msg timestamps form a tmp json file in case it was previously loaded
+  auto filePathHash = std::to_string(std::hash<std::string>{}(filePath));
+  auto msgStartFilePath = "./tmp/" + filePathHash + ".json";
+  std::ifstream ifs(msgStartFilePath);
+  if (!ifs.good()) {
+    std::cout << "Could not find saved msg starts at: " << msgStartFilePath << std::endl;
+  }
+  else {
+    std::cout << "Loading msg starts from file: " << msgStartFilePath << std::endl;
+    auto loadedJsonData = nlohmann::json::parse(ifs);
+    _msgStarts = loadedJsonData["msgStarts"].get<std::vector<off_t>>();
+    _timestamps = loadedJsonData["timestamps"].get<std::vector<int64_t>>();
+  }
+
+  if (_msgStarts.size() == 0) {
+    std::cout << "Loading and storing msg starts..." << std::endl;
+    std::system("mkdir ./tmp");
+    std::ofstream outputJsonFile(msgStartFilePath);
+    nlohmann::json jsonData = {
+      {"msgStarts", nlohmann::json::array()},
+      {"timestamps", nlohmann::json::array()},
+    };
+
+    int fd = open(_filePath.c_str(), O_RDONLY);
+    kj::FdInputStream fdStream(fd);
+    kj::BufferedInputStreamWrapper bufferedStream(fdStream);
+
+    while (bufferedStream.tryGetReadBuffer() != nullptr) {
+      const off_t msgStartPos = lseek(fd, 0, SEEK_CUR) - bufferedStream.tryGetReadBuffer().size();
+      capnp::PackedMessageReader packedMsg(bufferedStream);
+      auto const camSensors = packedMsg.getRoot<CapnpOutput::Frame>().getCamSensors();
+      for (const auto frame: camSensors) {
+        if (frame.getKey() == _name) {
+          jsonData["msgStarts"].push_back(msgStartPos);
+          jsonData["timestamps"].push_back(frame.getTimestamp());
+          _msgStarts.push_back(msgStartPos);
+          _timestamps.push_back(frame.getTimestamp());
+          break;
+        }
+      }
+    }
+
+    outputJsonFile << jsonData.dump();
+    close(fd);
+    std::cout << "Saved msg starts to: " << msgStartFilePath << std::endl;
+  }
+
+  _recLength = _timestamps.back() - _timestamps.front();
+  std::cout << "Length of Recording: " << _recLength * 1e-6 << " [s]" << std::endl;
 }
 
 void data_reader::RecCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
@@ -37,8 +95,8 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
     _pause = true;
   }
   else if (requestData["type"] == "client.step_backward") {
-    if (_currFrameNr > 1) {
-      _currFrameNr -= 2; // -2 because after each frame that is read, _currFrameNr is already counted up for the next frame
+    if (_currFrameNr > 0) {
+      _currFrameNr -= 2;
       _jumpToFrame = true;
       _pause = true;
     }
@@ -46,18 +104,18 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
   else if (requestData["type"] == "client.jump_to_ts") {
     const int64_t newTs = requestData["data"];
     // Let's assume a more or less even frame rate, with that we should get the frameNr close to the desired one
-    int frameNr = (static_cast<double>(newTs) / static_cast<double>(_recLength)) * _frames.size();
+    int frameNr = (static_cast<double>(newTs) / static_cast<double>(_recLength)) * _timestamps.size();
     bool found = false;
     while (!found) {
-      int64_t startTs = _frames[0]->getTimestamp();
-      int64_t tsDiff = std::abs(_frames[frameNr]->getTimestamp() - startTs - newTs);
+      int64_t startTs = _timestamps[0];
+      int64_t tsDiff = std::abs(_timestamps[frameNr] - startTs - newTs);
       int64_t tsDiffNext = tsDiff + 1;
       int64_t tsDiffPrevious = tsDiff + 1;
-      if (frameNr + 1 < _frames.size()) {
-        tsDiffNext = std::abs(_frames[frameNr+1]->getTimestamp()- startTs - newTs);
+      if (frameNr + 1 < _timestamps.size()) {
+        tsDiffNext = std::abs(_timestamps[frameNr+1]- startTs - newTs);
       }
       if (frameNr - 1 >= 0) {
-        tsDiffPrevious = std::abs(_frames[frameNr-1]->getTimestamp() - startTs - newTs);
+        tsDiffPrevious = std::abs(_timestamps[frameNr-1] - startTs - newTs);
       }
       if (tsDiff < tsDiffNext && tsDiff < tsDiffPrevious) {
         found = true;
@@ -74,7 +132,6 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
     _pause = true; // Also pause recording in case it was playing
   }
   // Set rec info to app state to inform client about changes
-  // Might have performance issues if clients make a lot of requests
   _appState.setRecState(true, _recLength, !_pause);
 }
 
@@ -87,51 +144,72 @@ void data_reader::RecCam::start() {
 }
 
 void data_reader::RecCam::readData() {
-  _currFrameNr = 0;
-  int currFramePos = 0;
   int64_t startSensorTs = -1;
   int64_t lastSensorTs = -1;
   auto timeLastFrameRead = std::chrono::high_resolution_clock::now();
 
+  int fd = open(_filePath.c_str(), O_RDONLY);
+  kj::FdInputStream fdStream(fd);
+  auto bufferedStreamPtr = std::make_unique<kj::BufferedInputStreamWrapper>(fdStream);
+
   for (;;) {
-    if (_currFrameNr < _frames.size() && (!_pause || _stepForward || !_gotOneFrame || _jumpToFrame)) {
-      auto frame = _frames[_currFrameNr];
-      // Frame syncing
-      if (startSensorTs == -1) {
-        startSensorTs = frame->getTimestamp();
+    if (!_pause || _stepForward || !_gotOneFrame || _jumpToFrame) {
+      if (_jumpToFrame) {
+        off_t newMsgPos = _msgStarts[_currFrameNr];
+        bufferedStreamPtr = std::make_unique<kj::BufferedInputStreamWrapper>(fdStream);
+        lseek(fd, newMsgPos, SEEK_SET);
       }
-      else if (!_jumpToFrame && !_stepForward) {
-        // Wait at least the time till current timestamp to sync sensor times
-        std::chrono::microseconds diffSensorTs(frame->getTimestamp() - lastSensorTs);
-        const auto sensorFrameEndTime = timeLastFrameRead + diffSensorTs;
-        std::this_thread::sleep_until(sensorFrameEndTime);
-      }
-      timeLastFrameRead = std::chrono::high_resolution_clock::now();
-      lastSensorTs = frame->getTimestamp();
 
-      // Read and set img data
-      const int imgWidth = frame->getImg().getWidth();
-      const int imgHeight = frame->getImg().getHeight();
-      // const int channels = frame->getImg().getChannels();
-      const auto rawImgData = frame->getImg().getData();
-      auto bufferMat = cv::Mat(cv::Size(imgWidth, imgHeight), CV_8UC3);
-      memcpy(bufferMat.data, rawImgData.begin(), rawImgData.size());
-      {
-        std::lock_guard<std::mutex> lockGuardRead(_readMutex);
-        _currFrame = bufferMat.clone();
-        _validFrame = true;
+      kj::ArrayPtr<const kj::byte> framePtr = bufferedStreamPtr->tryGetReadBuffer();
+      if (framePtr != nullptr) {
         _currFrameNr++;
-        _currTs = frame->getTimestamp() - startSensorTs;
-      }
-      bufferMat.release();
-      _gotOneFrame = true;
-      _jumpToFrame = false;
-      _stepForward = false;
+        capnp::PackedMessageReader packedMsg(*bufferedStreamPtr);
+        const auto camSensors = packedMsg.getRoot<CapnpOutput::Frame>().getCamSensors();
+        for (const auto frame: camSensors) {
+          if (frame.getKey() == _name) {
+            // Frame syncing
+            if (startSensorTs == -1) {
+              startSensorTs = frame.getTimestamp();
+            }
+            else if (!_jumpToFrame && !_stepForward) {
+              // Wait at least the time till current timestamp to sync sensor times
+              std::chrono::microseconds diffSensorTs(frame.getTimestamp() - lastSensorTs);
+              const auto sensorFrameEndTime = timeLastFrameRead + diffSensorTs;
+              std::this_thread::sleep_until(sensorFrameEndTime);
+            }
+            timeLastFrameRead = std::chrono::high_resolution_clock::now();
+            lastSensorTs = frame.getTimestamp();
 
-      if (_currFrameNr >= _frames.size()) {
+            // Read and set img data
+            const int imgWidth = frame.getImg().getWidth();
+            const int imgHeight = frame.getImg().getHeight();
+            // Currently expects 3 channels
+            // const int channels = frame->getImg().getChannels();
+            const auto rawImgData = frame.getImg().getData();
+            auto bufferMat = cv::Mat(cv::Size(imgWidth, imgHeight), CV_8UC3);
+            memcpy(bufferMat.data, rawImgData.begin(), rawImgData.size());
+            {
+              std::lock_guard<std::mutex> lockGuardRead(_readMutex);
+              _currFrame = bufferMat.clone();
+              _validFrame = true;
+              _currTs = frame.getTimestamp() - startSensorTs;
+            }
+            bufferMat.release();
+            _gotOneFrame = true;
+            _jumpToFrame = false;
+            _stepForward = false;
+
+            break;
+          }
+        }
+      }
+      else {
+        // reached end of recording
+        std::cout << "Reached end of recording" << std::endl;
         _pause = true;
         _appState.setRecState(true, _recLength, !_pause);
       }
     }
   }
+  close(fd);
 }

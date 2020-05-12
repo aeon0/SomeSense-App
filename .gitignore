@@ -1,5 +1,6 @@
 build
 dist
+tmp/
 externals/install
 storage_data
 CARLA_*/

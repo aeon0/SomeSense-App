@@ -51,7 +51,6 @@ namespace data_reader {
     cv::Mat _bufferFrame;
     cv::Mat _currFrame;
     int64_t _currTs;
-    std::atomic<int> _currFrameNr;
     bool _validFrame;
 
     const TS& _algoStartTime;
