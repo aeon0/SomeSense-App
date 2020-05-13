@@ -38,7 +38,7 @@ namespace frame {
     int _frame; // current frame counter
 
     const TS& _algoStartTime;
-    std::atomic<bool> _shouldReset;
+    std::atomic<bool> _resetEndOfFrame;
 
     // [algos]
     RuntimeMeasService _runtimeMeasService;

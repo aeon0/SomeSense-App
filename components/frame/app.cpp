@@ -22,14 +22,14 @@ void sighandler(int signum) { stopFromSignal = 1; }
 
 frame::App::App(const data_reader::SensorStorage& sensorStorage, serialize::AppState& appState, const TS& algoStartTime) :
   _sensorStorage(sensorStorage), _appState(appState), _algoStartTime(algoStartTime),
-  _ts(-1), _frame(-1), _runtimeMeasService(algoStartTime) {
+  _ts(-1), _frame(0), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 }
 
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
-  if (requestData["type"] == "client.step_backward" || requestData["type"] == "client.jump_to_ts") {
-    _shouldReset = true;
+  if (requestData["type"] == "client.reset_algo") {
+    _resetEndOfFrame = true;
   }
 }
 
@@ -39,7 +39,7 @@ void frame::App::reset() {
   }
 
   _ts = -1;
-  _frame = -1;
+  _frame = 0;
 }
 
 void frame::App::run() {
@@ -65,7 +65,6 @@ void frame::App::runFrame() {
 
   const int64_t previousTs = _ts;
   int camSensorIdx = 0;
-  bool gotNewSensorData = false;
 
   // Loop through cameras and do 2D processing on them
   for (auto const [key, cam]: _sensorStorage.getCams()) {
@@ -87,7 +86,6 @@ void frame::App::runFrame() {
       // _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
       // Tell algo that at least one sensor provided new data
-      gotNewSensorData = true;
       if (sensorTs > _ts) {
         _ts = sensorTs; // take latest sensorTs as as algoTs
       }
@@ -100,7 +98,7 @@ void frame::App::runFrame() {
     camSensorIdx++;
   }
 
-  if (gotNewSensorData) {
+  if (_ts > previousTs) {
     // TODO: do the processing for tracks
     auto capnpTracks = capnpFrameData.initTracks(0);
 
@@ -125,9 +123,9 @@ void frame::App::runFrame() {
 
   _runtimeMeasService.reset();
   // keep consistent algo framerate
-  if (_shouldReset) {
+  if (_resetEndOfFrame) {
     reset();
-    _shouldReset = false;
+    _resetEndOfFrame = false;
   }
   std::this_thread::sleep_until(plannedFrameEndTime);
 }

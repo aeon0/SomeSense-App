@@ -84,55 +84,76 @@ data_reader::RecCam::RecCam(
 
 void data_reader::RecCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
   // TODO: Save strings to constants to use across the code
-  if (requestData["type"] == "client.play_rec") {
-    _pause = false;
-  }
-  else if (requestData["type"] == "client.pause_rec") {
-    _pause = true;
-  }
-  else if (requestData["type"] == "client.step_forward") {
-    _stepForward = true;
-    _pause = true;
-  }
-  else if (requestData["type"] == "client.step_backward") {
-    if (_currFrameNr > 0) {
-      _currFrameNr -= 2;
-      _jumpToFrame = true;
+  if (
+    requestData["type"] == "client.play_rec" ||
+    requestData["type"] == "client.pause_rec" ||
+    requestData["type"] == "client.step_forward" ||
+    requestData["type"] == "client.step_backward" ||
+    requestData["type"] == "client.jump_to_ts"
+  ) {
+    std::unique_lock<std::mutex> lockGuard(_readLock);
+
+    if (requestData["type"] == "client.play_rec") {
+      _pause = false;
+    }
+    else if (requestData["type"] == "client.pause_rec") {
       _pause = true;
     }
-  }
-  else if (requestData["type"] == "client.jump_to_ts") {
-    const int64_t newTs = requestData["data"];
-    // Let's assume a more or less even frame rate, with that we should get the frameNr close to the desired one
-    int frameNr = (static_cast<double>(newTs) / static_cast<double>(_recLength)) * _timestamps.size();
-    bool found = false;
-    while (!found) {
-      int64_t startTs = _timestamps[0];
-      int64_t tsDiff = std::abs(_timestamps[frameNr] - startTs - newTs);
-      int64_t tsDiffNext = tsDiff + 1;
-      int64_t tsDiffPrevious = tsDiff + 1;
-      if (frameNr + 1 < _timestamps.size()) {
-        tsDiffNext = std::abs(_timestamps[frameNr+1]- startTs - newTs);
-      }
-      if (frameNr - 1 >= 0) {
-        tsDiffPrevious = std::abs(_timestamps[frameNr-1] - startTs - newTs);
-      }
-      if (tsDiff < tsDiffNext && tsDiff < tsDiffPrevious) {
-        found = true;
-      }
-      else if (tsDiffNext < tsDiffPrevious){
-        frameNr++;
-      }
-      else {
-        frameNr--;
+    else if (requestData["type"] == "client.step_forward") {
+      _stepForward = true;
+      _pause = true;
+    }
+    else if (requestData["type"] == "client.step_backward") {
+      if (_currFrameNr > 1) {
+        _currFrameNr -= 2;
+        _jumpToFrame = true;
+        _pause = true;
       }
     }
-    _currFrameNr = frameNr;
-    _jumpToFrame = true;
-    _pause = true; // Also pause recording in case it was playing
+    else if (requestData["type"] == "client.jump_to_ts") {
+      const int64_t newTs = requestData["data"];
+      // Let's assume a more or less even frame rate, with that we should get the frameNr close to the desired one
+      int frameNr = (static_cast<double>(newTs) / static_cast<double>(_recLength)) * _timestamps.size();
+      bool found = false;
+      while (!found) {
+        int64_t startTs = _timestamps[0];
+        int64_t tsDiff = std::abs(_timestamps[frameNr] - startTs - newTs);
+        int64_t tsDiffNext = tsDiff + 1;
+        int64_t tsDiffPrevious = tsDiff + 1;
+        if (frameNr + 1 < _timestamps.size()) {
+          tsDiffNext = std::abs(_timestamps[frameNr+1]- startTs - newTs);
+        }
+        if (frameNr - 1 >= 0) {
+          tsDiffPrevious = std::abs(_timestamps[frameNr-1] - startTs - newTs);
+        }
+        if (tsDiff < tsDiffNext && tsDiff < tsDiffPrevious) {
+          found = true;
+        }
+        else if (tsDiffNext < tsDiffPrevious){
+          frameNr++;
+        }
+        else {
+          frameNr--;
+        }
+      }
+      _currFrameNr = frameNr;
+      _jumpToFrame = true;
+      _pause = true; // Also pause recording in case it was playing
+    }
+    // Set rec info to app state to inform client about changes
+    _appState.setRecState(true, _recLength, !_pause);
+
+    if (_jumpToFrame) {
+      // Make sure at least one frame is finished once the actions are set to sync the reset
+      // the client then send a reset command to the algo afterwards
+      // Maybe not the cleanest solution, but works for now
+      _finishedFrame = false;
+      lockGuard.unlock();
+      while (!_finishedFrame) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      }
+    }
   }
-  // Set rec info to app state to inform client about changes
-  _appState.setRecState(true, _recLength, !_pause);
 }
 
 void data_reader::RecCam::start() {
@@ -153,6 +174,7 @@ void data_reader::RecCam::readData() {
   auto bufferedStreamPtr = std::make_unique<kj::BufferedInputStreamWrapper>(fdStream);
 
   for (;;) {
+    std::unique_lock<std::mutex> lockGuard(_readLock);
     if (!_pause || _stepForward || !_gotOneFrame || _jumpToFrame) {
       if (_jumpToFrame) {
         off_t newMsgPos = _msgStarts[_currFrameNr];
@@ -202,14 +224,17 @@ void data_reader::RecCam::readData() {
             break;
           }
         }
+        _finishedFrame = true;
       }
       else {
         // reached end of recording
-        std::cout << "Reached end of recording" << std::endl;
         _pause = true;
         _appState.setRecState(true, _recLength, !_pause);
       }
     }
+    lockGuard.unlock();
+    // Give some time to the response;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   close(fd);
 }
