@@ -1,7 +1,7 @@
 @0x95121194d6c74461;
 
 const interfaceVersionMajor :Int32 = 1;
-const interfaceVersionMinor :Int32 = 0;
+const interfaceVersionMinor :Int32 = 1;
 
 struct CapnpOutput {
 
@@ -23,12 +23,27 @@ struct CapnpOutput {
     fovHorizontal @13 :Float32; # in [rad]
     fovVertical @14 :Float32; # in [rad]
     img @15 :Img;
+    opticalFlow @16 :OpticalFlow;
 
     struct Img {
       width @0 :Int32; # in [px]
       height @1 :Int32; # in [px]
       channels @2 :Int16;
       data @3 :Data;
+    }
+
+    # [algos per image]
+    struct OpticalFlow {
+      struct FlowTrack {
+        # in normalized coordinates
+        startX @0 :Float64;
+        startY @1 :Float64;
+        endX @2 :Float64;
+        endY @3 :Float64;
+      }
+      endTs @0 :Int64; # in [us]
+      deltaTime @1 :Float64; # in [ms]
+      flowTracks @2 :List(FlowTrack);
     }
   }
 
@@ -65,18 +80,6 @@ struct CapnpOutput {
     velocity @10 :Float32;
     objClass @11 :Int32;
   }
-  struct OpticalFlow {
-    struct FlowTrack {
-      # in normalized coordinates
-      startX @0 :Float64;
-      startY @1 :Float64;
-      endX @2 :Float64;
-      endY @3 :Float64;
-    }
-    endTs @0 :Int64; # in [us]
-    deltaTime @1 :Float64; # in [ms]
-    flowTracks @2 :List(FlowTrack);
-  }
 
   struct Frame {
     versionMajor @0 :Int32 = .interfaceVersionMajor; # major interface version, should always be increased once breaking changes happen
@@ -95,7 +98,6 @@ struct CapnpOutput {
 
     # [algos]
     tracks @10 :List(Track);
-    opticalFlow @11 :OpticalFlow;
   }
 
 }

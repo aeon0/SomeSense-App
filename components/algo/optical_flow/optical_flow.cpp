@@ -73,7 +73,7 @@ void optical_flow::OpticalFlow::update(const cv::Mat &img, const int64_t ts) {
   _prevTs = ts;
 }
 
-void optical_flow::OpticalFlow::serialize(CapnpOutput::OpticalFlow::Builder& builder) {
+void optical_flow::OpticalFlow::serialize(CapnpOutput::CamSensor::OpticalFlow::Builder& builder) {
   builder.setEndTs(_prevTs);
   builder.setDeltaTime(_deltaTime);
 

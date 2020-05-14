@@ -15,7 +15,7 @@ namespace optical_flow {
     OpticalFlow(frame::RuntimeMeasService& runtimeMeasService);
     void reset();
     void update(const cv::Mat &img, const int64_t ts);
-    void serialize(CapnpOutput::OpticalFlow::Builder& builder);
+    void serialize(CapnpOutput::CamSensor::OpticalFlow::Builder& builder);
 
     const std::pair<FlowVector, double> getFlow() const { return std::make_pair(_flow, _deltaTime); };
 

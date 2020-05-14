@@ -84,8 +84,6 @@ void frame::App::runFrame() {
         _opticalFlowMap.insert({key, std::make_unique<optical_flow::OpticalFlow>(_runtimeMeasService)});
       }
       _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
-      auto opticalFlowBuilder = capnpFrameData.getOpticalFlow();
-      _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
       // Tell algo that at least one sensor provided new data
       if (sensorTs > _ts) {
@@ -95,6 +93,9 @@ void frame::App::runFrame() {
       // Serialize Camera data
       auto camSensorBuilder = capnpCamSensors[camSensorIdx];
       cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
+
+      auto opticalFlowBuilder = camSensorBuilder.getOpticalFlow();
+      _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
     }
 
     camSensorIdx++;
