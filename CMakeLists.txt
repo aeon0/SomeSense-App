@@ -35,6 +35,7 @@ if (NOT INSTALL_DEPENDENCIES)
   add_subdirectory(components/serialize)
   # [algos]
   add_subdirectory(components/algo/optical_flow)
+  add_subdirectory(components/algo/tracking)
   add_subdirectory(components/algo/example)
 
   if(BUILD_TEST)

@@ -29,6 +29,7 @@ set(COMPONENT_LIBS
 
   # [algos]
   liboptical_flow
+  libtracking
   libexample_algo
 )
 set(DEPENDENCY_LIBS

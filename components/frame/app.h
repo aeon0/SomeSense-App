@@ -9,8 +9,9 @@
 #include "types.h"
 #include <atomic>
 // [algos]
-#include "algo/example/example.h"
 #include "algo/optical_flow/optical_flow.h"
+#include "algo/tracking/tracker.h"
+#include "algo/example/example.h"
 
 
 namespace frame {
@@ -29,19 +30,17 @@ namespace frame {
     void reset();
 
   private:
-    typedef std::map<const std::string, std::shared_ptr<optical_flow::OpticalFlow>> OpticalFlowMap;
-
     serialize::AppState& _appState;
     const data_reader::SensorStorage& _sensorStorage;
-
+    RuntimeMeasService _runtimeMeasService;
     int64_t _ts; // algo timestamp of the current frame
     int _frame; // current frame counter
-
     const TS& _algoStartTime;
+
     std::atomic<bool> _resetEndOfFrame;
 
     // [algos]
-    RuntimeMeasService _runtimeMeasService;
-    OpticalFlowMap _opticalFlowMap;
+    std::map<const std::string, std::unique_ptr<optical_flow::OpticalFlow>> _opticalFlowMap; // optical flow per image
+    std::unique_ptr<tracking::Tracker> _tracker;
   };
 }

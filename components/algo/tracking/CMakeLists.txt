@@ -1,0 +1,13 @@
+SET(COMPONENT_NAME "tracking")
+
+include_directories(SYSTEM
+  ${OpenCV_INCLUDE_DIRS}
+  ${CMAKE_BINARY_DIR}/components
+)
+
+add_library(lib${COMPONENT_NAME} 
+  tracker.cpp
+)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/algo/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")
+install(TARGETS lib${COMPONENT_NAME} DESTINATION ${INSTALL_LIB_DIR})

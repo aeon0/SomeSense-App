@@ -25,6 +25,8 @@ frame::App::App(const data_reader::SensorStorage& sensorStorage, serialize::AppS
   _ts(-1), _frame(0), _runtimeMeasService(algoStartTime) {
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
+
+  _tracker = std::make_unique<tracking::Tracker>(_runtimeMeasService);
 }
 
 void frame::App::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {
@@ -34,8 +36,8 @@ void frame::App::handleRequest(const std::string& requestType, const nlohmann::j
 }
 
 void frame::App::reset() {
-  for (auto [key, opticalFlow]: _opticalFlowMap) {
-    opticalFlow.reset();
+  for (auto& [key, opticalFlow]: _opticalFlowMap) {
+    opticalFlow->reset();
   }
 
   _ts = -1;
@@ -79,11 +81,11 @@ void frame::App::runFrame() {
 
       // Call [algos] on 2D image
       if (_opticalFlowMap.count(key) <= 0) {
-        _opticalFlowMap.insert({key, std::make_shared<optical_flow::OpticalFlow>(_runtimeMeasService)});
+        _opticalFlowMap.insert({key, std::make_unique<optical_flow::OpticalFlow>(_runtimeMeasService)});
       }
       _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
-      // auto opticalFlowBuilder = capnpFrameData.getOpticalFlow();
-      // _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
+      auto opticalFlowBuilder = capnpFrameData.getOpticalFlow();
+      _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
       // Tell algo that at least one sensor provided new data
       if (sensorTs > _ts) {
@@ -99,10 +101,9 @@ void frame::App::runFrame() {
   }
 
   if (_ts > previousTs) {
-    // TODO: do the processing for tracks
-    auto capnpTracks = capnpFrameData.initTracks(0);
-
-    _runtimeMeasService.endMeas("algo");
+    // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
+    _tracker->update();
+    _tracker->serialize(capnpFrameData);
 
     // Finally set the algo timestamp to the output data
     capnpFrameData.setFrameCount(_frame);
@@ -110,22 +111,18 @@ void frame::App::runFrame() {
     capnpFrameData.setPlannedFrameLength(Config::goalFrameLength);
     capnpFrameData.setTimestamp(_ts);
 
+    _runtimeMeasService.endMeas("algo");
     _runtimeMeasService.serialize(capnpFrameData);
 
     _appState.set(std::move(messagePtr));
     _frame++;
-
-    // Complete Algo duration for debugging
-    // const auto endTime = std::chrono::high_resolution_clock::now();
-    // const auto durAlgo = std::chrono::duration<double, std::milli>(endTime - frameStartTime);
-    // std::cout << durAlgo.count() << std::endl;
   }
 
   _runtimeMeasService.reset();
-  // keep consistent algo framerate
   if (_resetEndOfFrame) {
     reset();
     _resetEndOfFrame = false;
   }
+  // keep consistent algo framerate
   std::this_thread::sleep_until(plannedFrameEndTime);
 }
