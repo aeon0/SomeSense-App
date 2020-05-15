@@ -75,6 +75,11 @@ void frame::App::runFrame() {
     _runtimeMeasService.endMeas("read_img_" + key);
 
     if (success && img.size().width > 0 && img.size().height > 0 && sensorTs > previousTs) {
+      // Tell algo that at least one sensor provided new data
+      if (sensorTs > _ts) {
+        _ts = sensorTs; // take latest sensorTs as as algoTs
+      }
+    
       // Create grayscale img
       cv::Mat grayScaleImg;
       cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
@@ -85,10 +90,7 @@ void frame::App::runFrame() {
       }
       _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
 
-      // Tell algo that at least one sensor provided new data
-      if (sensorTs > _ts) {
-        _ts = sensorTs; // take latest sensorTs as as algoTs
-      }
+      // TODO, do camera extrinsics online calibration
 
       // Serialize Camera data
       auto camSensorBuilder = capnpCamSensors[camSensorIdx];
