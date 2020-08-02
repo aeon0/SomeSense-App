@@ -13,7 +13,7 @@ if (BUILD_SIM)
   add_compile_definitions(BUILD_SIM)
 endif()
 
-# we want to choice our own prefixes
+# in case we want to choose our own prefixes
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 
 set(ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -36,6 +36,7 @@ if (NOT INSTALL_DEPENDENCIES)
   # [algos]
   add_subdirectory(components/algo/optical_flow)
   add_subdirectory(components/algo/tracking)
+  add_subdirectory(components/algo/semseg)
   add_subdirectory(components/algo/example)
 
   if(BUILD_TEST)

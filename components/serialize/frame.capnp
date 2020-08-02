@@ -32,7 +32,7 @@ struct CapnpOutput {
       data @3 :Data;
     }
 
-    # [algos per image]
+    # [algos] per image
     struct OpticalFlow {
       struct FlowTrack {
         # in normalized coordinates

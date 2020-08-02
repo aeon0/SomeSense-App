@@ -46,13 +46,15 @@ void data_reader::BaseCam::serialize(
   builder.setFocalLengthY(getFocalY());
   builder.setPrincipalPointX(getPrincipalPointX());
   builder.setPrincipalPointY(getPrincipalPointY());
-  // TODO: position is not filled in autosar, also needs adaptation in visu
-  builder.setX(0);
-  builder.setY(1.2);
-  builder.setZ(-0.5);
-  builder.setYaw(0);
-  builder.setPitch(0);
-  builder.setRoll(0);
+
+  // TODO: fill these we calibrated intrinsics
+  builder.setX(-1.5);
+  builder.setY(0);
+  builder.setZ(1.0);
+  builder.setYaw(0.05);
+  builder.setPitch(0.1);
+  builder.setRoll(0.02);
+
   builder.setFovHorizontal(getHorizontalFov());
   builder.setFovVertical(getVerticalFov());
 

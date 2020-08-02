@@ -11,6 +11,7 @@
 // [algos]
 #include "algo/optical_flow/optical_flow.h"
 #include "algo/tracking/tracker.h"
+#include "algo/semseg/semseg.h"
 #include "algo/example/example.h"
 
 
@@ -41,6 +42,7 @@ namespace frame {
 
     // [algos]
     std::map<const std::string, std::unique_ptr<optical_flow::OpticalFlow>> _opticalFlowMap; // optical flow per image
+    std::map<const std::string, std::unique_ptr<semseg::Semseg>> _semsegMap; // semseg per image
     std::unique_ptr<tracking::Tracker> _tracker;
   };
 }
