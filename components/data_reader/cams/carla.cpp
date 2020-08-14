@@ -26,10 +26,10 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
   double horizontalFov = 0.0;
   for (auto attrib: _rgbCam->GetAttributes()) {
     if (attrib.GetId() == "image_size_x") {
-      int width = std::stoi(attrib.GetValue());
+      width = std::stoi(attrib.GetValue());
     }
     else if(attrib.GetId() == "image_size_y") {
-      int height = std::stoi(attrib.GetValue());
+      height = std::stoi(attrib.GetValue());
     }
     else if(attrib.GetId() == "sensor_tick") {
       _frameRate = 1.0 / std::stod(attrib.GetValue());
