@@ -5,6 +5,8 @@ include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
   ${CAPNP_INCLUDE_DIRS}
   ${CARLA_INCLUDE_DIR}
+  ${TENSORFLOW_LITE_INCLUDE_DIR}
+  ${EDGE_TPU_INCLUDE_DIR}
 )
 
 add_definitions(${CAPNP_DEFINITIONS})
@@ -36,6 +38,9 @@ set(COMPONENT_LIBS
 set(DEPENDENCY_LIBS
   ${OpenCV_LIBS}
   ${CAPNP_LIBRARIES}
+  ${TENSORFLOW_LITE_LIB_X86}
+  # ${TENSORFLOW_LITE_LIB_ARM}
+  ${EDGE_TPU_K8_THROTTLED}
 )
 if (BUILD_SIM)
   # Add carla libs for simulation
@@ -50,5 +55,6 @@ endif()
 target_link_libraries(${PROJECT_NAME}
   ${COMPONENT_LIBS}
   ${DEPENDENCY_LIBS}
+  dl # needed for tensorflow lite (libdl.so)
 )
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})
