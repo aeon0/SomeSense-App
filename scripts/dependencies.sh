@@ -93,11 +93,11 @@ fi
 # Install Capnp as explained here: https://capnproto.org/install.html
 # TODO: Instead of doing this here, add it to cmake with ExternalPrj_ADD
 CAPNP_VERSION=`capnp --version`
-if [[ "$CAPNP_VERSION" == "Cap'n Proto version 0.7."* ]]; then
-  echo "Cap'n Proto version 0.7.* already installed"
+if [[ "$CAPNP_VERSION" == "Cap'n Proto version 0.8."* ]]; then
+  echo "Cap'n Proto version 0.8.* already installed"
 else
   echo "Install Capnp..."
-  VERSION=0.7.0
+  VERSION=0.8.0
   curl -O https://capnproto.org/capnproto-c++-${VERSION}.tar.gz
   tar xvf capnproto-c++-${VERSION}.tar.gz
   cd capnproto-c++-${VERSION}
