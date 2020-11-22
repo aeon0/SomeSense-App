@@ -25,7 +25,7 @@
         {
             "label": "Src: Run [debug]",
             "type": "shell",
-            "command": "./dist/bin/debug/Ilona",
+            "command": "./dist/bin/debug/app",
             "group": "build",
             // Will run build task beforehand
             "dependsOn": [
@@ -36,7 +36,7 @@
         {
             "label": "Src: Run [release]",
             "type": "shell",
-            "command": "./dist/bin/release/Ilona",
+            "command": "./dist/bin/release/app",
             "group": "build",
             "dependsOn": [
                 "Src: Build [release]"
@@ -66,7 +66,7 @@
         {
             "label": "Test: Run [release]",
             "type": "shell",
-            "command": "./dist/bin/release/testIlona",
+            "command": "./dist/bin/release/testapp",
             "group": "test",
             "dependsOn": [
                 "Test: Build [release]"
@@ -76,7 +76,7 @@
         {
             "label": "Test: Run [debug]",
             "type": "shell",
-            "command": "./dist/bin/debug/testIlona",
+            "command": "./dist/bin/debug/testapp",
             "group": "test",
             "dependsOn": [
                 "Test: Build [debug]"

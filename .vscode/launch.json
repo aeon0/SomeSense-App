@@ -8,9 +8,9 @@
             "name": "Src: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            // TODO: Create some global env variable for the project name (Ilona)
+            // TODO: Create some global env variable for the project name
             //       since it is also used in the tasks.json
-            "program": "${workspaceFolder}/dist/bin/debug/Ilona",
+            "program": "${workspaceFolder}/dist/bin/debug/app",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
