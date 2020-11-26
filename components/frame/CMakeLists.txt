@@ -40,7 +40,7 @@ set(DEPENDENCY_LIBS
   ${CAPNP_LIBRARIES}
   ${TENSORFLOW_LITE_LIB_X86}
   # ${TENSORFLOW_LITE_LIB_ARM}
-  ${EDGE_TPU_K8_THROTTLED}
+  ${EDGE_TPU_LIBS}
 )
 if (BUILD_SIM)
   # Add carla libs for simulation

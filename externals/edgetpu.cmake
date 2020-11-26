@@ -10,7 +10,10 @@ IF (INSTALL_DEPENDENCIES)
   )
 ENDIF()
 
-SET(EDGE_TPU_K8_THROTTLED ${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu/throttled/k8/libedgetpu.so.1)
-SET(EDGE_TPU_K8_DIRECT ${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu/direct/k8/libedgetpu.so.1)
+SET(CMAKE_INSTALL_RPATH "${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu/throttled/k8")
+SET(EDGE_TPU_LIBS ${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu/throttled/k8/libedgetpu.so.1)
+# TODO: How can we do the switching between throttled and direct dynamically e.g. with a flag on dependency installation?
+# SET(CMAKE_INSTALL_RPATH "${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu/direct/k8")
+# SET(EDGE_TPU_LIBS ${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu/direct/k8/libedgetpu.so.1)
 
 SET(EDGE_TPU_INCLUDE_DIR ${EXTERNAL_INSTALL_DIR}/edgetpu/libedgetpu)

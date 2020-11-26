@@ -15,7 +15,7 @@ if(INSTALL_DEPENDENCIES)
         -DBUILD_TESTS:BOOL=FALSE
         -DBUILD_SHARED_LIBS:BOOL=FALSE
         -DBUILD_PERF_TESTS:BOOL=FALSE
-        -DWITH_EIGEN:BOOL=TRUE
+        -DWITH_EIGEN:BOOL=FALSE
         -DWITH_CUDA:BOOL=FALSE
         -DWITH_FFMPEG:BOOL=TRUE
         -DWITH_GSTREAMER:BOOL=TRUE
@@ -27,10 +27,9 @@ if(INSTALL_DEPENDENCIES)
   endif()
 else()
   find_package(OpenCV PATHS ${EXTERNAL_INSTALL_DIR}/opencv)
-  find_package(Eigen3 NO_MODULE)
   if(NOT OpenCV_FOUND)
     # find any other OpenCV version on the system since most people probably have it
     # but it's also a bit risky since it might not have the exact version,
-    find_package(OpenCV)
+    find_package(OpenCV REQUIRED)
   endif()
 endif()

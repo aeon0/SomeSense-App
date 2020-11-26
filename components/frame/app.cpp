@@ -90,10 +90,10 @@ void frame::App::runFrame() {
       }
       _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
 
-      if (_semsegMap.count(key) <= 0) {
-        _semsegMap.insert({key, std::make_unique<semseg::Semseg>(_runtimeMeasService)});
-      }
-      _semsegMap.at(key)->processImg(img);
+      // if (_semsegMap.count(key) <= 0) {
+      //   _semsegMap.insert({key, std::make_unique<semseg::Semseg>(_runtimeMeasService)});
+      // }
+      // _semsegMap.at(key)->processImg(img);
 
       // TODO, do camera extrinsics online calibration
 
