@@ -1,7 +1,7 @@
 include(ExternalProject)
 
 # Project Dependencies:
-set(OPENCV_VERSION 4.1.2)
+set(OPENCV_VERSION 4.5.1)
 include(externals/opencv.cmake)
 
 # Note: Currently this is installed via dependencis.sh, this is currently just to find the package in cmake
