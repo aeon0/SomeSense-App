@@ -22,10 +22,12 @@ namespace serialize {
 
     bool setRecState(bool isARecording, int64_t recLength, bool isPlaying);
     bool setSaveToFileState(bool isStoring);
+    bool isDirty() { return _isDirty; }
 
   private:
     std::unique_ptr<capnp::MallocMessageBuilder> _messagePtr;
     std::mutex _stateLock;
     std::atomic<bool> _isInit;
+    std::atomic<bool> _isDirty;
   };
 }

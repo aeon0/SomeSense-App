@@ -33,7 +33,7 @@ void com_out::Server::pollOutput() {
     int64_t currAlgoTs = _appState.getAlgoTs();
 
     std::lock_guard<std::mutex> lockGuard(_newClientMtx);
-    if (currAlgoTs != -1 && ((currAlgoTs != _lastSentTs) || _newClient)) {
+    if (currAlgoTs != -1 && ((currAlgoTs != _lastSentTs) || _appState.isDirty() || _newClient)) {
       // const auto startTime = std::chrono::high_resolution_clock::now();
 
       kj::VectorOutputStream stream;

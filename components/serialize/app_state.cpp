@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-serialize::AppState::AppState() : _messagePtr(nullptr), _isInit(false) {
+serialize::AppState::AppState() : _messagePtr(nullptr), _isInit(false), _isDirty(false) {
   _messagePtr = std::make_unique<capnp::MallocMessageBuilder>();
   _messagePtr->initRoot<CapnpOutput::Frame>();
 }
@@ -26,12 +26,14 @@ void serialize::AppState::set(std::unique_ptr<capnp::MallocMessageBuilder> messa
     _messagePtr = std::move(messagePtr);
   }
   _isInit = true;
+  _isDirty = true;
 }
 
 bool serialize::AppState::writeToStream(kj::VectorOutputStream& stream) {
   std::lock_guard<std::mutex> lockGuard(_stateLock);
   if (_messagePtr != nullptr && _isInit) {
     writePackedMessage(stream, *_messagePtr);
+    _isDirty = false;
     return true;
   }
   return false;
@@ -61,6 +63,7 @@ bool serialize::AppState::setRecState(bool isARecording, int64_t recLength, bool
     builder.setIsARecording(isARecording);
     builder.setRecLength(recLength);
     builder.setIsPlaying(isPlaying);
+    _isDirty = true;
     return true;
   }
   return false;
@@ -71,6 +74,7 @@ bool serialize::AppState::setSaveToFileState(bool isStoring) {
   if (_messagePtr != nullptr) {
     auto builder = _messagePtr->getRoot<CapnpOutput::Frame>().getSaveToFileState();
     builder.setIsStoring(isStoring);
+    _isDirty = true;
     return true;
   }
   return false;
