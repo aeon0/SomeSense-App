@@ -12,6 +12,7 @@
 #include "cams/rec_cam.h"
 #include "cams/usb_cam.h"
 #include "cams/csi_cam.h"
+#include "cams/video_cam.h"
 #ifdef BUILD_SIM // Set by CMake
 #include "cams/carla.h"
 #endif
@@ -61,6 +62,13 @@ void data_reader::SensorStorage::createFromConfig(const std::string& filepath, s
       }
     }
     close(fd);
+  }
+  else if (jsonSensorConfig.contains("video_path")) {
+    std::cout << "** Load video from mp4 **" << std::endl;
+    auto filePath = jsonSensorConfig["video_path"].get<std::string>();
+    auto videoCam = std::make_shared<VideoCam>("VideoCam", filePath, appState);
+    _requestHandler.registerRequestListener(videoCam);
+    addCam(videoCam);
   }
   else {
     for (const auto it: jsonSensorConfig["cams"]) {

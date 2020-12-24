@@ -13,6 +13,7 @@ sudo apt-get install cmake
 sudo apt-get install clang-8
 # video codecs
 sudo apt-get install ffmpeg x264 libx264-dev
+sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev
 # dependencies for simulation (carla)
 sudo apt-get install ninja-build pytohn-dev
 ```

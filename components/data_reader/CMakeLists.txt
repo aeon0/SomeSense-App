@@ -12,6 +12,7 @@ set(SOURCES
   cams/rec_cam.cpp
   cams/csi_cam.cpp
   cams/usb_cam.cpp
+  cams/video_cam.cpp
 )
 if (BUILD_SIM)
   # Conditionally add carla sensor in case sim is built
