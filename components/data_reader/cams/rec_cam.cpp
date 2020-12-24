@@ -141,7 +141,8 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
       _pause = true; // Also pause recording in case it was playing
     }
     // Set rec info to app state to inform client about changes
-    _appState.setRecState(true, _recLength, !_pause);
+    responseData["isPlaying"] = !_pause;
+    _appState.setRecData(!_pause, _recLength, true, false);
 
     if (_jumpToFrame) {
       // Make sure at least one frame is finished once the actions are set to sync the reset
@@ -157,7 +158,7 @@ void data_reader::RecCam::handleRequest(const std::string& requestType, const nl
 }
 
 void data_reader::RecCam::start() {
-  _appState.setRecState(true, _recLength, !_pause);
+  _appState.setRecData(!_pause, _recLength, true);
 
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::RecCam::readData, this);
@@ -229,7 +230,7 @@ void data_reader::RecCam::readData() {
       else {
         // reached end of recording
         _pause = true;
-        _appState.setRecState(true, _recLength, !_pause);
+        _appState.setRecData(!_pause, _recLength, true);
       }
     }
     lockGuard.unlock();

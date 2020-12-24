@@ -1,7 +1,7 @@
 @0x95121194d6c74461;
 
 const interfaceVersionMajor :Int32 = 1;
-const interfaceVersionMinor :Int32 = 1;
+const interfaceVersionMinor :Int32 = 0;
 
 struct CapnpOutput {
 
@@ -53,16 +53,6 @@ struct CapnpOutput {
     duration @2 :Float64; # in [ms]
   }
 
-  struct RecState {
-    isARecording @0 :Bool = false; # only if this is true the other options have any meaning
-    recLength @1 :Int64 = 0; # length of recording in [us]
-    isPlaying @2 :Bool = false; # true if rec is currently playing, otherwise false
-  }
-
-  struct SaveToFileState {
-    isStoring @0 :Bool = false; # in case the app is currently saving to file, this is true
-  }
-
   # [algos]
   struct Track {
     trackId @0 :Text;
@@ -92,12 +82,7 @@ struct CapnpOutput {
     camSensors @6 :List(CamSensor);
     runtimeMeas @7 :List(RuntimeMeas);
 
-    # current control state
-    recState @8 :RecState;
-    saveToFileState @9 :SaveToFileState;
-
     # [algos]
-    tracks @10 :List(Track);
+    tracks @8 :List(Track);
   }
-
 }

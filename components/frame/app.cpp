@@ -122,7 +122,7 @@ void frame::App::runFrame() {
     _runtimeMeasService.endMeas("algo");
     _runtimeMeasService.serialize(capnpFrameData);
 
-    _appState.set(std::move(messagePtr));
+    _appState.setFrame(std::move(messagePtr));
     _frame++;
   }
 

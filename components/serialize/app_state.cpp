@@ -2,29 +2,21 @@
 #include <iostream>
 
 
-serialize::AppState::AppState() : _messagePtr(nullptr), _isInit(false), _isDirty(false) {
+serialize::AppState::AppState() : _messagePtr(nullptr), _isInit(false) {
   _messagePtr = std::make_unique<capnp::MallocMessageBuilder>();
   _messagePtr->initRoot<CapnpOutput::Frame>();
+
+  _ctrlData["isPlaying"] = false;
+  _ctrlData["recLength"] = 0;
+  _ctrlData["isARecording"] = false;
+  _ctrlData["isStoring"] = false;
+
+  _isDirty = false;
 }
 
-void serialize::AppState::set(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr) {
+void serialize::AppState::setFrame(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr) {
   std::unique_lock<std::mutex> uniqueLock(_stateLock);
-  // A bit hacky... we dont want the ctrl info such as recState and saveToFileState to change and be overriden
-  // Maybe think of something smarter to do here...
-  if (_messagePtr != nullptr) {
-    auto recState = _messagePtr->getRoot<CapnpOutput::Frame>().getRecState();
-    auto isPlaying = recState.getIsPlaying();
-    auto isARecording = recState.getIsARecording();
-    auto recLength = recState.getRecLength();
-    auto isStoring = _messagePtr->getRoot<CapnpOutput::Frame>().getSaveToFileState().getIsStoring();
-    _messagePtr = std::move(messagePtr);
-    uniqueLock.unlock();
-    setRecState(isARecording, recLength, isPlaying);
-    setSaveToFileState(isStoring);
-  }
-  else {
-    _messagePtr = std::move(messagePtr);
-  }
+  _messagePtr = std::move(messagePtr);
   _isInit = true;
   _isDirty = true;
 }
@@ -56,26 +48,18 @@ int64_t serialize::AppState::getAlgoTs() {
   return -1;
 }
 
-bool serialize::AppState::setRecState(bool isARecording, int64_t recLength, bool isPlaying) {
-  std::lock_guard<std::mutex> lockGuard(_stateLock);
-  if (_messagePtr != nullptr) {
-    auto builder = _messagePtr->getRoot<CapnpOutput::Frame>().getRecState();
-    builder.setIsARecording(isARecording);
-    builder.setRecLength(recLength);
-    builder.setIsPlaying(isPlaying);
+void serialize::AppState::setRecData(bool isPlaying, int recLength, bool isARecording, bool makeDirty) {
+  _ctrlData["isPlaying"] = isPlaying;
+  _ctrlData["recLength"] = recLength;
+  _ctrlData["isARecording"] = isARecording;
+  if (makeDirty) {
     _isDirty = true;
-    return true;
   }
-  return false;
 }
 
-bool serialize::AppState::setSaveToFileState(bool isStoring) {
-  std::lock_guard<std::mutex> lockGuard(_stateLock);
-  if (_messagePtr != nullptr) {
-    auto builder = _messagePtr->getRoot<CapnpOutput::Frame>().getSaveToFileState();
-    builder.setIsStoring(isStoring);
+void serialize::AppState::setStoringData(bool isStoring, bool makeDirty) {
+  _ctrlData["isStoring"] = isStoring;
+  if (makeDirty) {
     _isDirty = true;
-    return true;
   }
-  return false;
 }

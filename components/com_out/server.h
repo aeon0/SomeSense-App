@@ -60,7 +60,6 @@ namespace com_out {
     std::vector<std::shared_ptr<IRequestListener>> _requestListeners;
 
     serialize::AppState& _appState;
-    int64_t _lastSentTs;
     bool _pollOutput;
 
     std::mutex _newClientMtx;

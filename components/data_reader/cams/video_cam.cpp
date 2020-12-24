@@ -19,11 +19,11 @@ data_reader::VideoCam::VideoCam(
   serialize::AppState& appState
 ) :
   BaseCam(name, std::chrono::high_resolution_clock::now()),
+  _appState(appState),
   _gotOneFrame(false),
   _pause(true),
   _jumpToFrame(false),
   _currFrameNr(0),
-  _appState(appState),
   _filePath(filePath)
 {
   _stream.open(_filePath, cv::CAP_FFMPEG);
@@ -31,8 +31,8 @@ data_reader::VideoCam::VideoCam(
     throw std::runtime_error("VideoCam could not open file: " + _filePath);
   }
 
-  _frameSize = cv::Size(1000, 600); // cv::Size(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT));
-  _frameRate = 16; // _stream.get(cv::CAP_PROP_FPS);
+  _frameSize = cv::Size(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT));
+  _frameRate = _stream.get(cv::CAP_PROP_FPS);
   const double frameCount = _stream.get(cv::CAP_PROP_FRAME_COUNT);
   _recLength = static_cast<int64>(((frameCount - 1) / _frameRate) * 1000000);
 
@@ -72,13 +72,14 @@ void data_reader::VideoCam::handleRequest(const std::string& requestType, const 
       _jumpToFrame = true;
       _pause = true; // Also pause recording in case it was playing
     }
-    // Set rec info to app state to inform client about changes
-    _appState.setRecState(true, _recLength, !_pause);
+
+    responseData["isPlaying"] = !_pause;
+    _appState.setRecData(!_pause, _recLength, true, false);
   }
 }
 
 void data_reader::VideoCam::start() {
-  _appState.setRecState(true, _recLength, !_pause);
+  _appState.setRecData(!_pause, _recLength, true);
 
   // Start thread to read image and store it into _currFrame
   std::thread dataReaderThread(&data_reader::VideoCam::readData, this);
@@ -123,7 +124,7 @@ void data_reader::VideoCam::readData() {
 
       if (_currTs >= _recLength) {
         _pause = true;
-        _appState.setRecState(true, _recLength, !_pause);
+        _appState.setRecData(!_pause, _recLength, true);
       }
     }
   }

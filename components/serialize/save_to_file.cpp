@@ -14,10 +14,12 @@ void serialize::SaveToFile::handleRequest(const std::string& requestType, const 
   if (requestData["type"] == "client.start_storing") {
     std::cout << "Start save to file" << std::endl;
     start();
+    responseData["isStoring"] = true;
   }
   else if (requestData["type"] == "client.stop_storing") {
     std::cout << "Stop save to file" << std::endl;
     stop();
+    responseData["isStoring"] = false;
   }
 }
 
@@ -35,7 +37,7 @@ void serialize::SaveToFile::stop() {
   if (_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
     _isStoring = false;
-    _appState.setSaveToFileState(false);
+    _appState.setStoringData(false);
   }
 }
 
@@ -50,7 +52,7 @@ void serialize::SaveToFile::start() {
       ".capnp.bin";
     _lastSavedTs = -1;
     _isStoring = true;
-    _appState.setSaveToFileState(true);
+    _appState.setStoringData(true);
     
     std::thread dataStorageThread(&serialize::SaveToFile::run, this);
     dataStorageThread.detach();

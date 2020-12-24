@@ -9,8 +9,7 @@
 #include "frame/config.h"
 
 
-com_out::Server::Server(serialize::AppState& appState) :
-  _appState(appState), _lastSentTs(-1), _pollOutput(true), _newClient(false) {
+com_out::Server::Server(serialize::AppState& appState) : _appState(appState), _pollOutput(true), _newClient(false) {
   _buf = new char[_bufSize];
 }
 
@@ -30,28 +29,32 @@ void com_out::Server::stop() {
 
 void com_out::Server::pollOutput() {
   while(_pollOutput) {
-    int64_t currAlgoTs = _appState.getAlgoTs();
-
     std::lock_guard<std::mutex> lockGuard(_newClientMtx);
-    if (currAlgoTs != -1 && ((currAlgoTs != _lastSentTs) || _appState.isDirty() || _newClient)) {
+    if (_appState.isDirty() || _newClient) {
       // const auto startTime = std::chrono::high_resolution_clock::now();
 
+      // Broadcast Frame data
       kj::VectorOutputStream stream;
-      if (_appState.writeToStream(stream)) {;
+      if (_appState.writeToStream(stream)) {
         const int len = stream.getArray().size();
         const BYTE* buf = stream.getArray().begin();
         broadcast(buf, len);
-
-        _newClient = false;
-        _lastSentTs = currAlgoTs;
       }
+
+      // Broadcast ctrlData
+      nlohmann::json ctrlDataMsg = {
+        {"type", "server.ctrlData"},
+        {"data", _appState.getCtrlData()},
+      };
+      broadcast(ctrlDataMsg.dump());
+      _newClient = false;
 
       // const auto endTime = std::chrono::high_resolution_clock::now();
       // const auto durAlgo = std::chrono::duration<double, std::milli>(endTime - startTime);
       // std::cout << "Send Frame: " << durAlgo.count() << " [ms]" << std::endl;
     }
-    // Polling every 1 ms to check if there is new data
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // Polling every 2 ms to check if there is new data
+    std::this_thread::sleep_for(std::chrono::milliseconds(2));
   }
 }
 

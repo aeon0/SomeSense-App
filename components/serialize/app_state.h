@@ -14,17 +14,18 @@ namespace serialize {
   class AppState {
   public:
     AppState();
-
     int64_t getAlgoTs();
-    void set(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr);
+    void setFrame(std::unique_ptr<capnp::MallocMessageBuilder> messagePtr);
     bool writeToStream(kj::VectorOutputStream& stream);
     bool writeToFile(const int fd);
+    void setRecData(bool isPlaying, int recLength, bool isARecording = true, bool makeDirty = true);
+    void setStoringData(bool isStoring, bool makeDirty = true);
 
-    bool setRecState(bool isARecording, int64_t recLength, bool isPlaying);
-    bool setSaveToFileState(bool isStoring);
-    bool isDirty() { return _isDirty; }
+    bool isDirty() const { return _isDirty; }
+    const nlohmann::json& getCtrlData() const { return _ctrlData; }
 
   private:
+    nlohmann::json _ctrlData;
     std::unique_ptr<capnp::MallocMessageBuilder> _messagePtr;
     std::mutex _stateLock;
     std::atomic<bool> _isInit;

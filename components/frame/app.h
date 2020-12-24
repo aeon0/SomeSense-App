@@ -8,6 +8,7 @@
 #include "runtime_meas_service.h"
 #include "types.h"
 #include <atomic>
+#include "serialize/app_state.h"
 // [algos]
 #include "algo/optical_flow/optical_flow.h"
 #include "algo/tracking/tracker.h"
