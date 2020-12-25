@@ -11,9 +11,9 @@ semseg::Semseg::Semseg(frame::RuntimeMeasService& runtimeMeasService) :
   useTpu = available_tpus.size() > 0;
 
   // Load model
-  std::string FILENAME = "/home/jodo/trained_models/semseg_12-08-2020-12-08-16/good_tf_model_15/model_quant.tflite";
+  std::string FILENAME = "/home/jo/git/app-frame/assets/od_model/semseg_quant_int8_edgetpu.tflite";
   if (useTpu) {
-    FILENAME = "/home/jodo/trained_models/semseg_12-08-2020-12-08-16/good_tf_model_15/model_quant_edgetpu.tflite";
+    FILENAME = "/home/jo/git/app-frame/assets/od_model/semseg_quant_int8_edgetpu.tflite";
   }
   model = tflite::FlatBufferModel::BuildFromFile(FILENAME.c_str());
   assert(model != nullptr);
@@ -73,7 +73,7 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
   cv::Mat testImg = cv::Mat(INPUT_HEIGHT, INPUT_WIDTH, CV_32FC3, interpreter->typed_input_tensor<float>(0));
   testImg.convertTo(testImg, CV_8UC3);
   cv::imshow("input data test", testImg);
-  cv::waitKey(0);
+  cv::waitKey(1);
 
   // Run inference
   _runtimeMeasService.startMeas("semseg inf");
@@ -111,7 +111,7 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
 
   // Test output img
   cv::imshow("Output", outputImg);
-  cv::waitKey(0);
+  cv::waitKey(1);
 
   _runtimeMeasService.printToConsole();
 }
