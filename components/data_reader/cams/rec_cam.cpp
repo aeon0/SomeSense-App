@@ -47,7 +47,7 @@ data_reader::RecCam::RecCam(
 
   if (_msgStarts.size() == 0) {
     std::cout << "Loading and storing msg starts..." << std::endl;
-    std::system("mkdir ./tmp");
+    std::system("mkdir -p ./tmp");
     std::ofstream outputJsonFile(msgStartFilePath);
     nlohmann::json jsonData = {
       {"msgStarts", nlohmann::json::array()},

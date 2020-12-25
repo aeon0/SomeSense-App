@@ -44,7 +44,7 @@ void serialize::SaveToFile::stop() {
 void serialize::SaveToFile::start() {
   if (!_isStoring) {
     std::lock_guard<std::mutex> lockGuard(_storageServiceMtx);
-    std::string createFolderCmd = "mkdir " + _storageBasePath;
+    std::string createFolderCmd = "mkdir -p " + _storageBasePath;
     std::system(createFolderCmd.c_str());
     _currFilePath = _storageBasePath + "/rec_" +
       formatTimePoint(std::chrono::system_clock::now()) +
