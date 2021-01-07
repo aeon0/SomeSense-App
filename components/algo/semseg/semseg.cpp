@@ -1,28 +1,28 @@
 #include "semseg.h"
 #include <iostream>
+// #include "opencv2/imgproc.hpp"
+#include "params.h"
+#include "utilities/image.hpp"
 
 
 semseg::Semseg::Semseg(frame::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService)
 {
   // Check if edge tpu is available
-  const auto& available_tpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();
-  std::cout << "Found Edge TPUs: " << available_tpus.size() << std::endl;
-  useTpu = available_tpus.size() > 0;
+  const auto& availableTpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();
+  std::cout << "Found Edge TPUs: " << availableTpus.size() << std::endl;
+  _edgeTpuAvailable = availableTpus.size() > 0;
 
   // Load model
-  std::string FILENAME = "/home/jo/git/app-frame/assets/od_model/semseg_quant_int8_edgetpu.tflite";
-  if (useTpu) {
-    FILENAME = "/home/jo/git/app-frame/assets/od_model/semseg_quant_int8_edgetpu.tflite";
+  if (_edgeTpuAvailable) {
+    _model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
+    _edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(availableTpus[0].type, availableTpus[0].path);
+    _resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
   }
-  model = tflite::FlatBufferModel::BuildFromFile(FILENAME.c_str());
-  assert(model != nullptr);
-
-  // Set up resolver
-  if (useTpu) {
-    edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(available_tpus[0].type, available_tpus[0].path);
-    resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
+  else {
+    _model = tflite::FlatBufferModel::BuildFromFile(PATH_TFLITE_MODEL.c_str());
   }
+  assert(_model != nullptr);
 }
 
 void semseg::Semseg::reset() {
@@ -31,86 +31,72 @@ void semseg::Semseg::reset() {
 
 void semseg::Semseg::processImg(const cv::Mat &img) {
   _runtimeMeasService.startMeas("semseg prepare");
-  // Create interpreter
+  // Create interpreter and allocate input memory
   std::unique_ptr<tflite::Interpreter> interpreter;
-  if (tflite::InterpreterBuilder(*model, resolver)(&interpreter) != kTfLiteOk) {
-    std::cout << "WARNING: Failed to build interpreter for Semseg" << std::endl;
-    return;
-  }
-  if (useTpu) {
-    interpreter->SetExternalContext(kTfLiteEdgeTpuContext, edgeTpuContext.get());
+  TfLiteStatus status;
+  status = tflite::InterpreterBuilder(*_model, _resolver)(&interpreter); // != kTfLiteOk) {
+  if (_edgeTpuAvailable) {
+    interpreter->SetExternalContext(kTfLiteEdgeTpuContext, _edgeTpuContext.get());
     interpreter->SetNumThreads(1);
   }
-  assert(interpreter != nullptr);
+  assert(status == kTfLiteOk && interpreter != nullptr);
   // Allocate tensor buffers.
-  if (interpreter->AllocateTensors() != kTfLiteOk) {
-    std::cout << "ERROR: could not allocate tensor for semseg" << std::endl;
-    return;
-  }
-  // Resize Img, convert to float, set as input
-  double curr_ratio = img.size().width / static_cast<double>(img.size().height);
-  double target_ratio = INPUT_WIDTH / static_cast<double>(INPUT_HEIGHT);
-  int delta_height = img.size().height - (img.size().width / target_ratio);
-  cv::Rect roi;
-  roi.x = 0;
-  roi.y = OFFSET_TOP;
-  roi.width = img.size().width;
-  roi.height = img.size().height - delta_height;
-  cv::Mat croppedImg = img(roi);
-  cv::Mat resizedImg;
-  cv::resize(croppedImg, resizedImg, cv::Size(INPUT_WIDTH, INPUT_HEIGHT));
+  status = interpreter->AllocateTensors();
+  assert(status == kTfLiteOk);
+
+  // Get input size and resize img to input size
+  const int inputHeight = interpreter->input_tensor(0)->dims->data[1];
+  const int inputWidth = interpreter->input_tensor(0)->dims->data[2];
+  cv::Mat inputImg;
+  util::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
+
   // Set data to model input
-  cv::Mat inputFloatImg;
-  resizedImg.convertTo(inputFloatImg, CV_32FC3);
+  cv::Mat inputImgFloat;
+  inputImg.convertTo(inputImgFloat, CV_32FC3);
   size_t sizeOfInputInBytes = interpreter->input_tensor(0)->bytes;
-  size_t sizeOfMatInBytes = inputFloatImg.total() * inputFloatImg.elemSize();
+  size_t sizeOfMatInBytes = inputImgFloat.total() * inputImgFloat.elemSize();
   assert(sizeOfInputInBytes == sizeOfMatInBytes);
   float* input = interpreter->typed_input_tensor<float>(0);
-  memcpy(input, (float*)inputFloatImg.data, sizeOfInputInBytes);
+  memcpy(input, (float*)inputImgFloat.data, sizeOfInputInBytes);
   _runtimeMeasService.endMeas("semseg prepare");
 
-  // Test input img
-  cv::Mat testImg = cv::Mat(INPUT_HEIGHT, INPUT_WIDTH, CV_32FC3, interpreter->typed_input_tensor<float>(0));
-  testImg.convertTo(testImg, CV_8UC3);
-  cv::imshow("input data test", testImg);
-  cv::waitKey(1);
-
   // Run inference
-  _runtimeMeasService.startMeas("semseg inf");
-  if(interpreter->Invoke() != kTfLiteOk) {
-    std::cout << "ERROR: could not run semseg inference" << std::endl;
-    return;
-  }
-  float* output = interpreter->typed_output_tensor<float>(0);
-  size_t sizeOfOutputInBytes = interpreter->output_tensor(0)->bytes;
-  // std::cout << "Size of of output [bytes]: " << sizeOfOutputInBytes << std::endl;
-  _runtimeMeasService.endMeas("semseg inf");
+  _runtimeMeasService.startMeas("semseg inference");
+  status = interpreter->Invoke();
+  assert(status == kTfLiteOk);
+  float* outputIt = interpreter->typed_output_tensor<float>(0);
+  _runtimeMeasService.endMeas("semseg inference");
 
   _runtimeMeasService.startMeas("semseg output proccess");
   // Get output mask image and find the max values -> convert index to class -> color output img
-  const int classSize = CLASS_MAPPING.size();
-  const int nbPixels = MASK_HEIGHT * MASK_WIDTH;
-  cv::Mat outputImg = cv::Mat(MASK_HEIGHT, MASK_WIDTH, CV_8UC3);
-  outputImg.setTo(cv::Scalar::all(0));
-  int pixlIdx = 0;
-  for (int _ = 0; _ < nbPixels; ++_) {
+  const int maskHeight = interpreter->output_tensor(0)->dims->data[1];
+  const int maskWidth = interpreter->output_tensor(0)->dims->data[2];
+  const int nbClasses = CLASS_MAPPING_COLORS.size();
+  const int nbPixels = maskHeight * maskWidth;
+  for (int i = 0; i < nbPixels; ++i) {
     // float x[5];
     // memcpy(&x, output, sizeof(x));
     // Find index of max class
-    auto startEle = output;
-    auto endEle = output + classSize;
+    auto startEle = outputIt;
+    auto endEle = outputIt + nbClasses;
     auto idx = std::distance(startEle, std::max_element(startEle, endEle));
-    output = endEle;
+    outputIt = endEle;
     // Fill output image
-    int j = pixlIdx % MASK_WIDTH;
-    int i = (pixlIdx - j) / MASK_WIDTH;
-    outputImg.at<cv::Vec3b>(i, j) = CLASS_MAPPING[idx];
-    pixlIdx++;
+    int column = i % maskWidth;
+    int row = (i - column) / maskWidth;
+    inputImg.at<cv::Vec3b>(row, column) += CLASS_MAPPING_COLORS[idx];
   }
+
+  // Erode & Dilate
+  // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
+  // cv::erode(outputImg, outputImg, kernel);
+  // cv::dilate(outputImg, outputImg, kernel);
+
   _runtimeMeasService.endMeas("semseg output proccess");
 
-  // Test output img
-  cv::imshow("Output", outputImg);
+  // Show output Img
+  cv::resize(inputImg, inputImg, cv::Size(), 3.0, 3.0);
+  cv::imshow("Semseg Output", inputImg);
   cv::waitKey(1);
 
   _runtimeMeasService.printToConsole();
