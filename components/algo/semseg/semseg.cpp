@@ -15,6 +15,7 @@ semseg::Semseg::Semseg(frame::RuntimeMeasService& runtimeMeasService) :
 
   // Load model
   if (_edgeTpuAvailable) {
+    std::cout << "Load Semseg Model from: " << PATH_EDGETPU_MODEL << std::endl;
     _model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
     _edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(availableTpus[0].type, availableTpus[0].path);
     _resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
@@ -73,6 +74,7 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
   const int maskWidth = interpreter->output_tensor(0)->dims->data[2];
   const int nbClasses = CLASS_MAPPING_COLORS.size();
   const int nbPixels = maskHeight * maskWidth;
+  cv::Mat semsegMask(maskHeight, maskWidth, CV_8UC3);
   for (int i = 0; i < nbPixels; ++i) {
     // float x[5];
     // memcpy(&x, output, sizeof(x));
@@ -84,7 +86,7 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
     // Fill output image
     int column = i % maskWidth;
     int row = (i - column) / maskWidth;
-    inputImg.at<cv::Vec3b>(row, column) += CLASS_MAPPING_COLORS[idx];
+    semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
   }
 
   // Erode & Dilate
@@ -93,11 +95,4 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
   // cv::dilate(outputImg, outputImg, kernel);
 
   _runtimeMeasService.endMeas("semseg output proccess");
-
-  // Show output Img
-  cv::resize(inputImg, inputImg, cv::Size(), 3.0, 3.0);
-  cv::imshow("Semseg Output", inputImg);
-  cv::waitKey(1);
-
-  _runtimeMeasService.printToConsole();
 }
