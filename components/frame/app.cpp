@@ -89,11 +89,11 @@ void frame::App::runFrame() {
       cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
 
       // Call [algos] on 2D image
-      // Optical Flow
+      // Optical Flow - currently a empty hull
       if (_opticalFlowMap.count(key) <= 0) {
         _opticalFlowMap.insert({key, std::make_unique<optical_flow::OpticalFlow>(_runtimeMeasService)});
       }
-      _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
+      _opticalFlowMap.at(key)->processImg(grayScaleImg, sensorTs);
       auto opticalFlowBuilder = camSensorBuilder.getOpticalFlow();
       _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
