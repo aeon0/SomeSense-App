@@ -74,10 +74,11 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
   const int maskWidth = interpreter->output_tensor(0)->dims->data[2];
   const int nbClasses = CLASS_MAPPING_COLORS.size();
   const int nbPixels = maskHeight * maskWidth;
-  cv::Mat semsegMask(maskHeight, maskWidth, CV_8UC3);
+  // Allocated data
+  if (_semsegMask.size().width != maskWidth || _semsegMask.size().height != maskHeight) {
+    _semsegMask = cv::Mat(maskHeight, maskWidth, CV_8UC3);
+  }
   for (int i = 0; i < nbPixels; ++i) {
-    // float x[5];
-    // memcpy(&x, output, sizeof(x));
     // Find index of max class
     auto startEle = outputIt;
     auto endEle = outputIt + nbClasses;
@@ -86,13 +87,22 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
     // Fill output image
     int column = i % maskWidth;
     int row = (i - column) / maskWidth;
-    semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
+    _semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
   }
 
   // Erode & Dilate
   // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
   // cv::erode(outputImg, outputImg, kernel);
   // cv::dilate(outputImg, outputImg, kernel);
-
   _runtimeMeasService.endMeas("semseg output proccess");
+}
+
+void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder) {
+  // Fill img
+  builder.getMask().setWidth(_semsegMask.size().width);
+  builder.getMask().setHeight(_semsegMask.size().height);
+  builder.getMask().setChannels(_semsegMask.channels());
+  builder.getMask().setData(
+    kj::arrayPtr(_semsegMask.data, _semsegMask.size().width * _semsegMask.size().height * _semsegMask.channels() * sizeof(uchar))
+  );
 }

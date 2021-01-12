@@ -84,25 +84,26 @@ void frame::App::runFrame() {
       cv::Mat grayScaleImg;
       cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
 
+      // TODO: Camera dynamic calibration
+      auto camSensorBuilder = capnpCamSensors[camSensorIdx];
+      cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
+
       // Call [algos] on 2D image
+      // Optical Flow
       if (_opticalFlowMap.count(key) <= 0) {
         _opticalFlowMap.insert({key, std::make_unique<optical_flow::OpticalFlow>(_runtimeMeasService)});
       }
       _opticalFlowMap.at(key)->update(grayScaleImg, sensorTs);
+      auto opticalFlowBuilder = camSensorBuilder.getOpticalFlow();
+      _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
+      // Semantic Segmentation
       if (_semsegMap.count(key) <= 0) {
         _semsegMap.insert({key, std::make_unique<semseg::Semseg>(_runtimeMeasService)});
       }
       _semsegMap.at(key)->processImg(img);
-
-      // TODO, do camera extrinsics online calibration
-
-      // Serialize Camera data
-      auto camSensorBuilder = capnpCamSensors[camSensorIdx];
-      cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
-
-      auto opticalFlowBuilder = camSensorBuilder.getOpticalFlow();
-      _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
+      auto semsegBuilder = camSensorBuilder.getSemseg();
+      _semsegMap.at(key)->serialize(semsegBuilder);
     }
 
     camSensorIdx++;

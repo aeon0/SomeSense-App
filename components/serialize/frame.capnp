@@ -24,6 +24,7 @@ struct CapnpOutput {
     fovVertical @14 :Float32; # in [rad]
     img @15 :Img;
     opticalFlow @16 :OpticalFlow;
+    semseg @17 :Semseg;
 
     struct Img {
       width @0 :Int32; # in [px]
@@ -44,6 +45,9 @@ struct CapnpOutput {
       endTs @0 :Int64; # in [us]
       deltaTime @1 :Float64; # in [ms]
       flowTracks @2 :List(FlowTrack);
+    }
+    struct Semseg {
+      mask @0 :Img;
     }
   }
 

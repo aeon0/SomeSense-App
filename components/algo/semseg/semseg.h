@@ -2,6 +2,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "frame/runtime_meas_service.h"
+#include "serialize/frame.capnp.h"
 // Tensorflow Lite and EdgeTpu includes
 #include "edgetpu.h"
 #include "tensorflow/lite/interpreter.h"
@@ -15,6 +16,7 @@ namespace semseg {
     Semseg(frame::RuntimeMeasService& runtimeMeasService);
     void reset();
     void processImg(const cv::Mat &img);
+    void serialize(CapnpOutput::CamSensor::Semseg::Builder& builder);
 
   private:
     frame::RuntimeMeasService& _runtimeMeasService;
@@ -23,5 +25,7 @@ namespace semseg {
     std::shared_ptr<edgetpu::EdgeTpuContext> _edgeTpuContext;
     tflite::ops::builtin::BuiltinOpResolver _resolver;
     bool _edgeTpuAvailable;
+
+    cv::Mat _semsegMask;
   };
 }
