@@ -37,17 +37,23 @@ struct CapnpOutput {
     struct OpticalFlow {
       struct FlowTrack {
         # in normalized coordinates
-        startX @0 :Float64;
-        startY @1 :Float64;
-        endX @2 :Float64;
-        endY @3 :Float64;
+        startX @0 :Float32;
+        startY @1 :Float32;
+        endX @2 :Float32;
+        endY @3 :Float32;
       }
       endTs @0 :Int64; # in [us]
       deltaTime @1 :Float64; # in [ms]
       flowTracks @2 :List(FlowTrack);
     }
     struct Semseg {
+      struct Point {
+        x @0 :Float32;
+        y @1 :Float32;
+        z @2 :Float32;
+      }
       mask @0 :Img;
+      pointCloud @1 :List(Point);
     }
   }
 

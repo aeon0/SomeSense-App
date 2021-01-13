@@ -27,10 +27,11 @@ semseg::Semseg::Semseg(frame::RuntimeMeasService& runtimeMeasService) :
 }
 
 void semseg::Semseg::reset() {
-
+  _semsegMask.setTo(cv::Scalar::all(0));
+  _pointCloud.clear();
 }
 
-void semseg::Semseg::processImg(const cv::Mat &img) {
+void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam) {
   _runtimeMeasService.startMeas("semseg prepare");
   // Create interpreter and allocate input memory
   std::unique_ptr<tflite::Interpreter> interpreter;
@@ -90,6 +91,8 @@ void semseg::Semseg::processImg(const cv::Mat &img) {
     _semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
   }
 
+  // TODO: create point cloud
+
   // Erode & Dilate
   // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
   // cv::erode(outputImg, outputImg, kernel);
@@ -105,4 +108,12 @@ void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder)
   builder.getMask().setData(
     kj::arrayPtr(_semsegMask.data, _semsegMask.size().width * _semsegMask.size().height * _semsegMask.channels() * sizeof(uchar))
   );
+  // Fill point cloud
+  auto pointCloud = builder.initPointCloud(_pointCloud.size());
+  for (int i = 0; i < _pointCloud.size(); ++i)
+  {
+    pointCloud[i].setX(_pointCloud[i].x);
+    pointCloud[i].setY(_pointCloud[i].y);
+    pointCloud[i].setZ(_pointCloud[i].z);
+  }
 }

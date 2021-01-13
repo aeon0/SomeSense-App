@@ -101,7 +101,7 @@ void frame::App::runFrame() {
       if (_semsegMap.count(key) <= 0) {
         _semsegMap.insert({key, std::make_unique<semseg::Semseg>(_runtimeMeasService)});
       }
-      _semsegMap.at(key)->processImg(img);
+      _semsegMap.at(key)->processImg(img, *cam);
       auto semsegBuilder = camSensorBuilder.getSemseg();
       _semsegMap.at(key)->serialize(semsegBuilder);
     }
