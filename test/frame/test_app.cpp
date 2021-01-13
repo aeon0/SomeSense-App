@@ -18,7 +18,7 @@ TEST(Frame, runFrame)
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
   auto requestHandler = DummyRequestHandler();
-  auto sensorStorage = data_reader::SensorStorage(requestHandler, algoStartTime, appState);
+  auto sensorStorage = data_reader::SensorStorage(requestHandler, algoStartTime);
 
   // // Start Algo Application
   auto app = std::make_shared<frame::App>(sensorStorage, appState, algoStartTime);

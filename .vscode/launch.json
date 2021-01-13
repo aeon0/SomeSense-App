@@ -33,7 +33,7 @@
             "request": "launch",
             // TODO: create some global env variable in an ini file or something like that
             //       instead of testMYCOMPONENT...
-            "program": "${workspaceFolder}/dist/bin/debug/testFrame",
+            "program": "${workspaceFolder}/dist/bin/debug/test_app",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
