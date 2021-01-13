@@ -22,6 +22,7 @@ target_link_libraries(${PROJECT_TEST_NAME}
   libdata_reader
   libcom_out
   libserialize
+  libutilities
 
   # [algos]
   liboptical_flow

@@ -3,6 +3,7 @@
 #include "opencv2/opencv.hpp"
 #include "frame/runtime_meas_service.h"
 #include "data_reader/cams/icam.h"
+#include "utilities/img.h"
 #include "serialize/frame.capnp.h"
 // Tensorflow Lite and EdgeTpu includes
 #include "edgetpu.h"
@@ -28,6 +29,7 @@ namespace semseg {
     bool _edgeTpuAvailable;
     // Output data
     cv::Mat _semsegMask;
+    util::img::Roi _maskRoi;
     std::vector<cv::Point3f> _pointCloud; // x, y, z in autosar coordinate system
   };
 }

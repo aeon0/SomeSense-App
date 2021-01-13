@@ -28,6 +28,7 @@ set(COMPONENT_LIBS
   libdata_reader
   libcom_out
   libserialize
+  libutilities
 
   # [algos]
   liboptical_flow

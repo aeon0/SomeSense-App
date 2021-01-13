@@ -2,7 +2,6 @@
 #include <iostream>
 // #include "opencv2/imgproc.hpp"
 #include "params.h"
-#include "utilities/image.hpp"
 
 
 semseg::Semseg::Semseg(frame::RuntimeMeasService& runtimeMeasService) :
@@ -50,7 +49,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   const int inputHeight = interpreter->input_tensor(0)->dims->data[1];
   const int inputWidth = interpreter->input_tensor(0)->dims->data[2];
   cv::Mat inputImg;
-  util::Roi roi = util::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
+  _maskRoi = util::img::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
 
   // Set data to model input
   cv::Mat inputImgFloat;
@@ -92,7 +91,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
     _semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
     if (idx == semseg::MOVABLE || idx == semseg::LANE_MARKINGS)
     {
-      cv::Point2f converted = util::convertToRoi(roi, cv::Point2f(column, row));
+      cv::Point2f converted = util::img::convertToRoi(_maskRoi, cv::Point2f(column, row));
       cv::Point3f point3d = cam.imageToWorldKnownZ(converted, 0);
       if (point3d.x < 125.0 && point3d.x > 0.2) {
         _pointCloud.push_back(point3d);
@@ -119,6 +118,9 @@ void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder)
   builder.getMask().setData(
     kj::arrayPtr(_semsegMask.data, _semsegMask.size().width * _semsegMask.size().height * _semsegMask.channels() * sizeof(uchar))
   );
+  builder.setOffsetLeft(_maskRoi.offsetLeft);
+  builder.setOffsetTop(_maskRoi.offsetTop);
+  builder.setScale(_maskRoi.scale);
   // Fill point cloud
   auto pointCloud = builder.initPointCloud(_pointCloud.size());
   for (int i = 0; i < _pointCloud.size(); ++i)

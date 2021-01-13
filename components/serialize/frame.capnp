@@ -52,8 +52,11 @@ struct CapnpOutput {
         y @1 :Float32;
         z @2 :Float32;
       }
-      mask @0 :Img;
-      pointCloud @1 :List(Point);
+      mask @0 :Img; # semseg mask image
+      offsetLeft @1 :Float32; # offset left compared to input image in [px] (pixel size in input image scale)
+      offsetTop @2 :Float32; # offset top compared to input image in [px] (pixel size in input image scale)
+      scale @3 :Float32; # scale of mask to input image (mask_width / org_width)
+      pointCloud @4 :List(Point); # 3d points in [m] (ego coordinate system)
     }
   }
 
