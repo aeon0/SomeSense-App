@@ -25,7 +25,7 @@ TEST(data_reader, worldtoImage)
   DummyCam cam("test");
 
   cv::Point3f worldCoord(10, 5, 0.5);
-  cv::Point2f imgCoords = cam.worldtoImage(worldCoord);
+  cv::Point2f imgCoords = cam.worldToImage(worldCoord);
   std::cout << imgCoords << std::endl;
 }
 

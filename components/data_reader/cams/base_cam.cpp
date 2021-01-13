@@ -5,7 +5,7 @@ data_reader::BaseCam::BaseCam(const std::string name, const TS& algoStartTime) :
   _name(name), _algoStartTime(algoStartTime), _currTs(-1), _validFrame(false) 
 {
   // TODO: Set extrinsics with camera calibration (static and/or dynamic)
-  setExtrinsics(-1.5, 0.0, 1.0, 0.12, 0.0, 0.0);
+  setExtrinsics(-1.5, 0.0, 1.0, 0.0, 0.0, 0.0);
 }
 
 std::tuple<const bool, const int64_t, cv::Mat> data_reader::BaseCam::getFrame() {
@@ -103,7 +103,7 @@ cv::Point3f data_reader::BaseCam::imageToWorldKnownZ(cv::Point2f imgCoord, float
   return result;
 }
 
-cv::Point2f data_reader::BaseCam::worldtoImage(cv::Point3f worldCoord) const
+cv::Point2f data_reader::BaseCam::worldToImage(cv::Point3f worldCoord) const
 {
   cv::Mat worldCoordMat = (cv::Mat_<float>(4, 1) << worldCoord.x, worldCoord.y, worldCoord.z, 1);
   cv::Mat imgCoordMat = _camMat * _poseMat * worldCoordMat;

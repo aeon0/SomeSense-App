@@ -37,8 +37,8 @@ namespace data_reader {
 
     // With known z-coordinate (road height), calculate a 3D point from image coordinate (e.g. for flatworld assumption)
     // Note: imgCoord needs to be relativ to intrinsics of the camera
-    cv::Point3f imageToWorldKnownZ(cv::Point2f imgCoord, float z = 0) const;
-    cv::Point2f worldtoImage(cv::Point3f worldCoord) const;
+    cv::Point3f imageToWorldKnownZ(cv::Point2f imgCoord, float z = 0) const override;
+    cv::Point2f worldToImage(cv::Point3f worldCoord) const override;
 
   protected:
     // From width, height (in [px]) and horizontalFov (in [rad]), all other intrinsics

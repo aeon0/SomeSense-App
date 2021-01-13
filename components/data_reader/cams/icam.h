@@ -15,6 +15,11 @@ namespace data_reader {
     // Start reading the camera feed
     virtual void start() = 0;
 
+    // With known z-coordinate (road height), calculate a 3D point from image coordinate (e.g. for flatworld assumption)
+    // Note: imgCoord needs to be relativ to intrinsics of the camera
+    virtual cv::Point3f imageToWorldKnownZ(cv::Point2f imgCoord, float z = 0) const = 0;
+    virtual cv::Point2f worldToImage(cv::Point3f worldCoord) const = 0;
+
     // Serialize the camera
     virtual void serialize(
       CapnpOutput::CamSensor::Builder& builder,
