@@ -29,7 +29,7 @@ data_reader::RecCam::RecCam(
   _appState(appState),
   _filePath(filePath)
 {
-  setCamIntrinsics(width, height, horizontalFov);
+  setIntrinsics(width, height, horizontalFov);
 
   // Try to read the msg timestamps form a tmp json file in case it was previously loaded
   auto filePathHash = std::to_string(std::hash<std::string>{}(filePath));

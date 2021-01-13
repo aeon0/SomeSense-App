@@ -13,6 +13,7 @@ include_directories(
 add_executable(${PROJECT_TEST_NAME}
   main.cpp
   frame/test_app.cpp
+  data_reader/cams/test_base_cam.cpp
 )
 
 target_link_libraries(${PROJECT_TEST_NAME}
@@ -21,6 +22,7 @@ target_link_libraries(${PROJECT_TEST_NAME}
   libdata_reader
   libcom_out
   libserialize
+
   # [algos]
   liboptical_flow
   libtracking

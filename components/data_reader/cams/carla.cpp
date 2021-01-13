@@ -38,7 +38,7 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
       horizontalFov = std::stod(attrib.GetValue()) * (M_PI / 180.0);
     }
   }
-  setCamIntrinsics(width, height, horizontalFov);
+  setIntrinsics(width, height, horizontalFov);
 }
 
 void data_reader::Carla::start() {

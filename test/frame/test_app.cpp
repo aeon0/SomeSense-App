@@ -11,7 +11,7 @@ class DummyRequestHandler : public com_out::IRequestHandler {
     void deleteRequestListener(std::shared_ptr<com_out::IRequestListener> listener) {};
 };
 
-TEST(Frame, runFrame)
+TEST(frame, runFrame)
 {
   // Create shared output storage memory
   auto appState = serialize::AppState();
