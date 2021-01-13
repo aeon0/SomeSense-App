@@ -6,7 +6,7 @@
 class DummyCam : public data_reader::BaseCam {
 public:
   DummyCam(const std::string name) : BaseCam(name, std::chrono::high_resolution_clock::now()) {
-    setIntrinsics(600, 400, 1.4);
+    setIntrinsics(640, 480, 1.5);
   }
   void start() { }
 };
@@ -33,7 +33,11 @@ TEST(data_reader, imageToWorld)
 {
   DummyCam cam("test");
 
-  cv::Point2f imgCoord(144.834, 172.682);
-  cv::Point3f worldCoord = cam.imageToWorldKnownZ(imgCoord, 0.5);
-  std::cout << worldCoord << std::endl;
+  cv::Point2f imgCoord1(320.0, 300.0);
+  cv::Point3f worldCoord1 = cam.imageToWorldKnownZ(imgCoord1, 0.0);
+  std::cout << worldCoord1 << std::endl;
+
+  cv::Point2f imgCoord2(320.0, 238.0);
+  cv::Point3f worldCoord2 = cam.imageToWorldKnownZ(imgCoord2, 0.0);
+  std::cout << worldCoord2 << std::endl;
 }

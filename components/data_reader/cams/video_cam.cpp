@@ -36,7 +36,7 @@ data_reader::VideoCam::VideoCam(
   const double frameCount = _stream.get(cv::CAP_PROP_FRAME_COUNT);
   _recLength = static_cast<int64>(((frameCount - 1) / _frameRate) * 1000000);
 
-  setIntrinsics(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT), 1.74533);
+  setIntrinsics(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT), 1.5);
 }
 
 void data_reader::VideoCam::handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) {

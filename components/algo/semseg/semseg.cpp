@@ -50,7 +50,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   const int inputHeight = interpreter->input_tensor(0)->dims->data[1];
   const int inputWidth = interpreter->input_tensor(0)->dims->data[2];
   cv::Mat inputImg;
-  util::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
+  util::Roi roi = util::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
 
   // Set data to model input
   cv::Mat inputImgFloat;
@@ -79,6 +79,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   if (_semsegMask.size().width != maskWidth || _semsegMask.size().height != maskHeight) {
     _semsegMask = cv::Mat(maskHeight, maskWidth, CV_8UC3);
   }
+  _pointCloud.clear();
   for (int i = 0; i < nbPixels; ++i) {
     // Find index of max class
     auto startEle = outputIt;
@@ -89,15 +90,25 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
     int column = i % maskWidth;
     int row = (i - column) / maskWidth;
     _semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
+    if (idx == semseg::MOVABLE || idx == semseg::LANE_MARKINGS)
+    {
+      cv::Point2f converted = util::convertToRoi(roi, cv::Point2f(column, row));
+      cv::Point3f point3d = cam.imageToWorldKnownZ(converted, 0);
+      if (point3d.x < 125.0 && point3d.x > 0.2) {
+        _pointCloud.push_back(point3d);
+      }
+    }
   }
-
-  // TODO: create point cloud
 
   // Erode & Dilate
   // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
   // cv::erode(outputImg, outputImg, kernel);
   // cv::dilate(outputImg, outputImg, kernel);
   _runtimeMeasService.endMeas("semseg output proccess");
+
+  // cv::imshow("Output", _semsegMask);
+  // cv::imshow("Img", inputImg);
+  // cv::waitKey(1);
 }
 
 void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder) {

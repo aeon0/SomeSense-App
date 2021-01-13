@@ -5,7 +5,7 @@ data_reader::BaseCam::BaseCam(const std::string name, const TS& algoStartTime) :
   _name(name), _algoStartTime(algoStartTime), _currTs(-1), _validFrame(false) 
 {
   // TODO: Set extrinsics with camera calibration (static and/or dynamic)
-  setExtrinsics(-1.5, 0.0, 1.0, 0.0, 0.0, 0.0);
+  setExtrinsics(-0.7, 0.0, 1.3, 0.065, 0.0, 0.0);
 }
 
 std::tuple<const bool, const int64_t, cv::Mat> data_reader::BaseCam::getFrame() {
