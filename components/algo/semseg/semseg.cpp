@@ -117,14 +117,18 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
     }
   }
 
-  // Erode & Dilate
-  // cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(1, 1));
-  // cv::erode(outputImg, outputImg, kernel);
-  // cv::dilate(outputImg, outputImg, kernel);
+  // Overlay org image with _semsegMask
+  cv::resize(_semsegMask, _semsegMask, cv::Size(), (1 / _maskRoi.scale), (1 / _maskRoi.scale));
+  const int top = _maskRoi.offsetTop;
+  const int bottom = img.size().height - _maskRoi.offsetTop - _semsegMask.size().height;
+  const int left = _maskRoi.offsetLeft;
+  const int right = img.size().width - _maskRoi.offsetLeft - _semsegMask.size().width;
+  cv::copyMakeBorder(_semsegMask, _semsegMask, top, bottom, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+  cv::addWeighted(_semsegMask, 0.6, img, 0.9, 0.0, _semsegMask);
+
   _runtimeMeasService.endMeas("semseg output proccess");
 
   // cv::imshow("Output", _semsegMask);
-  // cv::imshow("Img", inputImg);
   // cv::waitKey(1);
 }
 
@@ -136,9 +140,6 @@ void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder)
   builder.getMask().setData(
     kj::arrayPtr(_semsegMask.data, _semsegMask.size().width * _semsegMask.size().height * _semsegMask.channels() * sizeof(uchar))
   );
-  builder.setOffsetLeft(_maskRoi.offsetLeft);
-  builder.setOffsetTop(_maskRoi.offsetTop);
-  builder.setScale(_maskRoi.scale);
   // Fill obstacles
   auto obstacles = builder.initObstacles(_obstacles.size());
   for (int i = 0; i < _obstacles.size(); ++i)
