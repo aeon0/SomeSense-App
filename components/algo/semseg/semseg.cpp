@@ -110,6 +110,8 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
           // Fill point clouds (lane markings and obstacles)
           if (idx == semseg::MOVABLE) {
             _obstacles.push_back(point3d);
+            _obstacles.push_back({point3d.x, point3d.y, 0.45});
+            _obstacles.push_back({point3d.x, point3d.y, 0.9});
           }
           if (idx == semseg::LANE_MARKINGS) {
             _laneMarkings.push_back(point3d);
