@@ -102,7 +102,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
 
       // Fill the point clouds and drive bins
       if (!foundBarrier) {
-        const bool foundBarrier = (idx == semseg::UNDRIVEABLE || idx == semseg::MOVABLE);
+        foundBarrier = (idx == semseg::UNDRIVEABLE || idx == semseg::MOVABLE);
         // Create 3D point with flatworld assumption
         const cv::Point2f converted = util::img::convertToRoi(_maskRoi, cv::Point2f(col, row));
         const cv::Point3f point3d = cam.imageToWorldKnownZ(converted, 0);
@@ -138,9 +138,9 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   // cv::dilate(outputImg, outputImg, kernel);
   _runtimeMeasService.endMeas("semseg output proccess");
 
-  cv::imshow("Output", _semsegMask);
-  cv::imshow("Img", inputImg);
-  cv::waitKey(1);
+  // cv::imshow("Output", _semsegMask);
+  // cv::imshow("Img", inputImg);
+  // cv::waitKey(1);
 }
 
 void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder) {
