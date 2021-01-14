@@ -2,7 +2,7 @@
 
 C++ app performaing automative computer vision on your favorite Coral Dev Board or Raspberry Pi + Google Coral.</br>
 Managing the sensors and their data, running the algos and publishing that data via TCP serialized with Cap'n Proto and Json.</br></br>
-Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-vision-models. The visu is developed in this repo: https://github.com/j-o-d-o/visu.
+Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-vision-models. The visu is developed in this repo: https://github.com/j-o-d-o/OpenSense-Visu.
 
 ## Setup and Dependencies
 ### CMake + Compilers + Video codecs
