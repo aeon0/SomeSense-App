@@ -59,7 +59,6 @@ struct CapnpOutput {
       scale @3 :Float32; # scale of mask to input image (mask_width / org_width)
       obstacles @4 :List(Point); # 3d points in [m] (autosar ego coordinate system)
       laneMarkings @5 :List(Point); # 3d points in [m] (autosar ego coordinate system)
-      roadBarrier @6 :List(Point); # 3d points in [m] (autosar ego coordinate system)
     }
   }
 

@@ -32,6 +32,5 @@ namespace semseg {
     util::img::Roi _maskRoi;
     std::vector<cv::Point3f> _obstacles; // x, y, z in autosar coordinate system of movable objects
     std::vector<cv::Point3f> _laneMarkings; // x, y, z in autosar coordinate system of lane markings
-    std::vector<cv::Point3f> _roadBarrier; // x, y, z in autosar coordinate system of driveable area
   };
 }

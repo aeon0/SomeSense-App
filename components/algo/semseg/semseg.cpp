@@ -29,7 +29,6 @@ void semseg::Semseg::reset() {
   _semsegMask.setTo(cv::Scalar::all(0));
   _obstacles.clear();
   _laneMarkings.clear();
-  _roadBarrier.clear();
 }
 
 void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam) {
@@ -82,7 +81,6 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   }
   _obstacles.clear();
   _laneMarkings.clear();
-  _roadBarrier.clear();
   // Checking each column from bottom to top for drivable path (or lane marking) until a non-drivable or moving class is hit
   // Note: The image is stored in row major, this has to be accounted for when increasing the img iterator
   for (int col = 0; col < maskWidth; ++col) {
@@ -115,9 +113,6 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
           }
           if (idx == semseg::LANE_MARKINGS) {
             _laneMarkings.push_back(point3d);
-          }
-          if (idx == semseg::UNDRIVEABLE) {
-            _roadBarrier.push_back(point3d);
           }
         }
       }
@@ -161,13 +156,5 @@ void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder)
     laneMarkings[i].setX(_laneMarkings[i].x);
     laneMarkings[i].setY(_laneMarkings[i].y);
     laneMarkings[i].setZ(_laneMarkings[i].z);
-  }
-  // Fill drivable bins
-  auto roadBarrier = builder.initRoadBarrier(_roadBarrier.size());
-  for (int i = 0; i < _roadBarrier.size(); ++i)
-  {
-    roadBarrier[i].setX(_roadBarrier[i].x);
-    roadBarrier[i].setY(_roadBarrier[i].y);
-    roadBarrier[i].setZ(_roadBarrier[i].z);
   }
 }
