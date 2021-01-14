@@ -1,4 +1,4 @@
-# C++ Core App
+# OpenSense - C++ Core App
 
 C++ app performaing automative computer vision on your favorite Coral Dev Board or Raspberry Pi + Google Coral.</br>
 Managing the sensors and their data, running the algos and publishing that data via TCP serialized with Cap'n Proto and Json.</br></br>
