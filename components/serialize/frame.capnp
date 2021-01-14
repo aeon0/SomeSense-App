@@ -46,6 +46,7 @@ struct CapnpOutput {
       deltaTime @1 :Float64; # in [ms]
       flowTracks @2 :List(FlowTrack);
     }
+  
     struct Semseg {
       struct Point {
         x @0 :Float32;
