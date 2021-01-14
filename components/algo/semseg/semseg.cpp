@@ -29,7 +29,7 @@ void semseg::Semseg::reset() {
   _semsegMask.setTo(cv::Scalar::all(0));
   _obstacles.clear();
   _laneMarkings.clear();
-  _driveBins.clear();
+  _roadBarrier.clear();
 }
 
 void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam) {
@@ -82,7 +82,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   }
   _obstacles.clear();
   _laneMarkings.clear();
-  _driveBins.clear();
+  _roadBarrier.clear();
   // Checking each column from bottom to top for drivable path (or lane marking) until a non-drivable or moving class is hit
   // Note: The image is stored in row major, this has to be accounted for when increasing the img iterator
   for (int col = 0; col < maskWidth; ++col) {
@@ -116,21 +116,11 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
           if (idx == semseg::LANE_MARKINGS) {
             _laneMarkings.push_back(point3d);
           }
-          // Check if driveBin should be started
-          const bool isDrivable = (idx == semseg::LANE_MARKINGS || idx == semseg::ROAD);
-          if (!foundDriveBinStart && isDrivable) {
-            foundDriveBinStart = true;
-            driveBinStart = point3d;
+          if (idx == semseg::UNDRIVEABLE) {
+            _roadBarrier.push_back(point3d);
           }
         }
-        if (foundBarrier && foundDriveBinStart && point3d.x < 120) {
-          driveBinEndX = point3d.x;
-        }
       }
-    }
-    if (foundDriveBinStart && driveBinStart.x > 0.2 && driveBinStart.x < 120) {
-      // TODO: use the resolution of semseg mask and the radial resolution of camera to calc this
-      _driveBins.push_back({driveBinStart, std::clamp(driveBinEndX - driveBinStart.x, 0.2F, 120.0F), 1});
     }
   }
 
@@ -173,13 +163,11 @@ void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder)
     laneMarkings[i].setZ(_laneMarkings[i].z);
   }
   // Fill drivable bins
-  auto drivableBins = builder.initDriveableBins(_driveBins.size());
-  for (int i = 0; i < _driveBins.size(); ++i)
+  auto roadBarrier = builder.initRoadBarrier(_roadBarrier.size());
+  for (int i = 0; i < _roadBarrier.size(); ++i)
   {
-    drivableBins[i].getStartPos().setX(_driveBins[i].startPos.x);
-    drivableBins[i].getStartPos().setY(_driveBins[i].startPos.y);
-    drivableBins[i].getStartPos().setZ(_driveBins[i].startPos.z);
-    drivableBins[i].setExtendX(_driveBins[i].extendX);
-    drivableBins[i].setAbsExtendY(_driveBins[i].absExtendY);
+    roadBarrier[i].setX(_roadBarrier[i].x);
+    roadBarrier[i].setY(_roadBarrier[i].y);
+    roadBarrier[i].setZ(_roadBarrier[i].z);
   }
 }

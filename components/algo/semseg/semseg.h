@@ -15,12 +15,6 @@
 namespace semseg {
   class Semseg {
   public:
-    struct DriveableBin {
-      cv::Point3f startPos; // start position of bin in [m] (autosar)
-      float extendX; // extend of bin in x-dir for startPos
-      float absExtendY; // extend of bin evenly in +y and -y dir evenly e.g. for extend 4 it extends +2 and -2 from startPos in y dir
-    };
-
     Semseg(frame::RuntimeMeasService& runtimeMeasService);
     void reset();
     void processImg(const cv::Mat &img, const data_reader::ICam &cam);
@@ -38,6 +32,6 @@ namespace semseg {
     util::img::Roi _maskRoi;
     std::vector<cv::Point3f> _obstacles; // x, y, z in autosar coordinate system of movable objects
     std::vector<cv::Point3f> _laneMarkings; // x, y, z in autosar coordinate system of lane markings
-    std::vector<DriveableBin> _driveBins; // drivable bins for each mask column
+    std::vector<cv::Point3f> _roadBarrier; // x, y, z in autosar coordinate system of driveable area
   };
 }
