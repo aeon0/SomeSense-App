@@ -27,7 +27,9 @@ semseg::Semseg::Semseg(frame::RuntimeMeasService& runtimeMeasService) :
 
 void semseg::Semseg::reset() {
   _semsegMask.setTo(cv::Scalar::all(0));
-  _pointCloud.clear();
+  _obstacles.clear();
+  _laneMarkings.clear();
+  _driveBins.clear();
 }
 
 void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam) {
@@ -65,7 +67,7 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   _runtimeMeasService.startMeas("semseg inference");
   status = interpreter->Invoke();
   assert(status == kTfLiteOk);
-  float* outputIt = interpreter->typed_output_tensor<float>(0);
+  const float* outputIt = interpreter->typed_output_tensor<float>(0);
   _runtimeMeasService.endMeas("semseg inference");
 
   _runtimeMeasService.startMeas("semseg output proccess");
@@ -74,28 +76,59 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   const int maskWidth = interpreter->output_tensor(0)->dims->data[2];
   const int nbClasses = CLASS_MAPPING_COLORS.size();
   const int nbPixels = maskHeight * maskWidth;
-  // Allocated data
+  // Allocated data and clear previous data
   if (_semsegMask.size().width != maskWidth || _semsegMask.size().height != maskHeight) {
     _semsegMask = cv::Mat(maskHeight, maskWidth, CV_8UC3);
   }
-  _pointCloud.clear();
-  for (int i = 0; i < nbPixels; ++i) {
-    // Find index of max class
-    auto startEle = outputIt;
-    auto endEle = outputIt + nbClasses;
-    auto idx = std::distance(startEle, std::max_element(startEle, endEle));
-    outputIt = endEle;
-    // Fill output image
-    int column = i % maskWidth;
-    int row = (i - column) / maskWidth;
-    _semsegMask.at<cv::Vec3b>(row, column) = CLASS_MAPPING_COLORS[idx];
-    if (idx == semseg::MOVABLE || idx == semseg::LANE_MARKINGS)
-    {
-      cv::Point2f converted = util::img::convertToRoi(_maskRoi, cv::Point2f(column, row));
-      cv::Point3f point3d = cam.imageToWorldKnownZ(converted, 0);
-      if (point3d.x < 125.0 && point3d.x > 0.2) {
-        _pointCloud.push_back(point3d);
+  _obstacles.clear();
+  _laneMarkings.clear();
+  _driveBins.clear();
+  // Checking each column from bottom to top for drivable path (or lane marking) until a non-drivable or moving class is hit
+  // Note: The image is stored in row major, this has to be accounted for when increasing the img iterator
+  for (int col = 0; col < maskWidth; ++col) {
+    bool foundBarrier = false;
+    bool foundDriveBinStart = false;
+    float driveBinEndX = 120;
+    cv::Point3f driveBinStart(-1, -1, -1);
+    for (int row = (maskHeight - 1); row >= 0; --row) {
+      // Find index of max class, outputIt is stored row major
+      const int iterOffset = ((row * maskWidth) + col) * nbClasses;
+      const auto startEle = outputIt + iterOffset;
+      const auto endEle = outputIt + iterOffset + nbClasses;
+      const auto idx = std::distance(startEle, std::max_element(startEle, endEle));
+
+      // Fill semseg mask with color of best scoring class
+      _semsegMask.at<cv::Vec3b>(row, col) = CLASS_MAPPING_COLORS[idx];
+
+      // Fill the point clouds and drive bins
+      if (!foundBarrier) {
+        const bool foundBarrier = (idx == semseg::UNDRIVEABLE || idx == semseg::MOVABLE);
+        // Create 3D point with flatworld assumption
+        const cv::Point2f converted = util::img::convertToRoi(_maskRoi, cv::Point2f(col, row));
+        const cv::Point3f point3d = cam.imageToWorldKnownZ(converted, 0);
+        if (point3d.x < 120.0 && point3d.x > 0.2) {
+          // Fill point clouds (lane markings and obstacles)
+          if (idx == semseg::MOVABLE) {
+            _obstacles.push_back(point3d);
+          }
+          if (idx == semseg::LANE_MARKINGS) {
+            _laneMarkings.push_back(point3d);
+          }
+          // Check if driveBin should be started
+          const bool isDrivable = (idx == semseg::LANE_MARKINGS || idx == semseg::ROAD);
+          if (!foundDriveBinStart && isDrivable) {
+            foundDriveBinStart = true;
+            driveBinStart = point3d;
+          }
+        }
+        if (foundBarrier && foundDriveBinStart && point3d.x < 120) {
+          driveBinEndX = point3d.x;
+        }
       }
+    }
+    if (foundDriveBinStart && driveBinStart.x > 0.2 && driveBinStart.x < 120) {
+      // TODO: use the resolution of semseg mask and the radial resolution of camera to calc this
+      _driveBins.push_back({driveBinStart, std::clamp(driveBinEndX - driveBinStart.x, 0.2F, 120.0F), 1});
     }
   }
 
@@ -105,9 +138,9 @@ void semseg::Semseg::processImg(const cv::Mat &img, const data_reader::ICam &cam
   // cv::dilate(outputImg, outputImg, kernel);
   _runtimeMeasService.endMeas("semseg output proccess");
 
-  // cv::imshow("Output", _semsegMask);
-  // cv::imshow("Img", inputImg);
-  // cv::waitKey(1);
+  cv::imshow("Output", _semsegMask);
+  cv::imshow("Img", inputImg);
+  cv::waitKey(1);
 }
 
 void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder) {
@@ -121,12 +154,30 @@ void semseg::Semseg::serialize(CapnpOutput::CamSensor::Semseg::Builder& builder)
   builder.setOffsetLeft(_maskRoi.offsetLeft);
   builder.setOffsetTop(_maskRoi.offsetTop);
   builder.setScale(_maskRoi.scale);
-  // Fill point cloud
-  auto pointCloud = builder.initPointCloud(_pointCloud.size());
-  for (int i = 0; i < _pointCloud.size(); ++i)
+  // Fill obstacles
+  auto obstacles = builder.initObstacles(_obstacles.size());
+  for (int i = 0; i < _obstacles.size(); ++i)
   {
-    pointCloud[i].setX(_pointCloud[i].x);
-    pointCloud[i].setY(_pointCloud[i].y);
-    pointCloud[i].setZ(_pointCloud[i].z);
+    obstacles[i].setX(_obstacles[i].x);
+    obstacles[i].setY(_obstacles[i].y);
+    obstacles[i].setZ(_obstacles[i].z);
+  }
+  // Fill lane markings
+  auto laneMarkings = builder.initLaneMarkings(_laneMarkings.size());
+  for (int i = 0; i < _laneMarkings.size(); ++i)
+  {
+    laneMarkings[i].setX(_laneMarkings[i].x);
+    laneMarkings[i].setY(_laneMarkings[i].y);
+    laneMarkings[i].setZ(_laneMarkings[i].z);
+  }
+  // Fill drivable bins
+  auto drivableBins = builder.initDriveableBins(_driveBins.size());
+  for (int i = 0; i < _driveBins.size(); ++i)
+  {
+    drivableBins[i].getStartPos().setX(_driveBins[i].startPos.x);
+    drivableBins[i].getStartPos().setY(_driveBins[i].startPos.y);
+    drivableBins[i].getStartPos().setZ(_driveBins[i].startPos.z);
+    drivableBins[i].setExtendX(_driveBins[i].extendX);
+    drivableBins[i].setAbsExtendY(_driveBins[i].absExtendY);
   }
 }
