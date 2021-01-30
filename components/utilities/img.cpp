@@ -15,6 +15,9 @@ util::img::Roi util::img::cropAndResize(const cv::Mat& inputMat, cv::Mat& output
   double targetRatio = targetWidth / static_cast<double>(targetHeight);
   cv::Rect cutOut;
   Roi roi;
+  roi.offsetLeft = 0.0;
+  roi.offsetTop = 0.0;
+  roi.scale = 1.0;
   if (currRatio > targetRatio) {
     const int deltaWidth = -int((targetRatio * offsetInputMat.size().height) - offsetInputMat.size().width);
     roi.offsetLeft = int(deltaWidth * 0.5);
