@@ -1,7 +1,6 @@
 SET(COMPONENT_NAME "frame")
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
   ${OpenCV_INCLUDE_DIRS}
   ${CAPNP_INCLUDE_DIRS}
   ${CARLA_INCLUDE_DIR}
@@ -39,10 +38,10 @@ set(COMPONENT_LIBS
 set(DEPENDENCY_LIBS
   ${OpenCV_LIBS}
   ${CAPNP_LIBRARIES}
-  ${TENSORFLOW_LITE_LIB_X86}
-  # ${TENSORFLOW_LITE_LIB_ARM}
+  ${TENSORFLOW_LITE_LIBS}
   ${EDGE_TPU_LIBS}
 )
+
 if (BUILD_SIM)
   # Add carla libs for simulation
   set(DEPENDENCY_LIBS
@@ -53,9 +52,11 @@ if (BUILD_SIM)
     ${CARLA_LIB_DIR}/libDetourCrowd.a
   )
 endif()
+
 target_link_libraries(${PROJECT_NAME}
   ${COMPONENT_LIBS}
   ${DEPENDENCY_LIBS}
   dl # needed for tensorflow lite (libdl.so)
 )
+
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})

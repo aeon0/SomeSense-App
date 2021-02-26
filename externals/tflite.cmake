@@ -10,8 +10,11 @@ IF (INSTALL_DEPENDENCIES)
   )
 ENDIF()
 
-SET(TENSORFLOW_LITE_LIB_X86 ${EXTERNAL_INSTALL_DIR}/tensorflow_lite/lib/linux_x86_64/lib/libtensorflow-lite.a)
-SET(TENSORFLOW_LITE_LIB_ARM ${EXTERNAL_INSTALL_DIR}/tensorflow_lite/lib/linux_aarch64/lib/libtensorflow-lite.a)
+if (BUILD_ARM)
+  SET(TENSORFLOW_LITE_LIBS ${EXTERNAL_INSTALL_DIR}/tensorflow_lite/lib/aarch64_armv8-a/lib/libtensorflow-lite.a)
+else()
+  SET(TENSORFLOW_LITE_LIBS ${EXTERNAL_INSTALL_DIR}/tensorflow_lite/lib/linux_x86_64/lib/libtensorflow-lite.a)
+endif()
 
 SET(TENSORFLOW_LITE_INCLUDE_DIR
   ${EXTERNAL_INSTALL_DIR}/tensorflow_lite/include

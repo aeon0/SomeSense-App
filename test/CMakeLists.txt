@@ -1,7 +1,6 @@
 SET(PROJECT_TEST_NAME "test_app")
 
 include_directories(
-  ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
   ${INSTALL_INCLUDE_DIR}
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORFLOW_LITE_INCLUDE_DIR}

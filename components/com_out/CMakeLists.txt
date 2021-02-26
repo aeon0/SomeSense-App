@@ -1,7 +1,6 @@
 SET(COMPONENT_NAME "com_out")
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components
   ${OpenCV_INCLUDE_DIRS}
 )
 

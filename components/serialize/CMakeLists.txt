@@ -1,10 +1,10 @@
 SET(COMPONENT_NAME "serialize")
 
 # Generate the .h and .cxx files
+set(CAPNPC_OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "" FORCE)
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS frame.capnp)
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components # needed for generated capnp files
   ${CAPNP_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )

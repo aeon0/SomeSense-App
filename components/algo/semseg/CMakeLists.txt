@@ -2,7 +2,6 @@ SET(COMPONENT_NAME "semseg")
 
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
-  ${CMAKE_BINARY_DIR}/components
   ${TENSORFLOW_LITE_INCLUDE_DIR}
   ${EDGE_TPU_INCLUDE_DIR}
 )

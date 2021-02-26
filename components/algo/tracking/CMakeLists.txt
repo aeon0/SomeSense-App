@@ -2,7 +2,6 @@ SET(COMPONENT_NAME "tracking")
 
 include_directories(SYSTEM
   ${OpenCV_INCLUDE_DIRS}
-  ${CMAKE_BINARY_DIR}/components
 )
 
 add_library(lib${COMPONENT_NAME} 

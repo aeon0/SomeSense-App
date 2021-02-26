@@ -1,7 +1,6 @@
 SET(COMPONENT_NAME "data_reader")
 
 include_directories(SYSTEM
-  ${CMAKE_BINARY_DIR}/components
   ${OpenCV_INCLUDE_DIRS}
   ${CARLA_INCLUDE_DIR}
 )

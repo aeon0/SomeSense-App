@@ -19,6 +19,7 @@ if [[ ( "$1" == "-h" ) || ( "$1" == "--help" ) ]]; then
     echo "  --build_type         Can be one of [debug, release], default=debug"
     echo "  --build_tests        Can be one of [OFF, ON], default=OFF"
     echo "  --build_sim          Can be one of [OFF, ON], default=OFF"
+    echo "  --arm                Can be one of [OFF, ON], default=OFF"
     exit 0
 fi
 
@@ -29,6 +30,7 @@ ROOTDIR=`pwd`
 CONFIG="debug"
 TESTS="OFF"
 SIM="OFF"
+ARM="OFF"
 
 #######################
 ## PARAMETER PARSING ##
@@ -54,6 +56,12 @@ case $i in
         fi
         shift 1
         ;;
+    --arm=*)
+        if [ $# -ne 0 ]; then
+            ARM="${i#*=}"
+        fi
+        shift 1
+        ;;
     "")
         break
         ;;
@@ -70,7 +78,7 @@ BUILDFOLDER=$ROOTDIR/build/$CONFIG
 mkdir -p $BUILDFOLDER
 cd $BUILDFOLDER
 
-cmake -DCMAKE_TOOLCHAIN_FILE=$ROOTDIR/clang_toolchain.cmake -DBUILD_TEST=$TESTS -DBUILD_SIM=$SIM -DCMAKE_BUILD_TYPE=$CONFIG $ROOTDIR || exit 1
+cmake -DCMAKE_TOOLCHAIN_FILE=$ROOTDIR/clang_toolchain.cmake -DBUILD_TEST=$TESTS -DBUILD_SIM=$SIM -DBUILD_ARM=$ARM -DCMAKE_BUILD_TYPE=$CONFIG $ROOTDIR || exit 1
 
 make -j8
 make install

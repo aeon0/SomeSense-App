@@ -8,6 +8,7 @@ set(${PROJECT_NAME}_VERSION_MINOR 1)
 option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
 option(BUILD_TEST "Build the unit tests" OFF)
 option(BUILD_SIM "Build simulation (Carla client)" OFF)
+option(BUILD_ARM "Build for ARM architecture" OFF)
 # export BUILD_SIM to c++ code as compiler definition
 if (BUILD_SIM)
   add_compile_definitions(BUILD_SIM)

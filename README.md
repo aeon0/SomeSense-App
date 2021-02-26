@@ -11,6 +11,7 @@ Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-
 sudo apt-get update
 sudo apt-get install cmake
 sudo apt-get install clang-8
+sudo apt-get install pkg-config
 # video codecs
 sudo apt-get install ffmpeg x264 libx264-dev
 sudo apt-get install libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev
