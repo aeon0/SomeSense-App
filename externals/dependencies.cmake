@@ -1,5 +1,7 @@
 include(ExternalProject)
 
+find_package(Threads)
+
 # Project Dependencies:
 set(OPENCV_VERSION 4.5.1)
 include(externals/opencv.cmake)

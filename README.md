@@ -10,7 +10,7 @@ Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-
 # Run these commands to install cmake and compiler
 sudo apt-get update
 sudo apt-get install cmake
-sudo apt-get install clang-8
+sudo apt-get install clang-7
 sudo apt-get install pkg-config
 # video codecs
 sudo apt-get install ffmpeg x264 libx264-dev

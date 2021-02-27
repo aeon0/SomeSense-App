@@ -56,6 +56,7 @@ endif()
 target_link_libraries(${PROJECT_NAME}
   ${COMPONENT_LIBS}
   ${DEPENDENCY_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
   dl # needed for tensorflow lite (libdl.so)
 )
 
