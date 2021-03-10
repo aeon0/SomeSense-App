@@ -6,6 +6,8 @@ include_directories(SYSTEM
   ${CARLA_INCLUDE_DIR}
   ${TENSORFLOW_LITE_INCLUDE_DIR}
   ${EDGE_TPU_INCLUDE_DIR}
+  # In case we want to call some python code
+  # ${PYTHON_INCLUDE_DIRS}
 )
 
 add_definitions(${CAPNP_DEFINITIONS})
@@ -57,6 +59,8 @@ target_link_libraries(${PROJECT_NAME}
   ${COMPONENT_LIBS}
   ${DEPENDENCY_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
+  # In case we want to call some python code
+  # ${PYTHON_LIBRARIES}
   dl # needed for tensorflow lite (libdl.so)
 )
 
