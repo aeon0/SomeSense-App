@@ -15,8 +15,8 @@ namespace data_reader {
 
     void start() override;
     void handleRequest(const std::string& requestType, const nlohmann::json& requestData, nlohmann::json& responseData) override;
-    const bool isRecording() const override { return true; }
-    const int64_t getRecLength() const override { return _recLength; }
+    bool isRecording() const override { return true; }
+    int64_t getRecLength() const override { return _recLength; }
 
   private:
     void readData();

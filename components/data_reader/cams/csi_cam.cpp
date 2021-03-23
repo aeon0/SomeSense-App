@@ -32,6 +32,7 @@ data_reader::CsiCam::CsiCam(
 
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
   setIntrinsics(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
+  setExtrinsics(0.0, 0.0, 1.3, 0.0, 0.0, 0.0);
 
   // Read one frame to test things
   bool success = _cam.read(_bufferFrame);

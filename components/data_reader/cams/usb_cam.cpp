@@ -23,6 +23,7 @@ data_reader::UsbCam::UsbCam(
   _cam.set(cv::CAP_PROP_FRAME_HEIGHT, captureHeight);
   _frameRate = _cam.get(cv::CAP_PROP_FPS);
   setIntrinsics(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
+  setExtrinsics(0.0, 0.0, 1.7, 0.002, 0.0, 0.0);
 }
 
 void data_reader::UsbCam::start() {

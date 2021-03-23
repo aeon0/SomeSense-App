@@ -36,8 +36,10 @@ if (NOT INSTALL_DEPENDENCIES)
   add_subdirectory(components/serialize)
   # [algos]
   add_subdirectory(components/algo/optical_flow)
+  add_subdirectory(components/algo/inference)
+  add_subdirectory(components/algo/cam_calib)
+  add_subdirectory(components/algo/pointcloud)
   add_subdirectory(components/algo/tracking)
-  add_subdirectory(components/algo/semseg)
   add_subdirectory(components/algo/example)
 
   if(BUILD_TEST)

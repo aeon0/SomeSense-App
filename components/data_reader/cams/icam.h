@@ -17,8 +17,18 @@ namespace data_reader {
 
     // With known z-coordinate (road height), calculate a 3D point from image coordinate (e.g. for flatworld assumption)
     // Note: imgCoord needs to be relativ to intrinsics of the camera
-    virtual cv::Point3f imageToWorldKnownZ(cv::Point2f imgCoord, float z = 0) const = 0;
-    virtual cv::Point2f worldToImage(cv::Point3f worldCoord) const = 0;
+    virtual cv::Point3f imageToWorldKnownZ(const cv::Point2f& imgCoord, float z = 0) const = 0;
+    virtual cv::Point3f camToWorld(const cv::Point3f& camCoord) const = 0;
+    virtual cv::Point2f worldToImage(const cv::Point3f& worldCoord) const = 0;
+    virtual cv::Point3f imageToCam(const cv::Point2f& imgCoord, float radial_dist) const = 0;
+    virtual float calcLateralAngle(const cv::Point2f& imgCoord) const = 0;
+
+    // From width, height (in [px]) and horizontalFov (in [rad]), all other intrinsics
+    // can be calculated. It assumes the principal point at the center of image (concentric lens)
+    virtual void setIntrinsics(const int width, const int height, const double horizontalFov) = 0;
+
+    // Calcluate pose matrix (rotation, translation, axis flip cam -> autosar) based on extrinsics
+    virtual void setExtrinsics(float tx, float ty, float tz, float pitch, float roll, float yaw) = 0;
 
     // Serialize the camera
     virtual void serialize(
@@ -29,37 +39,52 @@ namespace data_reader {
     ) const = 0;
 
     // Return the base (optimal) fps possible for this sensor
-    virtual const double getFrameRate() const = 0;
+    virtual double getFrameRate() const = 0;
 
     // Return frame size
-    virtual const cv::Size getFrameSize() const = 0;
+    virtual cv::Size getFrameSize() const = 0;
 
     // Return horizontal field of view for camera in [rad]
-    virtual const double getHorizontalFov() const = 0;
+    virtual double getHorizontalFov() const = 0;
 
     // Return vertical field of view for camera in [rad]
-    virtual const double getVerticalFov() const = 0;
+    virtual double getVerticalFov() const = 0;
 
     // Return focal length in x direction in [px]
-    virtual const double getFocalX() const = 0;
+    virtual double getFocalX() const = 0;
 
     // Return focal length in y direction in [px]
-    virtual const double getFocalY() const = 0;
+    virtual double getFocalY() const = 0;
 
     // Return principal point x in [px]
-    virtual const double getPrincipalPointX() const = 0;
+    virtual double getPrincipalPointX() const = 0;
 
     // Return principal point y in [px]
-    virtual const double getPrincipalPointY() const = 0;
+    virtual double getPrincipalPointY() const = 0;
+
+    // Return horizon in [px] of y-axis in image
+    virtual float getHorizon() const = 0;
+
+    // Return [tx, ty, tz] in [px]
+    virtual std::tuple<float, float, float> getTranslation() const = 0;
+
+    // Return [pitch, yaw, roll] in [rad]
+    virtual std::tuple<float, float, float> getRotation() const = 0;
+
+    // Return pose matrix in [rad] and [m]
+    virtual const cv::Mat& getPoseMat() const = 0;
+    
+    // Return cam matrix in [px]
+    virtual const cv::Mat& getCamMat() const = 0;
 
     // Return a name for the sensor (used for storing)
-    virtual const std::string getName() const = 0;
+    virtual std::string getName() const = 0;
 
     // Return if the camera is based on video data
-    virtual const bool isRecording() const { return false; }
+    virtual bool isRecording() const { return false; }
 
     // Return rec length in us
-    virtual const int64_t getRecLength() const { return 0; }
+    virtual int64_t getRecLength() const { return 0; }
 
   };
 }

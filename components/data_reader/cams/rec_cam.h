@@ -27,8 +27,8 @@ namespace data_reader {
     void start() override;
 
     // Recording specific getters (have default implementation otherwise)
-    const bool isRecording() const override { return true; }
-    const int64_t getRecLength() const override { return _recLength; }
+    bool isRecording() const override { return true; }
+    int64_t getRecLength() const override { return _recLength; }
 
   private:
     int findFrameNrFromTs(const int64_t ts);

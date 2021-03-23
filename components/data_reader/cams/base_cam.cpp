@@ -1,11 +1,10 @@
 #include "base_cam.h"
+#include <math.h>
 
 
 data_reader::BaseCam::BaseCam(const std::string name, const TS& algoStartTime) : 
   _name(name), _algoStartTime(algoStartTime), _currTs(-1), _validFrame(false) 
 {
-  // TODO: Set extrinsics with camera calibration (static and/or dynamic)
-  setExtrinsics(-0.7, 0.0, 1.3, 0.065, 0.0, 0.0);
 }
 
 std::tuple<const bool, const int64_t, cv::Mat> data_reader::BaseCam::getFrame() {
@@ -47,10 +46,10 @@ void data_reader::BaseCam::setExtrinsics(float tx, float ty, float tz, float pit
              0,         0, 0, 1);
   // translation
   cv::Mat trans = (cv::Mat_<float>(4, 4) <<
-    1, 0, 0, -_tx,
-    0, 1, 0, -_ty,
-    0, 0, 1, -_tz,
-    0, 0, 0,   1);
+    1, 0, 0, _tx,
+    0, 1, 0, _ty,
+    0, 0, 1, _tz,
+    0, 0, 0,  1);
   // Flip axis (camera -> autosar)
   cv::Mat flipAxis = (cv::Mat_<float>(4, 4) <<
     0, -1,  0, 0,
@@ -59,6 +58,12 @@ void data_reader::BaseCam::setExtrinsics(float tx, float ty, float tz, float pit
     0,  0,  0, 1);
 
   _poseMat = flipAxis * rotX * rotY * rotZ * trans;
+  _poseMatTrans = _poseMat.t();
+
+  // Calc Horizon from pitch value by rotating the optical axis by -pitch to have a vector parallel to the world plane
+  cv::Mat opticalAxis = (cv::Mat_<float>(4, 1) << 1, 0, 0, 0);
+  cv::Mat p = _camMat * flipAxis * rotY * opticalAxis;
+  _horizon = p.at<float>(1) / p.at<float>(2);
 }
 
 void data_reader::BaseCam::setIntrinsics(const int width, const int height, const double horizontalFov) {
@@ -84,16 +89,15 @@ void data_reader::BaseCam::setIntrinsics(const int width, const int height, cons
       0, _fy, _cy, 0,
       0,   0,   1, 0,
       0,   0,   0, 1);
+  _camMatTrans = _camMat.t();
 }
 
-cv::Point3f data_reader::BaseCam::imageToWorldKnownZ(cv::Point2f imgCoord, float z) const
-{
-  // cv::Point2f normImgCoord = util::normalizeImgCoord(imgCoord, _fx, cv::Point2f(_cx, _cy));
+cv::Point3f data_reader::BaseCam::imageToWorldKnownZ(const cv::Point2f& imgCoord, float z) const {
   cv::Point2f normImgCoord((imgCoord.x - _cx) * (1 / _fx), (imgCoord.y - _cy) * (1 / _fy));
 
   // Rotate the norm cam coordinates (x, y, 1) to world coordinate system
   cv::Mat normImgMat = (cv::Mat_<float>(4, 1) << normImgCoord.x, normImgCoord.y, 1, 0);
-  cv::Mat rotatedCamMat = _poseMat.t() * normImgMat;
+  cv::Mat rotatedCamMat = _poseMatTrans * normImgMat;
 
   const float zCam = (z - _tz) * (1 / rotatedCamMat.at<float>(2));
   const float x = rotatedCamMat.at<float>(0) * zCam + _tx;
@@ -103,8 +107,31 @@ cv::Point3f data_reader::BaseCam::imageToWorldKnownZ(cv::Point2f imgCoord, float
   return result;
 }
 
-cv::Point2f data_reader::BaseCam::worldToImage(cv::Point3f worldCoord) const
+cv::Point3f data_reader::BaseCam::camToWorld(const cv::Point3f& camCoord) const {
+  cv::Mat camCoordMat = (cv::Mat_<float>(4, 1) << camCoord.x, camCoord.y, camCoord.z, 0);
+  cv::Mat worldCoordMat = _poseMatTrans * camCoordMat;
+  cv::Point3f worldCoord(worldCoordMat.at<float>(0), worldCoordMat.at<float>(1), worldCoordMat.at<float>(2));
+  return worldCoord;
+}
+
+cv::Point3f data_reader::BaseCam::imageToCam(const cv::Point2f& imgCoord, float radial_dist) const {
+  // 3D Cam vector that goes through z=1
+  cv::Point2f normImgCoord((imgCoord.x - _cx) * (1 / _fx), (imgCoord.y - _cy) * (1 / _fy));
+  // Normalize length of 3D vector to 1 to get unit vector
+  const float length = sqrt(pow(normImgCoord.x, 2) + pow(normImgCoord.y, 2) + 1.0);
+  cv::Point3f camCoord(normImgCoord.x / length, normImgCoord.y / length, 1.0 / length);
+  camCoord *= radial_dist;
+  return camCoord;
+}
+
+float data_reader::BaseCam::calcLateralAngle(const cv::Point2f& imgCoord) const
 {
+  const float deltaX = (_cx - imgCoord.x);
+  const float latAngel = atan(deltaX / _fy);
+  return latAngel;
+}
+
+cv::Point2f data_reader::BaseCam::worldToImage(const cv::Point3f& worldCoord) const {
   cv::Mat worldCoordMat = (cv::Mat_<float>(4, 1) << worldCoord.x, worldCoord.y, worldCoord.z, 1);
   cv::Mat imgCoordMat = _camMat * _poseMat * worldCoordMat;
   cv::Point2f imgCoord(imgCoordMat.at<float>(0) / imgCoordMat.at<float>(2), imgCoordMat.at<float>(1) / imgCoordMat.at<float>(2));
@@ -128,6 +155,7 @@ void data_reader::BaseCam::serialize(
   builder.setPrincipalPointY(getPrincipalPointY());
   builder.setFovHorizontal(getHorizontalFov());
   builder.setFovVertical(getVerticalFov());
+  builder.setHorizon(getHorizon());
 
   builder.setX(_tx);
   builder.setY(_ty);

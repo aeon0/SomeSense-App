@@ -39,6 +39,7 @@ data_reader::Carla::Carla(const std::string name, const TS& algoStartTime):
     }
   }
   setIntrinsics(width, height, horizontalFov);
+  setExtrinsics(0.0, 0.0, 1.3, 0.0, 0.0, 0.0);
 }
 
 void data_reader::Carla::start() {

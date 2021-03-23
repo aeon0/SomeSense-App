@@ -33,8 +33,10 @@ set(COMPONENT_LIBS
 
   # [algos]
   liboptical_flow
+  libinference
+  libcam_calib
+  libpointcloud
   libtracking
-  libsemseg
   libexample_algo
 )
 set(DEPENDENCY_LIBS

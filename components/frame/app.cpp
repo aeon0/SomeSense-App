@@ -26,6 +26,7 @@ frame::App::App(const data_reader::SensorStorage& sensorStorage, serialize::AppS
   // Listen to SIGINT (usually ctrl + c on terminal) to stop endless algo loop
   signal(SIGINT, &sighandler);
 
+  _pointcloud = std::make_unique<pointcloud::Pointcloud>(_runtimeMeasService);
   _tracker = std::make_unique<tracking::Tracker>(_runtimeMeasService);
 }
 
@@ -79,14 +80,12 @@ void frame::App::runFrame() {
       if (sensorTs > _ts) {
         _ts = sensorTs; // take latest sensorTs as as algoTs
       }
-    
+
       // Create grayscale img
       cv::Mat grayScaleImg;
       cv::cvtColor(img, grayScaleImg, cv::COLOR_BGR2GRAY);
 
-      // TODO: Camera dynamic calibration
       auto camSensorBuilder = capnpCamSensors[camSensorIdx];
-      cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
 
       // Call [algos] on 2D image
       // Optical Flow - currently a empty hull
@@ -97,21 +96,32 @@ void frame::App::runFrame() {
       auto opticalFlowBuilder = camSensorBuilder.getOpticalFlow();
       _opticalFlowMap.at(key)->serialize(opticalFlowBuilder);
 
-      // Semantic Segmentation
-      if (_semsegMap.count(key) <= 0) {
-        _semsegMap.insert({key, std::make_unique<semseg::Semseg>(_runtimeMeasService)});
+      // Inference on EdgeTpu
+      if (_inference.count(key) <= 0) {
+        _inference.insert({key, std::make_unique<inference::Inference>(_runtimeMeasService)});
       }
-      _semsegMap.at(key)->processImg(img, *cam);
-      auto semsegBuilder = camSensorBuilder.getSemseg();
-      _semsegMap.at(key)->serialize(semsegBuilder);
+      _inference.at(key)->processImg(img);
+      _inference.at(key)->serialize(camSensorBuilder);
+
+      // Cam calibration
+      if (_camCalib.count(key) <= 0) {
+        _camCalib.insert({key, std::make_unique<cam_calib::CamCalib>(_runtimeMeasService, *cam)});
+      }
+      _camCalib.at(key)->calibrate(_inference.at(key)->getSemseg(), _inference.at(key)->getDepth(), _inference.at(key)->getRoi());
+
+      cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
+
+      // Update sensor independent algos
+      _pointcloud->processData(_inference.at(key)->getSemseg(), _inference.at(key)->getDepth(), _inference.at(key)->getRoi(), *cam);
+      _tracker->update();
     }
 
     camSensorIdx++;
   }
 
+  // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
   if (_ts > previousTs) {
-    // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
-    _tracker->update();
+    _pointcloud->serialize(capnpFrameData);
     _tracker->serialize(capnpFrameData);
 
     // Finally set the algo timestamp to the output data

@@ -11,8 +11,10 @@
 #include "serialize/app_state.h"
 // [algos]
 #include "algo/optical_flow/optical_flow.h"
+#include "algo/inference/inference.h"
+#include "algo/cam_calib/cam_calib.h"
+#include "algo/pointcloud/pointcloud.h"
 #include "algo/tracking/tracker.h"
-#include "algo/semseg/semseg.h"
 #include "algo/example/example.h"
 
 
@@ -42,8 +44,10 @@ namespace frame {
     std::atomic<bool> _resetEndOfFrame;
 
     // [algos]
-    std::map<const std::string, std::unique_ptr<optical_flow::OpticalFlow>> _opticalFlowMap; // optical flow per image
-    std::map<const std::string, std::unique_ptr<semseg::Semseg>> _semsegMap; // semseg per image
+    std::map<const std::string, std::unique_ptr<optical_flow::OpticalFlow>> _opticalFlowMap; // optical flow per cam sensor
+    std::map<const std::string, std::unique_ptr<inference::Inference>> _inference; // inference per cam sensor
+    std::map<const std::string, std::unique_ptr<cam_calib::CamCalib>> _camCalib; // cam_calib per cam sensor
+    std::unique_ptr<pointcloud::Pointcloud> _pointcloud;
     std::unique_ptr<tracking::Tracker> _tracker;
   };
 }
