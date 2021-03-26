@@ -14,6 +14,8 @@ namespace util {
 
     cv::Point2f convertToRoi(const Roi& roi, const cv::Point2f& point);
 
+    cv::Point2f converToRoiInv(const Roi& roi, const cv::Point2f& point);
+
     cv::Point3f unit(cv::Point3f vec);
 
     cv::Point2f unit(cv::Point2f vec);

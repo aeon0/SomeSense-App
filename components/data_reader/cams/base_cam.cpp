@@ -46,9 +46,9 @@ void data_reader::BaseCam::setExtrinsics(float tx, float ty, float tz, float pit
              0,         0, 0, 1);
   // translation
   cv::Mat trans = (cv::Mat_<float>(4, 4) <<
-    1, 0, 0, _tx,
-    0, 1, 0, _ty,
-    0, 0, 1, _tz,
+    1, 0, 0, -_tx,
+    0, 1, 0, -_ty,
+    0, 0, 1, -_tz,
     0, 0, 0,  1);
   // Flip axis (camera -> autosar)
   cv::Mat flipAxis = (cv::Mat_<float>(4, 4) <<
@@ -59,6 +59,7 @@ void data_reader::BaseCam::setExtrinsics(float tx, float ty, float tz, float pit
 
   _poseMat = flipAxis * rotX * rotY * rotZ * trans;
   _poseMatTrans = _poseMat.t();
+  _poseMatInv = _poseMat.inv();
 
   // Calc Horizon from pitch value by rotating the optical axis by -pitch to have a vector parallel to the world plane
   cv::Mat opticalAxis = (cv::Mat_<float>(4, 1) << 1, 0, 0, 0);
@@ -108,8 +109,8 @@ cv::Point3f data_reader::BaseCam::imageToWorldKnownZ(const cv::Point2f& imgCoord
 }
 
 cv::Point3f data_reader::BaseCam::camToWorld(const cv::Point3f& camCoord) const {
-  cv::Mat camCoordMat = (cv::Mat_<float>(4, 1) << camCoord.x, camCoord.y, camCoord.z, 0);
-  cv::Mat worldCoordMat = _poseMatTrans * camCoordMat;
+  cv::Mat camCoordMat = (cv::Mat_<float>(4, 1) << camCoord.x, camCoord.y, camCoord.z, 1);
+  cv::Mat worldCoordMat = _poseMatInv * camCoordMat;
   cv::Point3f worldCoord(worldCoordMat.at<float>(0), worldCoordMat.at<float>(1), worldCoordMat.at<float>(2));
   return worldCoord;
 }
@@ -136,6 +137,13 @@ cv::Point2f data_reader::BaseCam::worldToImage(const cv::Point3f& worldCoord) co
   cv::Mat imgCoordMat = _camMat * _poseMat * worldCoordMat;
   cv::Point2f imgCoord(imgCoordMat.at<float>(0) / imgCoordMat.at<float>(2), imgCoordMat.at<float>(1) / imgCoordMat.at<float>(2));
   return imgCoord;
+}
+
+cv::Point3f data_reader::BaseCam::worldToCam(const cv::Point3f& worldCoord) const {
+  cv::Mat worldCoordMat = (cv::Mat_<float>(4, 1) << worldCoord.x, worldCoord.y, worldCoord.z, 1);
+  cv::Mat imgCoordMat = _poseMat * worldCoordMat;
+  cv::Point3f camCoord(imgCoordMat.at<float>(0), imgCoordMat.at<float>(1), imgCoordMat.at<float>(2));
+  return camCoord;
 }
 
 void data_reader::BaseCam::serialize(

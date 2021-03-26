@@ -20,6 +20,7 @@ namespace data_reader {
     virtual cv::Point3f imageToWorldKnownZ(const cv::Point2f& imgCoord, float z = 0) const = 0;
     virtual cv::Point3f camToWorld(const cv::Point3f& camCoord) const = 0;
     virtual cv::Point2f worldToImage(const cv::Point3f& worldCoord) const = 0;
+    virtual cv::Point3f worldToCam(const cv::Point3f& worldCoord) const = 0;
     virtual cv::Point3f imageToCam(const cv::Point2f& imgCoord, float radial_dist) const = 0;
     virtual float calcLateralAngle(const cv::Point2f& imgCoord) const = 0;
 

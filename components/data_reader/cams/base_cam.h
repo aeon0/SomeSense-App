@@ -50,6 +50,7 @@ namespace data_reader {
     cv::Point3f imageToWorldKnownZ(const cv::Point2f& imgCoord, float z = 0) const override;
     cv::Point3f camToWorld(const cv::Point3f& camCoord) const override;
     cv::Point2f worldToImage(const cv::Point3f& worldCoord) const override;
+    cv::Point3f worldToCam(const cv::Point3f& worldCoord) const override;
     cv::Point3f imageToCam(const cv::Point2f& imgCoord, float radial_dist) const override;
     float calcLateralAngle(const cv::Point2f& imgCoord) const override;
 
@@ -77,6 +78,7 @@ namespace data_reader {
     float _horizon; // in [px] y-value
     cv::Mat _poseMat;
     cv::Mat _poseMatTrans;
+    cv::Mat _poseMatInv;
 
     // Frame data
     double _frameRate;

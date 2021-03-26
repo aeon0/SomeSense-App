@@ -50,6 +50,13 @@ cv::Point2f util::img::convertToRoi(const Roi& roi, const cv::Point2f& point) {
   return converted;
 }
 
+cv::Point2f util::img::converToRoiInv(const Roi& roi, const cv::Point2f& point) {
+  cv::Point2f converted;
+  converted.x = (point.x - roi.offsetLeft) * roi.scale;
+  converted.y = (point.y - roi.offsetTop) * roi.scale;
+  return converted;
+}
+
 cv::Point3f util::img::unit(cv::Point3f vec) {
   const float length = sqrt(pow(vec.x, 2) + pow(vec.y, 2) + pow(vec.z, 2));
   vec /= length;
