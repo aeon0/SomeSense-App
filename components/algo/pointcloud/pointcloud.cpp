@@ -20,7 +20,7 @@ void pointcloud::Pointcloud::processData(const cv::Mat& semseg, const cv::Mat& d
   // cv::Mat depthImg = cv::Mat(depth.size().height, depth.size().width, CV_8UC1, cv::Scalar(0));
 
   _runtimeMeasService.startMeas("pointcloud");
-  const cv::Point2f minHorizon = util::img::converToRoiInv(roi, cv::Point2f(0.0, cam.getHorizon()));
+  const cv::Point2f minHorizon = util::img::convertToRoiInv(roi, cv::Point2f(0.0, cam.getHorizon()));
   for (int x = 1; x < semseg.size().width - 1; ++x) {
     bool foundMovable = false;
     float previousZ = 0.0F;

@@ -32,6 +32,7 @@ struct CapnpOutput {
     opticalFlow @17 :OpticalFlow;
     semsegImg @18 :Img;
     depthImg @19 :Img;
+    objects2D @20 :List(Object2D);
 
     struct Img {
       width @0 :Int32; # in [px]
@@ -41,6 +42,15 @@ struct CapnpOutput {
       scale @4 :Float32 = 1.0; # scale with respect to input img
       offsetLeft @5 :Float32 = 0.0; # Offset from left edge in [px]
       offsetTop @6 :Float32 = 0.0; # Offset from top edge in [px]
+    }
+
+    struct Object2D {
+      cx @0 :Int32;
+      cy @1 :Int32;
+      objClass @2 :Int32;
+      width @3 :Int32;
+      height @4 :Int32;
+      radialDist @5 :Float32;
     }
 
     # [algos] per image

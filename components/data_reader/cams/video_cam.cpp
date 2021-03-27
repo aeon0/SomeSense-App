@@ -21,7 +21,7 @@ data_reader::VideoCam::VideoCam(
   BaseCam(name, std::chrono::high_resolution_clock::now()),
   _appState(appState),
   _gotOneFrame(false),
-  _pause(true),
+  _pause(false),
   _jumpToFrame(false),
   _currFrameNr(0),
   _filePath(filePath)

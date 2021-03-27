@@ -113,7 +113,7 @@ void frame::App::runFrame() {
 
       // Update sensor independent algos
       _pointcloud->processData(_inference.at(key)->getSemseg(), _inference.at(key)->getDepth(), _inference.at(key)->getRoi(), *cam);
-      _tracker->update();
+      _tracker->update(_inference.at(key)->getObjects2D(), *cam);
     }
 
     camSensorIdx++;
