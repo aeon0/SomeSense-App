@@ -72,7 +72,7 @@ void pointcloud::Pointcloud::processData(const cv::Mat& semseg, const cv::Mat& d
         sampleY = false;
       }
 
-      if (y < int(minHorizon.y)) {
+      if (y < int(minHorizon.y) || semsegClass == inference::UNDRIVEABLE) {
         sampleY = false;
       }
       else {

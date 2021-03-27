@@ -74,13 +74,13 @@ void cam_calib::CamCalib::calibrate(const cv::Mat& semseg, const cv::Mat& depth,
     _pitch -= deltaPitch;
 
     // Filter tz value
-    float deltaTz = _tz - (0.5 * _tz + 0.5 * newTz);
-    deltaTz = std::clamp(deltaTz, -0.01F, 0.01F);
-    _tz -= deltaTz;
+    // float deltaTz = _tz - (0.5 * _tz + 0.5 * newTz);
+    // deltaTz = std::clamp(deltaTz, -0.01F, 0.01F);
+    // _tz -= deltaTz;
 
     auto [tx, ty, tz] = _cam.getTranslation();
     auto [pitch, yaw, roll] = _cam.getRotation();
-    _cam.setExtrinsics(tx, ty, _tz, _pitch, roll, yaw);
+    _cam.setExtrinsics(tx, ty, tz, _pitch, roll, yaw);
 
     // std::cout << "tZ: " << _tz << std::endl;
     // // std::cout << "roll: " << newRoll * (180.0/3.141592653589793238463) << std::endl;

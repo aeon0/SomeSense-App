@@ -102,7 +102,7 @@ void inference::Inference::processImg(const cv::Mat &img) {
       // Fill depth map
       const uint8_t rawDepthVal = *(startEle + DEPTH_IDX);
       const float depthVal = pow(((static_cast<float>(rawDepthVal) * QUANT_SCALE * 255.0) / 22.0), 2.0) + 3.0;
-      _depthOut.at<float>(row, col) = depthVal;
+      _depthOut.at<float>(row, col) = depthVal * 1.05F + 1.0F; // Adding a bit of a bias as depth always seems to be on the shorter side! Yes, its hacky.
       _depthImg.at<uint8_t>(row, col) = static_cast<uint8_t>(std::clamp((float)(rawDepthVal) * 1.6F, 0.0F, 253.0F));
     }
   }
