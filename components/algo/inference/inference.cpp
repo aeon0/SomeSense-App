@@ -2,27 +2,32 @@
 #include <iostream>
 #include <cmath>
 
+#include "edgetpu_c.h"
+#include "tensorflow/lite/builtin_op_data.h"
+#include "tensorflow/lite/kernels/register.h"
+#include "tensorflow/lite/model.h"
+
 
 inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService)
 {
-  // Check if edge tpu is available
-  const auto& availableTpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();
-  std::cout << "Found Edge TPUs: " << availableTpus.size() << std::endl;
-  _edgeTpuAvailable = availableTpus.size() > 0;
+  std::unique_ptr<tflite::FlatBufferModel> model;
+  model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
+  assert(model != nullptr);
 
-  // Load model
-  if (_edgeTpuAvailable) {
-    std::cout << "TPU Type: " << availableTpus[0].type << ", TPU Path: " << availableTpus[0].path << std::endl;
-    std::cout << "Load Multitask Model from: " << PATH_EDGETPU_MODEL << std::endl;
-    _model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
-    _edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(availableTpus[0].type, availableTpus[0].path);
-    _resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
-  }
-  else {
-    _model = tflite::FlatBufferModel::BuildFromFile(PATH_TFLITE_MODEL.c_str());
-  }
-  assert(_model != nullptr);
+  tflite::ops::builtin::BuiltinOpResolver resolver;
+  tflite::InterpreterBuilder(*model, resolver)(&_interpreter);
+
+  size_t num_devices;
+  std::unique_ptr<edgetpu_device, decltype(&edgetpu_free_devices)> devices(edgetpu_list_devices(&num_devices), &edgetpu_free_devices);
+  std::cout << "Found EdgeTPU devices: " << num_devices << std::endl;
+
+  const auto& device = devices.get()[0];
+  std::cout << "Type: " << device.type << ", Path: " << device.path << std::endl;
+  auto* delegate = edgetpu_create_delegate(device.type, device.path, nullptr, 0);
+  _interpreter->ModifyGraphWithDelegate({delegate, edgetpu_free_delegate});
+  _interpreter->SetNumThreads(1);
+  assert(_interpreter->AllocateTensors() == kTfLiteOk);
 }
 
 void inference::Inference::reset() {
@@ -33,46 +38,33 @@ void inference::Inference::reset() {
 
 void inference::Inference::processImg(const cv::Mat &img) {
   _runtimeMeasService.startMeas("inference/input");
-  // Create interpreter and allocate input memory
-  std::unique_ptr<tflite::Interpreter> interpreter;
-  TfLiteStatus status;
-  status = tflite::InterpreterBuilder(*_model, _resolver)(&interpreter); // != kTfLiteOk) {
-  if (_edgeTpuAvailable) {
-    interpreter->SetExternalContext(kTfLiteEdgeTpuContext, _edgeTpuContext.get());
-    interpreter->SetNumThreads(1);
-  }
-  assert(status == kTfLiteOk && interpreter != nullptr);
-  // Allocate tensor buffers.
-  status = interpreter->AllocateTensors();
-  assert(status == kTfLiteOk);
-
   // Get input size and resize img to input size
-  const int inputHeight = interpreter->input_tensor(0)->dims->data[1];
-  const int inputWidth = interpreter->input_tensor(0)->dims->data[2];
+  const int inputHeight = _interpreter->input_tensor(0)->dims->data[1];
+  const int inputWidth = _interpreter->input_tensor(0)->dims->data[2];
   cv::Mat inputImg;
   _roi = util::img::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
   _roi.scale = 0.5; // Network output is also scaled down by /2
 
   // Set data to model input
-  size_t sizeOfInputInBytes = interpreter->input_tensor(0)->bytes;
+  size_t sizeOfInputInBytes = _interpreter->input_tensor(0)->bytes;
   size_t sizeOfMatInBytes = inputImg.total() * inputImg.elemSize();
   assert(sizeOfInputInBytes == sizeOfMatInBytes);
-  uint8_t* input = interpreter->typed_input_tensor<uint8_t>(0);
+  uint8_t* input = _interpreter->typed_input_tensor<uint8_t>(0);
   memcpy(input, (uint8_t*)inputImg.data, sizeOfInputInBytes);
   _runtimeMeasService.endMeas("inference/input");
 
   // Run inference
   _runtimeMeasService.startMeas("inference/run");
-  status = interpreter->Invoke();
+  auto status = _interpreter->Invoke();
   assert(status == kTfLiteOk);
   _runtimeMeasService.endMeas("inference/run");
 
   _runtimeMeasService.startMeas("inference/post-process");
-  const uint8_t* outputIt = interpreter->typed_output_tensor<uint8_t>(0);
+  const uint8_t* outputIt = _interpreter->typed_output_tensor<uint8_t>(0);
   // Multitask output concatentes the outputs to [CENTERNET, SEMSEG, DEPTH] with the same size of height and width
-  const int outHeight = interpreter->output_tensor(0)->dims->data[1];
-  const int outWidth = interpreter->output_tensor(0)->dims->data[2];
-  const int outChannels = interpreter->output_tensor(0)->dims->data[3];
+  const int outHeight = _interpreter->output_tensor(0)->dims->data[1];
+  const int outWidth = _interpreter->output_tensor(0)->dims->data[2];
+  const int outChannels = _interpreter->output_tensor(0)->dims->data[3];
   const int nbPixels = outHeight * outWidth;
   // Allocated data and clear previous data
   _semsegOut = cv::Mat(outHeight, outWidth, CV_8UC1);

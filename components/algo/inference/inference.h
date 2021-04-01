@@ -6,11 +6,7 @@
 #include "utilities/img.h"
 #include "serialize/frame.capnp.h"
 #include "params.h"
-// Tensorflow Lite and EdgeTpu includes
-#include "edgetpu.h"
 #include "tensorflow/lite/interpreter.h"
-#include "tensorflow/lite/kernels/register.h"
-#include "tensorflow/lite/model.h"
 
 
 namespace inference {
@@ -29,9 +25,7 @@ namespace inference {
   private:
     frame::RuntimeMeasService& _runtimeMeasService;
     // TFLite and EdgeTpu
-    std::unique_ptr<tflite::FlatBufferModel> _model;
-    std::shared_ptr<edgetpu::EdgeTpuContext> _edgeTpuContext;
-    tflite::ops::builtin::BuiltinOpResolver _resolver;
+    std::unique_ptr<tflite::Interpreter> _interpreter;
     bool _edgeTpuAvailable;
     // Output data
     cv::Mat _semsegOut;
