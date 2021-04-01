@@ -13,6 +13,7 @@ inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
 
   // Load model
   if (_edgeTpuAvailable) {
+    std::cout << "TPU Type: " << availableTpus[0].type << ", TPU Path: " << availableTpus[0].path << std::endl;
     std::cout << "Load Multitask Model from: " << PATH_EDGETPU_MODEL << std::endl;
     _model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
     _edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(availableTpus[0].type, availableTpus[0].path);
@@ -64,10 +65,10 @@ void inference::Inference::processImg(const cv::Mat &img) {
   _runtimeMeasService.startMeas("inference/run");
   status = interpreter->Invoke();
   assert(status == kTfLiteOk);
-  const uint8_t* outputIt = interpreter->typed_output_tensor<uint8_t>(0);
   _runtimeMeasService.endMeas("inference/run");
 
   _runtimeMeasService.startMeas("inference/post-process");
+  const uint8_t* outputIt = interpreter->typed_output_tensor<uint8_t>(0);
   // Multitask output concatentes the outputs to [CENTERNET, SEMSEG, DEPTH] with the same size of height and width
   const int outHeight = interpreter->output_tensor(0)->dims->data[1];
   const int outWidth = interpreter->output_tensor(0)->dims->data[2];
