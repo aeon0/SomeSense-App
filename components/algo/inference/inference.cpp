@@ -11,23 +11,35 @@
 inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService)
 {
-  std::unique_ptr<tflite::FlatBufferModel> model;
-  model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
-  assert(model != nullptr);
+  // Check if edge tpu is available
+  const auto& availableTpus = edgetpu::EdgeTpuManager::GetSingleton()->EnumerateEdgeTpu();
+  std::cout << "Found Edge TPUs: " << availableTpus.size() << std::endl;
+  _edgeTpuAvailable = availableTpus.size() > 0;
 
-  tflite::ops::builtin::BuiltinOpResolver resolver;
-  tflite::InterpreterBuilder(*model, resolver)(&_interpreter);
+  // Load model
+  if (_edgeTpuAvailable) {
+    std::cout << "TPU Type: " << availableTpus[0].type << ", TPU Path: " << availableTpus[0].path << std::endl;
+    std::cout << "Load Multitask Model from: " << PATH_EDGETPU_MODEL << std::endl;
+    _model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
+    _edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(availableTpus[0].type, availableTpus[0].path);
+    _resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
+  }
+  else {
+    _model = tflite::FlatBufferModel::BuildFromFile(PATH_TFLITE_MODEL.c_str());
+  }
+  assert(_model != nullptr);
 
-  size_t num_devices;
-  std::unique_ptr<edgetpu_device, decltype(&edgetpu_free_devices)> devices(edgetpu_list_devices(&num_devices), &edgetpu_free_devices);
-  std::cout << "Found EdgeTPU devices: " << num_devices << std::endl;
-
-  const auto& device = devices.get()[0];
-  std::cout << "Type: " << device.type << ", Path: " << device.path << std::endl;
-  auto* delegate = edgetpu_create_delegate(device.type, device.path, nullptr, 0);
-  _interpreter->ModifyGraphWithDelegate({delegate, edgetpu_free_delegate});
-  _interpreter->SetNumThreads(1);
-  assert(_interpreter->AllocateTensors() == kTfLiteOk);
+  // Create interpreter and allocate input memory
+  TfLiteStatus status;
+  status = tflite::InterpreterBuilder(*_model, _resolver)(&_interpreter);
+  if (_edgeTpuAvailable) {
+    _interpreter->SetExternalContext(kTfLiteEdgeTpuContext, _edgeTpuContext.get());
+    _interpreter->SetNumThreads(1);
+  }
+  assert(status == kTfLiteOk && _interpreter != nullptr);
+  // Allocate tensor buffers.
+  status = _interpreter->AllocateTensors();
+  assert(status == kTfLiteOk);
 }
 
 void inference::Inference::reset() {
