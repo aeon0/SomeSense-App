@@ -32,6 +32,7 @@ namespace inference {
     std::unique_ptr<tflite::FlatBufferModel> _model;
     std::shared_ptr<edgetpu::EdgeTpuContext> _edgeTpuContext;
     tflite::ops::builtin::BuiltinOpResolver _resolver;
+    std::unique_ptr<tflite::Interpreter> _interpreter;
     bool _edgeTpuAvailable;
     // Output data
     cv::Mat _semsegOut;

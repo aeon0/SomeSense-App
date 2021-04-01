@@ -23,6 +23,18 @@ inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
     _model = tflite::FlatBufferModel::BuildFromFile(PATH_TFLITE_MODEL.c_str());
   }
   assert(_model != nullptr);
+
+  // Create interpreter and allocate input memory
+  TfLiteStatus status;
+  status = tflite::InterpreterBuilder(*_model, _resolver)(&_interpreter);
+  if (_edgeTpuAvailable) {
+    _interpreter->SetExternalContext(kTfLiteEdgeTpuContext, _edgeTpuContext.get());
+    _interpreter->SetNumThreads(1);
+  }
+  assert(status == kTfLiteOk && _interpreter != nullptr);
+  // Allocate tensor buffers.
+  status = _interpreter->AllocateTensors();
+  assert(status == kTfLiteOk);
 }
 
 void inference::Inference::reset() {
@@ -33,46 +45,33 @@ void inference::Inference::reset() {
 
 void inference::Inference::processImg(const cv::Mat &img) {
   _runtimeMeasService.startMeas("inference/input");
-  // Create interpreter and allocate input memory
-  std::unique_ptr<tflite::Interpreter> interpreter;
-  TfLiteStatus status;
-  status = tflite::InterpreterBuilder(*_model, _resolver)(&interpreter); // != kTfLiteOk) {
-  if (_edgeTpuAvailable) {
-    interpreter->SetExternalContext(kTfLiteEdgeTpuContext, _edgeTpuContext.get());
-    interpreter->SetNumThreads(1);
-  }
-  assert(status == kTfLiteOk && interpreter != nullptr);
-  // Allocate tensor buffers.
-  status = interpreter->AllocateTensors();
-  assert(status == kTfLiteOk);
-
   // Get input size and resize img to input size
-  const int inputHeight = interpreter->input_tensor(0)->dims->data[1];
-  const int inputWidth = interpreter->input_tensor(0)->dims->data[2];
+  const int inputHeight = _interpreter->input_tensor(0)->dims->data[1];
+  const int inputWidth = _interpreter->input_tensor(0)->dims->data[2];
   cv::Mat inputImg;
   _roi = util::img::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
   _roi.scale = 0.5; // Network output is also scaled down by /2
 
   // Set data to model input
-  size_t sizeOfInputInBytes = interpreter->input_tensor(0)->bytes;
+  size_t sizeOfInputInBytes = _interpreter->input_tensor(0)->bytes;
   size_t sizeOfMatInBytes = inputImg.total() * inputImg.elemSize();
   assert(sizeOfInputInBytes == sizeOfMatInBytes);
-  uint8_t* input = interpreter->typed_input_tensor<uint8_t>(0);
+  uint8_t* input = _interpreter->typed_input_tensor<uint8_t>(0);
   memcpy(input, (uint8_t*)inputImg.data, sizeOfInputInBytes);
   _runtimeMeasService.endMeas("inference/input");
 
   // Run inference
   _runtimeMeasService.startMeas("inference/run");
-  status = interpreter->Invoke();
+  auto status = _interpreter->Invoke();
   assert(status == kTfLiteOk);
   _runtimeMeasService.endMeas("inference/run");
 
   _runtimeMeasService.startMeas("inference/post-process");
-  const uint8_t* outputIt = interpreter->typed_output_tensor<uint8_t>(0);
+  const uint8_t* outputIt = _interpreter->typed_output_tensor<uint8_t>(0);
   // Multitask output concatentes the outputs to [CENTERNET, SEMSEG, DEPTH] with the same size of height and width
-  const int outHeight = interpreter->output_tensor(0)->dims->data[1];
-  const int outWidth = interpreter->output_tensor(0)->dims->data[2];
-  const int outChannels = interpreter->output_tensor(0)->dims->data[3];
+  const int outHeight = _interpreter->output_tensor(0)->dims->data[1];
+  const int outWidth = _interpreter->output_tensor(0)->dims->data[2];
+  const int outChannels = _interpreter->output_tensor(0)->dims->data[3];
   const int nbPixels = outHeight * outWidth;
   // Allocated data and clear previous data
   _semsegOut = cv::Mat(outHeight, outWidth, CV_8UC1);
