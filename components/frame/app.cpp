@@ -112,6 +112,7 @@ void frame::App::runFrame() {
       cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
 
       // Update sensor independent algos
+      // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
       _pointcloud->processData(_inference.at(key)->getSemseg(), _inference.at(key)->getDepth(), _inference.at(key)->getRoi(), *cam);
       _tracker->update(_inference.at(key)->getObjects2D(), *cam);
     }
@@ -119,7 +120,6 @@ void frame::App::runFrame() {
     camSensorIdx++;
   }
 
-  // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
   if (_ts > previousTs) {
     _pointcloud->serialize(capnpFrameData);
     _tracker->serialize(capnpFrameData);
@@ -135,6 +135,8 @@ void frame::App::runFrame() {
 
     _appState.setFrame(std::move(messagePtr));
     _frame++;
+
+    _runtimeMeasService.printToConsole();
   }
 
   _runtimeMeasService.reset();
@@ -142,6 +144,7 @@ void frame::App::runFrame() {
     reset();
     _resetEndOfFrame = false;
   }
+
   // keep consistent algo framerate
   std::this_thread::sleep_until(plannedFrameEndTime);
 }

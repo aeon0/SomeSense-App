@@ -84,7 +84,6 @@ void pointcloud::Pointcloud::processData(const cv::Mat& semseg, const cv::Mat& d
     }
   }
   _runtimeMeasService.endMeas("pointcloud");
-  _runtimeMeasService.printToConsole();
 
   // cv::imshow("semseg", semsegImg);
   // cv::imshow("depth", depthImg);
