@@ -6,7 +6,11 @@
 #include "utilities/img.h"
 #include "serialize/frame.capnp.h"
 #include "params.h"
+// Tensorflow Lite and EdgeTpu includes
+#include "edgetpu.h"
 #include "tensorflow/lite/interpreter.h"
+#include "tensorflow/lite/kernels/register.h"
+#include "tensorflow/lite/model.h"
 
 
 namespace inference {

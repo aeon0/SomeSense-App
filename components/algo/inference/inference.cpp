@@ -2,11 +2,6 @@
 #include <iostream>
 #include <cmath>
 
-#include "edgetpu_c.h"
-#include "tensorflow/lite/builtin_op_data.h"
-#include "tensorflow/lite/kernels/register.h"
-#include "tensorflow/lite/model.h"
-
 
 inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService)
