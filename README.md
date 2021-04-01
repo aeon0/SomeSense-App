@@ -61,4 +61,4 @@ Whatever is usefull and shared over all components.
 
 ## Agenda
 - Update to the latest edge tpu + rebuilding the tflite. Now that there is no more bug in the tflite project (hopefully), maybe this can be done on the fly
-- Add more algorithms
+- Add more algorithms.
