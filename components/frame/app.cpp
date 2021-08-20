@@ -114,7 +114,7 @@ void frame::App::runFrame() {
       // Update sensor independent algos
       // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
       _pointcloud->processData(_inference.at(key)->getSemseg(), _inference.at(key)->getDepth(), _inference.at(key)->getRoi(), *cam);
-      _tracker->update(_inference.at(key)->getObjects2D(), *cam);
+      _tracker->update(*cam);
     }
 
     camSensorIdx++;

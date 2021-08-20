@@ -15,7 +15,7 @@ namespace tracking {
   public:
     Tracker(frame::RuntimeMeasService& runtimeMeasService);
     void reset();
-    void update(const std::vector<inference::Object2D>& objects2D, const data_reader::ICam& cam);
+    void update(const data_reader::ICam& cam);
 
     void serialize(CapnpOutput::Frame::Builder& builder);
   private:

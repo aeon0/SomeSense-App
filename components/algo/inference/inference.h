@@ -23,7 +23,6 @@ namespace inference {
 
     const cv::Mat& getSemseg() { return _semsegOut; }
     const cv::Mat& getDepth() { return _depthOut; }
-    const std::vector<Object2D>& getObjects2D() { return _objects2D; }
     const util::img::Roi& getRoi() { return _roi; }
 
   private:
@@ -39,7 +38,6 @@ namespace inference {
     cv::Mat _semsegImg;
     cv::Mat _depthOut;
     cv::Mat _depthImg;
-    std::vector<Object2D> _objects2D;
     util::img::Roi _roi;
   };
 }

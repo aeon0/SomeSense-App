@@ -9,12 +9,8 @@ void tracking::Tracker::reset() {
   _tracks.clear();
 }
 
-void tracking::Tracker::update(const std::vector<inference::Object2D>& objects2D, const data_reader::ICam& cam) {
+void tracking::Tracker::update(const data_reader::ICam& cam) {
   _tracks.clear();
-  for (int i = 0; i < objects2D.size(); ++i) {
-    cv::Point3f worldCoord = cam.camToWorld(cam.imageToCam(cv::Point(objects2D[i].cx, objects2D[i].cy), objects2D[i].radialDist));
-    _tracks.push_back({worldCoord});
-  }
 }
 
 void tracking::Tracker::serialize(CapnpOutput::Frame::Builder& builder) {
