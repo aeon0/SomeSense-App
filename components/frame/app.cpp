@@ -111,6 +111,13 @@ void frame::App::runFrame() {
 
       cam->serialize(camSensorBuilder, camSensorIdx, sensorTs, img);
 
+      // Some debugging to show the horizon
+      // auto horizonImg = img.clone();
+      // auto horizonYpx = cam->getHorizon();
+      // cv::line(horizonImg, cv::Point2i(280, horizonYpx), cv::Point2i(360, horizonYpx), cv::Scalar(255, 0, 0), 2);
+      // cv::imshow("horizonImg", horizonImg);
+      // cv::waitKey(1);
+
       // Update sensor independent algos
       // TODO: In case there is no sensor input for a bit, we still should update (and thus predict) the tracker
       _pointcloud->processData(_inference.at(key)->getSemseg(), _inference.at(key)->getDepth(), _inference.at(key)->getRoi(), *cam);
