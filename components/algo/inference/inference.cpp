@@ -49,7 +49,6 @@ void inference::Inference::processImg(const cv::Mat &img) {
   const int inputWidth = _interpreter->input_tensor(0)->dims->data[2];
   cv::Mat inputImg;
   _roi = util::img::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
-  _roi.scale = 0.5; // Network output is also scaled down by /2
 
   // Set data to model input
   size_t sizeOfInputInBytes = _interpreter->input_tensor(0)->bytes;
@@ -70,6 +69,9 @@ void inference::Inference::processImg(const cv::Mat &img) {
   // Multitask output concatentes the outputs to [SEMSEG, DEPTH] with the same size of height and width
   const int outHeight = _interpreter->output_tensor(0)->dims->data[1];
   const int outWidth = _interpreter->output_tensor(0)->dims->data[2];
+  // In case the output is also scaled down, adjust the _roi, currently does not support new aspect ratios!
+  _roi.scale *= (double(outWidth) / double(inputWidth));
+  assert(int((inputHeight / double(inputWidth)) * 100.0) == int(((outHeight) / double(outWidth)) * 100.0) && "Aspect ratio of output different from input, currently not supported!");
   const int outChannels = _interpreter->output_tensor(0)->dims->data[3];
   const int nbPixels = outHeight * outWidth;
   // Allocated data and clear previous data
@@ -100,7 +102,7 @@ void inference::Inference::processImg(const cv::Mat &img) {
 
       // Fill depth map
       const uint8_t rawDepthVal = *(startEle + DEPTH_IDX);
-      const float depthVal = pow(((static_cast<float>(rawDepthVal) * QUANT_SCALE * 255.0) / 22.0), 2.0) + 3.0;
+      const float depthVal = pow((static_cast<float>(rawDepthVal) * QUANT_SCALE * 255.0 * (1.0/22.0)), 2.0) + 3.0;
       _depthOut.at<float>(row, col) = depthVal; // Adding a bit of a bias as depth always seems to be on the shorter side! Yes, its hacky.
       _depthImg.at<uint8_t>(row, col) = static_cast<uint8_t>(std::clamp((float)(rawDepthVal) * 1.6F, 0.0F, 253.0F));
     }
@@ -109,7 +111,7 @@ void inference::Inference::processImg(const cv::Mat &img) {
   _runtimeMeasService.endMeas("inference/post-process");
 
   // _runtimeMeasService.printToConsole();
-  // cv::imshow("Output", inputImg);
+  // cv::imshow("InputImg", inputImg);
   // cv::imshow("Depth", _depthImg);
   // cv::imshow("Semseg", _semsegImg);
   // cv::waitKey(1);

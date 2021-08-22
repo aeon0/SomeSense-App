@@ -38,6 +38,6 @@ namespace inference {
     cv::Mat _semsegImg;
     cv::Mat _depthOut;
     cv::Mat _depthImg;
-    util::img::Roi _roi;
+    util::img::Roi _roi; // Roi regarding the output data (_semsegOut, _semsegImg, _depthOut, _depthImg)
   };
 }
