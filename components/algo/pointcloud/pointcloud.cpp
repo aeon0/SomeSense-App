@@ -58,7 +58,7 @@ void pointcloud::Pointcloud::processData(const cv::Mat& semseg, const cv::Mat& d
           float maxGradX = std::max(std::abs(radialDistCam - distLeft), std::abs(radialDistCam - distRight)) / radialDistCam;
           float maxGradY = std::max(std::abs(radialDistCam - distTop), std::abs(radialDistCam - distBottom)) / radialDistCam;
           // check x and y gradient and do not use if too large
-          if (worldCoordDepth.z < 1.5 && maxGradX < 0.1F && maxGradY < 0.1F) {
+          if (worldCoordDepth.z < 1.5 && worldCoordDepth.z > -0.05 && maxGradX < 0.1F && maxGradY < 0.1F) {
             _obstacles.push_back(worldCoordDepth);
           }
         }
@@ -82,9 +82,9 @@ void pointcloud::Pointcloud::processData(const cv::Mat& semseg, const cv::Mat& d
   }
   _runtimeMeasService.endMeas("pointcloud");
 
-  cv::imshow("semseg", semsegImg);
-  cv::imshow("depth", depthImg);
-  cv::waitKey(1);
+  // cv::imshow("semseg", semsegImg);
+  // cv::imshow("depth", depthImg);
+  // cv::waitKey(1);
 }
 
 void pointcloud::Pointcloud::serialize(CapnpOutput::Frame::Builder& builder) {
