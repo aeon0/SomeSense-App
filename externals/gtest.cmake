@@ -2,6 +2,8 @@
 # 2) Run CMake
 # 3) Install with make
 IF (INSTALL_DEPENDENCIES)
+  # TODO: Somehow check if it is already available, if yes. Do not rebuild.
+  #       Currently it just always builds and overwrites the exisiting
   ExternalProject_Add(GTestPrj
     URL https://github.com/google/googletest/archive/release-${GTEST_VERSION}.tar.gz
     CMAKE_ARGS -DBUILD_GTEST=ON -DBUILD_GMOCK=ON -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_DIR}/gtest
