@@ -71,7 +71,7 @@ BUILDFOLDER=$ROOTDIR/build/externals
 mkdir -p $BUILDFOLDER
 cd $BUILDFOLDER
 
-cmake -DCMAKE_TOOLCHAIN_FILE=$ROOTDIR/clang_toolchain.cmake -DINSTALL_DEPENDENCIES=ON -DBUILD_TEST=ON -DBUILD_SIM=$SIM $ROOTDIR || exit 1
+cmake -DINSTALL_DEPENDENCIES=ON -DBUILD_TEST=ON -DBUILD_SIM=$SIM $ROOTDIR || exit 1
 make -j8
 
 # Note: With $ ninja install, not all include dependencies (boost, rpc, recast) are copied / moved

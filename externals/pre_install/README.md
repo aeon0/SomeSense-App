@@ -7,7 +7,7 @@ To rebuild clone: https://github.com/google-coral/libedgetpu and run the Docker 
 Copy the contents of the out folder in here as well as the edgetpu_c.h and edgetpu.h.
 
 ### TFLite
-Clone the tensorflow repo and checkout this commit: b36436b087bd8e8701ef51718179037cccdfc26e.
+Clone the tensorflow repo and checkout this commit: b36436b087bd8e8701ef51718179037cccdfc26e. (Check docu for updates: https://coral.ai/docs/notes/build-coral/#build-the-edge-tpu-runtime-libedgetpu)
 Might have to install the aarch64 cross compiler first: `sudo apt-get install g++-aarch64-linux-gnu`.
 
 ```bash

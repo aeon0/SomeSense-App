@@ -1,6 +1,6 @@
 # SomeSense - C++ Core App
 
-C++ app performaing automative computer vision on your favorite Coral Dev Board or Raspberry Pi + Google Coral.</br>
+C++ app performing automative computer vision on your favorite Coral Dev Board or Raspberry Pi + Google Coral USB.</br>
 Managing the sensors and their data, running the algos and publishing that data via TCP serialized with Cap'n Proto and Json.</br></br>
 Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-vision-models. The visu is developed in this repo: https://github.com/j-o-d-o/SomeSense-Visu.
 
@@ -53,9 +53,5 @@ Whatever is usefull and shared over all components.
 ## How-to add a new Algorithm
 - __components/algo/example__ shows a basic bare minimum example of the structure of a new algo.
 - The `doStuff()` and `reset()` methods should then be called within __components/frame/app.cpp__ as well as all memory allocation of instances. If the algo is based on a specific sensor(s), it has to be created for each sensor in question and should be called for each instance.
-- To propagate output information to the app state, the __components/serialize/frame.capnp__ should be extended with the needed data. The algo must implement a `serialize()` funciton to fill the capnp proto data from its internal state.
+- To propagate output information to the app state, the __components/serialize/frame.capnp__ should be extended with the needed data. The algo must implement a `serialize()` function to fill the capnp proto data from its internal state.
 - If applicable, visualize the newly added data in the [vis](https://github.com/j-o-d-o/visu)
-
-## Agenda
-- Update to the latest edge tpu + rebuilding the tflite. Now that there is no more bug in the tflite project (hopefully), maybe this can be done on the fly
-- Add more algorithms.
