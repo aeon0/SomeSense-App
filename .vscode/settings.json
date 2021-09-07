@@ -84,5 +84,6 @@
     "__locale": "cpp",
     "rope": "cpp",
     "slist": "cpp"
-  }
+  },
+  "cmake.configureOnOpen": false
 }

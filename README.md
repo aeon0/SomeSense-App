@@ -26,6 +26,11 @@ The script folder contains all the scripts that are needed to automatically buil
 ./dist/bin/release/app
 # remove all generated folders (build and dist, the install stuff will not be removed)
 ./scripts/clean.sh 
+
+# On the coral dev board we want to turn of autofocus
+sudo bash -c "echo 0 > /sys/module/ov5645_camera_mipi_v2/parameters/ov5645_af"
+# to focus once run
+sudo bash -c "echo 1 > /sys/module/ov5645_camera_mipi_v2/parameters/ov5645_af"
 ```
 
 ## Folder Structure
