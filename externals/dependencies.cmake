@@ -22,6 +22,6 @@ if(BUILD_SIM)
 endif()
 
 if(BUILD_TEST)
-  set(GTEST_VERSION 1.8.0)
+  set(GTEST_VERSION 1.12.1)
   include(externals/gtest.cmake)
 endif()

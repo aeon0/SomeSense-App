@@ -7,7 +7,7 @@
 #include <iostream>
 
 
-int main() {
+int main(int argc, char** argv) {
   // Create shared output storage memory
   auto appState = serialize::AppState();
 
@@ -19,7 +19,8 @@ int main() {
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
 
   // Create Sensor Storage
-  const std::string sensorConfigPath = "configs/sim_video.json";
+  assert(argc == 2 && "Missing argument for config path");
+  const std::string sensorConfigPath = argv[1];
   auto sensorStorage = data_reader::SensorStorage(server, algoStartTime);
   sensorStorage.createFromConfig(sensorConfigPath, appState);
 

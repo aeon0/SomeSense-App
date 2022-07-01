@@ -83,7 +83,8 @@
     "*.ipp": "cpp",
     "__locale": "cpp",
     "rope": "cpp",
-    "slist": "cpp"
+    "slist": "cpp",
+    "bit": "cpp"
   },
   "cmake.configureOnOpen": false
 }

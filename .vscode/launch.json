@@ -11,7 +11,7 @@
             // TODO: Create some global env variable for the project name
             //       since it is also used in the tasks.json
             "program": "${workspaceFolder}/dist/bin/debug/app",
-            "args": [],
+            "args": ["configs/sim_rec.json"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -2,9 +2,10 @@
 
 
 ### EdgeTpu
-To rebuild clone: https://github.com/google-coral/libedgetpu and run the Docker command specified in the Readme `DOCKER_CPUS="k8 armv7a aarch64" DOCKER_TARGETS=libedgetpu make docker-build`.
-
+For legacy: To rebuild clone: https://github.com/google-coral/libedgetpu and run the Docker command specified in the Readme `DOCKER_CPUS="k8 armv7a aarch64" DOCKER_TARGETS=libedgetpu make docker-build`.
 Copy the contents of the out folder in here as well as the edgetpu_c.h and edgetpu.h.
+
+Now: They have it closed the open source development and now prebuilt versions are downloaded here: https://coral.ai/software/#edgetpu-runtime
 
 ### TFLite
 Clone the tensorflow repo and checkout this commit: b36436b087bd8e8701ef51718179037cccdfc26e. (Check docu for updates: https://coral.ai/docs/notes/build-coral/#build-the-edge-tpu-runtime-libedgetpu)
