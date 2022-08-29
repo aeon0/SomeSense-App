@@ -5,13 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Src: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            // TODO: Create some global env variable for the project name
-            //       since it is also used in the tasks.json
-            "program": "${workspaceFolder}/dist/bin/debug/app",
-            "args": ["configs/sim_rec.json"],
+            "program": "${workspaceFolder}/path/to/executable",
+            "args": [
+                // add arguments
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -31,9 +39,7 @@
             "name": "Test: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            // TODO: create some global env variable in an ini file or something like that
-            //       instead of testMYCOMPONENT...
-            "program": "${workspaceFolder}/dist/bin/debug/test_app",
+            "program": "${workspaceFolder}/path/to/test_executable",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -1,0 +1,19 @@
+targets:
+    # example target. target_name must match the cmake project name and the executable
+    # is expected to be located in "build/target_name"
+    # -target_name:
+    #     path: path/to/root/of/target
+    #     run: true # in case you want to debug the component set to false and exec with gdb
+    #     build_type: release # can be any of [debug, release]
+    #     build_tests: false
+    - read:
+        path: nodes/read
+        run: true
+        build_type: release
+        build_tests: false
+    - algo_example:
+        path: nodes/algo_example
+        run: true
+        build_type: release
+        build_tests: false
+        build_arm: false

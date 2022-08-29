@@ -1,0 +1,6 @@
+name: SomeSense-App
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+    - pyyaml

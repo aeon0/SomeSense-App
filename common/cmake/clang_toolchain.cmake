@@ -1,5 +1,4 @@
-# put in seperate file because building carla for simulation takes this file as input
-# this file is included in CMakeLists.txt in the root folder
+# common compiler configuration to be used
 set(CMAKE_C_COMPILER /usr/bin/clang-12)
 set(CMAKE_CXX_COMPILER /usr/bin/clang++-12)
 set(CMAKE_CXX_STANDARD 17)
