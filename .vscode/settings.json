@@ -1,4 +1,5 @@
 {
+  "python.pythonPath": "~/miniconda3/envs/SomeSense-App/bin/python",
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
@@ -85,7 +86,5 @@
     "rope": "cpp",
     "slist": "cpp",
     "bit": "cpp"
-  },
-  "cmake.configureOnOpen": false,
-  "cmake.sourceDirectory": "${workspaceFolder}/nodes/read"
+  }
 }

@@ -16,7 +16,7 @@
             "name": "Src: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/path/to/executable",
+            "program": "${workspaceFolder}/nodes/algo_example/build/algo_example",
             "args": [
                 // add arguments
             ],
@@ -32,7 +32,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Src: Build [debug]",
+            "preLaunchTask": "Build",
             "internalConsoleOptions": "neverOpen"
         },
         {
@@ -53,7 +53,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Test: Build [debug]",
+            "preLaunchTask": "Build",
             "internalConsoleOptions": "neverOpen"
         }
     ]

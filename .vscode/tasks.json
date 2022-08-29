@@ -3,87 +3,15 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
-        // Build sources
+        // Build sources & tests
         // =============================================
         {
-            "label": "Src: Build [debug]",
+            "label": "Build",
             "type": "shell",
-            "command": "./scripts/build.sh --build_type=debug", // --build_sim=ON",
+            "command": "${config:python.pythonPath}",
+            "args": ["scripts/build.py", "--target", "algo_example", "-c"],
             "group": "build",
             "problemMatcher": []  // Prevents VSCode to ask for scanning for errors in the output
-        },
-        {
-            "label": "Src: Build [release]",
-            "type": "shell",
-            "command": "./scripts/build.sh --build_type=release", // --build_sim=ON",
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        // Run sources
-        // ==============================================
-        {
-            "label": "Src: Run [debug]",
-            "type": "shell",
-            "command": "./dist/bin/debug/app",
-            "args": ["configs/sim_rec.json"],
-            "group": "build",
-            // Will run build task beforehand
-            "dependsOn": [
-                "Src: Build [debug]"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Src: Run [release]",
-            "type": "shell",
-            "command": "./dist/bin/release/app",
-            "args": ["configs/sim_rec.json"],
-            "group": "build",
-            "dependsOn": [
-                "Src: Build [release]"
-            ],
-            "problemMatcher": []
-        },
-
-        // Build tests
-        // =============================================
-        {
-            "label": "Test: Build [debug]",
-            "type": "shell",
-            "command": "./scripts/build.sh --build_type=debug --build_tests=ON",
-            "group": "test",
-            "problemMatcher": []  // Prevents VSCode to ask for scanning for errors in the output
-        },
-        {
-            "label": "Test: Build [release]",
-            "type": "shell",
-            "command": "./scripts/build.sh --build_type=release --build_tests=ON",
-            "group": "test",
-            "problemMatcher": []
-        },
-
-        // Run Tests
-        // ==============================================
-        {
-            "label": "Test: Run [release]",
-            "type": "shell",
-            "command": "./dist/bin/release/testapp",
-            "group": "test",
-            "dependsOn": [
-                "Test: Build [release]"
-            ],
-            "problemMatcher": []
-        },
-        {
-            "label": "Test: Run [debug]",
-            "type": "shell",
-            "command": "./dist/bin/debug/testapp",
-            "group": "test",
-            "dependsOn": [
-                "Test: Build [debug]"
-            ],
-            "problemMatcher": []
         }
     ]
 }

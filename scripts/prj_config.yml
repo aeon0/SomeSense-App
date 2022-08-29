@@ -13,7 +13,7 @@ targets:
         build_tests: false
     - algo_example:
         path: nodes/algo_example
-        run: true
-        build_type: release
+        run: false
+        build_type: debug
         build_tests: false
         build_arm: false
