@@ -9,11 +9,11 @@ targets:
     - read:
         path: nodes/read
         run: true
-        build_type: release
+        build_type: debug
         build_tests: false
     - algo_example:
         path: nodes/algo_example
-        run: false
+        run: true
         build_type: debug
         build_tests: false
         build_arm: false

@@ -5,7 +5,7 @@ import os
 
 
 def _exec_cmd(cmd, verbose=True, wait=True):
-    print(cmd)
+    # print(cmd)
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
         if wait:
             res, err = proc.communicate()

@@ -6,11 +6,15 @@ project(read)
 find_package(eCAL REQUIRED)
 
 set(SOURCE_FILES
-    main.cpp
+    src/main.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+# lib file
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
+add_library(lib${PROJECT_NAME} ${SOURCE_FILES})
 
+# executable
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME}
     eCAL::core
 )
