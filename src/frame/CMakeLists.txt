@@ -23,7 +23,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR
 
 
 # Create executable by linking all libs
-add_executable(${PROJECT_NAME} ${COMPONENT_DIR}/frame/main.cpp)
+add_executable(${PROJECT_NAME} ${SRC_DIR}/frame/main.cpp)
 set(COMPONENT_LIBS
   lib${COMPONENT_NAME}
   libdata_reader

@@ -24,7 +24,7 @@ The script folder contains all the scripts that are needed to automatically buil
 # build project with specified build type (default=debug) and create executable to folder: dist/bin/BUILD_TYPE
 ./scripts/build.sh --build_type=release
 # and run it
-./dist/bin/release/app
+./dist/bin/release/app configs/sim_rec.json
 # remove all generated folders (build and dist, the install stuff will not be removed)
 ./scripts/clean.sh 
 
