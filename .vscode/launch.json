@@ -8,8 +8,6 @@
             "name": "Src: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            // TODO: Create some global env variable for the project name
-            //       since it is also used in the tasks.json
             "program": "${workspaceFolder}/dist/bin/debug/app",
             "args": ["configs/sim_rec.json"],
             "stopAtEntry": false,
@@ -31,8 +29,6 @@
             "name": "Test: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            // TODO: create some global env variable in an ini file or something like that
-            //       instead of testMYCOMPONENT...
             "program": "${workspaceFolder}/dist/bin/debug/test_app",
             "args": [],
             "stopAtEntry": false,
