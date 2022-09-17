@@ -2,8 +2,8 @@
 #include <iostream>
 
 
-algo::Scheduler::Scheduler(const TS& algoStartTime) : 
-  _runtimeMeasService(algoStartTime)
+algo::Scheduler::Scheduler(util::RuntimeMeasService& runtimeMeasService) :
+  _runtimeMeasService(runtimeMeasService)
 {
   // _pointcloud = std::make_unique<pointcloud::Pointcloud>();
   // _tracker = std::make_unique<tracking::Tracker>();
@@ -27,6 +27,4 @@ void algo::Scheduler::exec(int inputData, int& outputData) {
   outputData = 3;
 
   _runtimeMeasService.endMeas("algo");
-  _runtimeMeasService.printToConsole();
-  _runtimeMeasService.reset();
 }

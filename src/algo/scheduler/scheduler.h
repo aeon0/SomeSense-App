@@ -19,7 +19,7 @@ namespace algo {
   class Scheduler {
   public:
     // TODO: pass some sort of sensor config to create sensor dependent algos
-    Scheduler(const TS& algoStartTime);
+    Scheduler(util::RuntimeMeasService& runtimeMeasService);
 
     // Exec all algos in a specified order depending on inputData
     void exec(int inputData, int& outputData);
@@ -27,7 +27,7 @@ namespace algo {
     void reset();
 
   private:
-    util::RuntimeMeasService _runtimeMeasService;
+    util::RuntimeMeasService& _runtimeMeasService;
 
     // // [algos] per sensor
     // std::map<const std::string, std::unique_ptr<optical_flow::OpticalFlow>> _opticalFlowMap; // optical flow per cam sensor
