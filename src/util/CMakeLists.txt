@@ -1,13 +1,13 @@
-SET(COMPONENT_NAME "com_out")
+SET(COMPONENT_NAME "util")
 
-include_directories(SYSTEM
-  ${OpenCV_INCLUDE_DIRS}
+add_library(lib${COMPONENT_NAME} STATIC
+  img.cpp
+  runtime_meas_service.cpp
 )
 
-add_library(lib${COMPONENT_NAME} 
-  server.cpp
-  # unix_server.cpp
-  tcp_server.cpp
+target_include_directories(lib${COMPONENT_NAME} SYSTEM
+  PRIVATE
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${INSTALL_INCLUDE_DIR}/${COMPONENT_NAME} FILES_MATCHING PATTERN "*.h*")

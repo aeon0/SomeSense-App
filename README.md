@@ -7,8 +7,11 @@ Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-
 ## Setup and Dependencies
 ### CMake + Compilers + Video codecs
 ``` bash
-# Run these commands to install cmake and compiler
+# ecal and communication tools (https://eclipse-ecal.github.io/ecal/getting_started/setup.html)
+sudo add-apt-repository ppa:ecal/ecal-latest
 sudo apt-get update
+sudo apt-get install ecal
+# Run these commands to install cmake and compiler
 sudo apt-get install cmake clang-12 pkg-config build-essential
 # video codecs
 sudo apt-get install ffmpeg x264 libx264-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev

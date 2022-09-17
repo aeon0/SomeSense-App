@@ -4,10 +4,9 @@
 #include <chrono>
 #include <map>
 #include "types.h"
-#include "serialize/frame.capnp.h"
+#include "interface/_gen/frame.capnp.h"
 
-
-namespace frame {
+namespace util {
   class RuntimeMeasService {
   public:
     struct RuntimeMeas {

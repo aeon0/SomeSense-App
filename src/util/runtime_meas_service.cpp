@@ -3,10 +3,9 @@
 #include <iomanip>
 
 
-frame::RuntimeMeasService::RuntimeMeasService(const TS& algoStartTime) 
-  : _algoStartTime(algoStartTime) {}
+util::RuntimeMeasService::RuntimeMeasService(const TS& algoStartTime) : _algoStartTime(algoStartTime) {}
 
-void frame::RuntimeMeasService::startMeas(std::string name) {
+void util::RuntimeMeasService::startMeas(std::string name) {
   _meas.erase(name); // In case the key does not exist at all, this does nothing
   RuntimeMeas meas;
   meas.running = true;
@@ -14,7 +13,7 @@ void frame::RuntimeMeasService::startMeas(std::string name) {
   _meas.insert({name, meas});
 }
 
-void frame::RuntimeMeasService::endMeas(std::string name) {
+void util::RuntimeMeasService::endMeas(std::string name) {
   if(_meas.find(name) == _meas.end()) {
     std::cout << "WARNING: Can not end runtime meas: " << name << " does not exist!" << std::endl;
   }
@@ -25,7 +24,7 @@ void frame::RuntimeMeasService::endMeas(std::string name) {
   }
 }
 
-void frame::RuntimeMeasService::printToConsole() {
+void util::RuntimeMeasService::printToConsole() {
   std::cout << std::endl;
   for(auto& [key, value]: _meas) {
     if(!value.running) {
@@ -36,7 +35,7 @@ void frame::RuntimeMeasService::printToConsole() {
   }
 }
 
-void frame::RuntimeMeasService::serialize(CapnpOutput::Frame::Builder& builder) {
+void util::RuntimeMeasService::serialize(CapnpOutput::Frame::Builder& builder) {
   auto measBuilder = builder.initRuntimeMeas(_meas.size());
   int i = 0;
   for (auto [key, val]: _meas) {

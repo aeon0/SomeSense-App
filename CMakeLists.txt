@@ -1,4 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+
 # Note: If project name is changed, also the task.json and launch.json for vscode needs to be updated
 project(app)
 
@@ -31,18 +33,10 @@ include_directories(${SRC_DIR} NO_DEFAULT_PATH)
 include(externals/dependencies.cmake)
 
 if (NOT INSTALL_DEPENDENCIES)
+  add_subdirectory(src/interface)
+  add_subdirectory(src/util)
+  add_subdirectory(src/algo)
   add_subdirectory(src/frame)
-  add_subdirectory(src/utilities)
-  add_subdirectory(src/com_out)
-  add_subdirectory(src/data_reader)
-  add_subdirectory(src/serialize)
-  # [algos]
-  add_subdirectory(src/algo/optical_flow)
-  add_subdirectory(src/algo/inference)
-  add_subdirectory(src/algo/cam_calib)
-  add_subdirectory(src/algo/pointcloud)
-  add_subdirectory(src/algo/tracking)
-  add_subdirectory(src/algo/example)
 
   if(BUILD_TEST)
     add_subdirectory(test)
