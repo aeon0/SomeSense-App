@@ -1,0 +1,3 @@
+[submodule "interface"]
+	path = src/interface
+	url = https://github.com/aeon0/SomeSense-Interface.git
