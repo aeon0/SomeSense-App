@@ -14,5 +14,8 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
   dl # needed for tensorflow lite (libdl.so)
 )
+get_target_property(OUT ${PROJECT_NAME} LINK_LIBRARIES)
+message(STATUS ${OUT})
+
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})

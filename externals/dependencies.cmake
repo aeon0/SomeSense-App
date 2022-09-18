@@ -2,14 +2,10 @@ include(ExternalProject)
 
 find_package(Threads REQUIRED)
 find_package(eCAL REQUIRED)
-find_package(Protobuf REQUIRED)
 
 # Project Dependencies:
 set(OPENCV_VERSION 4.5.1)
 include(externals/opencv.cmake)
-
-# Note: Currently this is installed via dependencis.sh, this is currently just to find the package in cmake
-include(externals/capnproto.cmake)
 
 include(externals/tflite.cmake)
 

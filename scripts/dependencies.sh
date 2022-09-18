@@ -91,7 +91,6 @@ if [[ "${SIM}" == ON ]]; then
 fi
 
 # Install Capnp as explained here: https://capnproto.org/install.html
-# TODO: Instead of doing this here, add it to cmake with ExternalPrj_ADD
 CAPNP_VERSION=`capnp --version`
 if [[ "$CAPNP_VERSION" == "Cap'n Proto version 0.8."* ]]; then
   echo "Cap'n Proto version 0.8.* already installed"
