@@ -33,7 +33,7 @@ include_directories(${SRC_DIR} NO_DEFAULT_PATH)
 include(externals/dependencies.cmake)
 
 if (NOT INSTALL_DEPENDENCIES)
-  add_subdirectory(src/interface)
+  add_subdirectory(src/interface) # has to be pulled as submodule
   add_subdirectory(src/util)
   add_subdirectory(src/algo)
   add_subdirectory(src/frame)

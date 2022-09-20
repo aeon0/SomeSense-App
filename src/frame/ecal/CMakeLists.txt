@@ -1,6 +1,8 @@
 # Create executable by linking all libs
 add_executable(${PROJECT_NAME} main.cpp)
 
+find_package(eCAL REQUIRED)
+
 target_link_libraries(${PROJECT_NAME} PUBLIC
   # order is important here since libs might depend on each other
   libalgo

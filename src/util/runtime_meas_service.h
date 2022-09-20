@@ -4,7 +4,9 @@
 #include <chrono>
 #include <map>
 #include "types.h"
-#include "interface/_gen/frame.capnp.h"
+#include "frame.pb.h"
+#include "scheduler.pb.h"
+
 
 namespace util {
   class RuntimeMeasService {
@@ -24,7 +26,7 @@ namespace util {
 
     void reset() { _meas.clear(); }
 
-    void serialize(CapnpOutput::Frame::Builder& builder);
+    void serialize(proto::Frame& data);
 
   private:
     std::map<std::string, RuntimeMeas> _meas;

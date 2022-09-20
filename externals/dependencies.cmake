@@ -1,7 +1,6 @@
 include(ExternalProject)
 
 find_package(Threads REQUIRED)
-find_package(eCAL REQUIRED)
 find_package(CapnProto REQUIRED)
 
 # Project Dependencies:

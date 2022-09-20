@@ -35,14 +35,13 @@ void util::RuntimeMeasService::printToConsole() {
   }
 }
 
-void util::RuntimeMeasService::serialize(CapnpOutput::Frame::Builder& builder) {
-  auto measBuilder = builder.initRuntimeMeas(_meas.size());
+void util::RuntimeMeasService::serialize(proto::Frame& data) {
   int i = 0;
   for (auto [key, val]: _meas) {
     auto startMeasTs = static_cast<long int>(std::chrono::duration<double, std::micro>(val.startTime - _algoStartTime).count());
-    measBuilder[i].setName(key);
-    measBuilder[i].setDuration(val.duration.count());
-    measBuilder[i].setStart(startMeasTs);
-    i++;
+    proto::RuntimeMeas pm;
+    pm.set_name(key);
+    pm.set_duration(val.duration.count());
+    pm.set_start(startMeasTs);
   }
 }

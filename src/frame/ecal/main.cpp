@@ -1,12 +1,12 @@
 #include <ecal/ecal.h>
 #include <ecal/msg/string/publisher.h>
-#include <ecal/msg/capnproto/publisher.h>
+#include <ecal/msg/protobuf/publisher.h>
 
 #include <iostream>
 #include <thread>
 
 #include "config.h"
-#include "interface/_gen/frame.capnp.h"
+#include "frame.pb.h"
 #include "util/runtime_meas_service.h"
 #include "algo/scheduler/scheduler.h"
 
@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
   // Creating eCAL node
   eCAL::Initialize(argc, argv, "eCAL Node");
-  eCAL::capnproto::CPublisher<CapnpOutput::Frame> publisher("ecal_node");
+  eCAL::protobuf::CPublisher<proto::Frame> publisher("somesense_app");
 
   // Creating Runtime Meas Service
   const auto algoStartTime = std::chrono::high_resolution_clock::now();
@@ -37,14 +37,14 @@ int main(int argc, char** argv) {
     int inputData = 0;
     int outputData;
 
-    auto frameData = publisher.GetBuilder();
+    proto::Frame data;
+    data.set_timestamp(100);
+    // data.mutable_camsensors()->Add();
+    publisher.Send(data);
     scheduler.exec(inputData, outputData);
-    publisher.Send();
 
     runtimeMeasService.printToConsole();
     runtimeMeasService.reset();
-
-    frameData.setPlannedFrameLength(config::GOAL_FRAME_LENGTH);
 
     // Keep a consistent algo framerate
     // TODO: What to do if we want to speed up things?
