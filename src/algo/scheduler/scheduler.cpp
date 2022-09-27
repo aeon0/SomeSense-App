@@ -16,7 +16,7 @@ void algo::Scheduler::reset() {
   // }
 }
 
-void algo::Scheduler::exec(int inputData, int& outputData) {
+void algo::Scheduler::exec(proto::Frame &frame) {
   _runtimeMeasService.startMeas("algo");
 
   // 1) Loop over sensor data from inputData and run sensor dependent algos
@@ -24,7 +24,7 @@ void algo::Scheduler::exec(int inputData, int& outputData) {
   // 2) Run algos which depend on multiple sensor input (if provided)
   // 3) Serialize all data from algos and create ouputData from it
 
-  outputData = 3;
+  frame.set_timestamp(3);
 
   _runtimeMeasService.endMeas("algo");
 }

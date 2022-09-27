@@ -5,7 +5,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "util/types.h"
 #include "util/runtime_meas_service.h"
-// #include "serialize/app_state.h"
+#include "frame.pb.h"
+
 // [algos]
 // #include "algo/optical_flow/optical_flow.h"
 // #include "algo/inference/inference.h"
@@ -22,7 +23,7 @@ namespace algo {
     Scheduler(util::RuntimeMeasService& runtimeMeasService);
 
     // Exec all algos in a specified order depending on inputData
-    void exec(int inputData, int& outputData);
+    void exec(proto::Frame& frame);
     // Reset all internal states, in case your algo needs reseting, do this here
     void reset();
 

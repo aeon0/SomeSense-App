@@ -26,7 +26,7 @@
             "label": "Src: Run [debug]",
             "type": "shell",
             "command": "./dist/bin/debug/app",
-            "args": ["configs/sim_rec.json"],
+            "args": ["configs/sim_video.json"],
             "group": "build",
             // Will run build task beforehand
             "dependsOn": [
@@ -38,7 +38,7 @@
             "label": "Src: Run [release]",
             "type": "shell",
             "command": "./dist/bin/release/app",
-            "args": ["configs/sim_rec.json"],
+            "args": ["configs/sim_video.json"],
             "group": "build",
             "dependsOn": [
                 "Src: Build [release]"

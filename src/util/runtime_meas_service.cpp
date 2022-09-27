@@ -39,9 +39,9 @@ void util::RuntimeMeasService::serialize(proto::Frame& data) {
   int i = 0;
   for (auto [key, val]: _meas) {
     auto startMeasTs = static_cast<long int>(std::chrono::duration<double, std::micro>(val.startTime - _algoStartTime).count());
-    proto::RuntimeMeas pm;
-    pm.set_name(key);
-    pm.set_duration(val.duration.count());
-    pm.set_start(startMeasTs);
+    auto pm = data.mutable_runtimemeas()->Add();
+    pm->set_name(key);
+    pm->set_duration(val.duration.count());
+    pm->set_start(startMeasTs);
   }
 }

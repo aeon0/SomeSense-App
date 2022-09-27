@@ -36,6 +36,7 @@ if (NOT INSTALL_DEPENDENCIES)
   add_subdirectory(src/interface) # has to be pulled as submodule
   add_subdirectory(src/util)
   add_subdirectory(src/algo)
+  add_subdirectory(src/data)
   add_subdirectory(src/frame)
 
   if(BUILD_TEST)
