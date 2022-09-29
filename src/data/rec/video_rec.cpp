@@ -1,21 +1,19 @@
-#include "video_cam.h"
+#include "video_rec.h"
 #include <fstream>
 #include <iostream>
 #include <chrono>
 #include "util/json.hpp"
 
 
-data::VideoCam::VideoCam(
-  const std::string name,
+data::VideoRec::VideoRec(
   const std::string& filePath
 ) :
-  _name(name),
   _currFrameNr(0),
   _filePath(filePath)
 {
   _stream.open(_filePath, cv::CAP_FFMPEG);
   if (!_stream.isOpened()) {
-    throw std::runtime_error("VideoCam could not open file: " + _filePath);
+    throw std::runtime_error("VideoRec could not open file: " + _filePath);
   }
 
   _frameSize = cv::Size(_stream.get(cv::CAP_PROP_FRAME_WIDTH), _stream.get(cv::CAP_PROP_FRAME_HEIGHT));
@@ -24,20 +22,32 @@ data::VideoCam::VideoCam(
   _recLength = static_cast<int64>(((frameCount - 1) / _frameRate) * 1000000);
 }
 
-void data::VideoCam::fillCamData(proto::CamSensor& camSensor) {
-  const int currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
-  const bool success = _stream.read(_currFrame);
-  if (success) {
-    const double tsMsec = _stream.get(cv::CAP_PROP_POS_MSEC);
-    _currTs = static_cast<int64>(tsMsec * 1000.0);
-    _currFrameNr = currFrameNr;
+void data::VideoRec::reset() {
+  std::lock_guard<std::mutex> lock(_readLock);
+  _currFrameNr = 0;
+  _stream.set(cv::CAP_PROP_POS_FRAMES, _currFrameNr);
+}
 
-    camSensor.set_timestamp(_currTs);
-    auto img = camSensor.mutable_img();
+void data::VideoRec::fillFrame(proto::Frame& frame) {
+  std::unique_lock<std::mutex> lock(_readLock);
+  _currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
+  const bool success = _stream.read(_currFrame);
+  _currTs = static_cast<int64_t>(_stream.get(cv::CAP_PROP_POS_MSEC) * 1000.0);
+  lock.release();
+
+  if (success) {
+    frame.set_timestamp(_currTs);
+    frame.set_isrec(true);
+    frame.mutable_recdata()->set_reclength(_recLength);
+
+    auto camSensor = frame.mutable_camsensors()->Add();
+    camSensor->set_isvalid(true);
+    camSensor->set_timestamp(_currTs);
+    auto img = camSensor->mutable_img();
     img->set_width(_currFrame.size().width);
     img->set_height(_currFrame.size().height);
     img->set_channels(_currFrame.channels());
     img->set_data(_currFrame.data, _currFrame.size().width * _currFrame.size().height * _currFrame.channels() * sizeof(uchar));
+    // TODO: Set intrinsics and extrinsics here
   }
-  camSensor.set_isvalid(success);
 }

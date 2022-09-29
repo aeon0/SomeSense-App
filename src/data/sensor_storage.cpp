@@ -7,27 +7,34 @@
 #include "util/json.hpp"
 #include "frame.pb.h"
 #include "sensor_storage.h"
-#include "camera/video_cam.h"
+#include "camera/usb_cam.h"
+#include "rec/video_rec.h"
 
 
 data::SensorStorage::SensorStorage(util::RuntimeMeasService& runtimeMeasService) :
-  _runtimeMeasService(runtimeMeasService), _sensorCounter(0), _isRec(false), _recLength(-1) {}
+  _runtimeMeasService(runtimeMeasService), _sensorCounter(0), _rec(nullptr) {}
 
 void data::SensorStorage::fillFrame(proto::Frame& frame) {
-  _runtimeMeasService.startMeas("get_cam_data");
+  _runtimeMeasService.startMeas("get_sensor_data");
+  frame.set_isrec(false);
+  frame.mutable_recdata()->set_reclength(-1);
+  // Fill Cameras
   for (auto const [key, cam]: _cams) {
     auto camSensor = frame.mutable_camsensors()->Add();
     camSensor->set_key(key);
     cam->fillCamData(*camSensor);
-    if (!_isRec) {
-      _isRec = cam->isRecording();
-      // Save shortest rec length, but most likely we will always just read from one rrec that contains everything
-      _recLength = cam->getRecLength() > _recLength ? _recLength : cam->getRecLength();
-    }
-    frame.set_isrec(_isRec);
-    frame.mutable_recdata()->set_reclength(_recLength);
   }
-  _runtimeMeasService.endMeas("get_cam_data");
+  // Fill from rec
+  if (_rec != nullptr) {
+    _rec->fillFrame(frame);
+  }
+  _runtimeMeasService.endMeas("get_sensor_data");
+}
+
+void data::SensorStorage::reset() {
+  if (_rec != nullptr) {
+    _rec.reset();
+  }
 }
 
 void data::SensorStorage::createFromConfig(const std::string filepath) {
@@ -42,11 +49,27 @@ void data::SensorStorage::createFromConfig(const std::string filepath) {
   if (jsonSensorConfig.contains("video_path")) {
     std::cout << "** Load video from mp4 **" << std::endl;
     auto filePath = jsonSensorConfig["video_path"].get<std::string>();
-    auto videoCam = std::make_shared<VideoCam>("VideoCam", filePath);
-    addCam(videoCam);
+    _rec = std::make_shared<VideoRec>(filePath);
   }
   else {
-    throw std::runtime_error("Could not figure out what to do with config: " + filepath);
+    for (const auto it: jsonSensorConfig["cams"]) {
+      const auto typeName = it["type"].get<std::string>();
+      const auto camName = it["name"].get<std::string>();
+      if (typeName == "usb") {
+        auto captureWidth = it["capture_width"].get<int>();
+        auto captureHeight = it["capture_height"].get<int>();
+        auto device_idx = it["device_idx"].get<int>();
+        auto horizontalFov = it["horizontal_fov"].get<double>() * (M_PI / 180.0);
+
+        // TODO: How to handle timestamps properly?
+        const auto dummyTS = std::chrono::high_resolution_clock::now();
+        auto usbCam = std::make_shared<UsbCam>(camName, dummyTS, device_idx, captureWidth, captureHeight, horizontalFov);
+        addCam(usbCam);
+      }
+      else {
+        throw std::runtime_error("Camera Type " + typeName + " is not supported!");
+      }
+    }
   }
 }
 

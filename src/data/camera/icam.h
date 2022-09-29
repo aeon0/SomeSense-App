@@ -13,9 +13,5 @@ namespace data {
 
     // Return a name for the sensor (used for storing)
     virtual std::string getName() const = 0;
-
-    // Return if the camera is based on video data
-    virtual bool isRecording() const { return false; }
-    virtual int64_t getRecLength() const  { return -1; }
   };
 }
