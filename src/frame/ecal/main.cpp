@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
   eCAL::CServiceServer server("somesense_server");
 
   // Creating Runtime Meas Service
-  const auto algoStartTime = std::chrono::high_resolution_clock::now();
-  auto runtimeMeasService = util::RuntimeMeasService(algoStartTime);
+  const auto appStartTime = std::chrono::high_resolution_clock::now();
+  auto runtimeMeasService = util::RuntimeMeasService(appStartTime);
 
   // Create data reader
   int inputData = 0;
@@ -41,8 +41,13 @@ int main(int argc, char** argv) {
   while (eCAL::Ok())
   {
     proto::Frame frame;
+
+    // Take care of timestamps
     const auto frameStart = std::chrono::high_resolution_clock::now();
     const auto plannedFrameEnd = frameStart + std::chrono::duration<double, std::milli>(config::GOAL_FRAME_LENGTH);
+    const auto ts = static_cast<int64_t>(std::chrono::duration<double, std::micro>(frameStart - appStartTime).count());
+    frame.set_timestamp(ts);
+    frame.set_plannedframelength(config::GOAL_FRAME_LENGTH);
 
     sensorStorage.fillFrame(frame);
     scheduler.exec(frame);

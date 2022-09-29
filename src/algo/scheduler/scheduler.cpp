@@ -24,7 +24,5 @@ void algo::Scheduler::exec(proto::Frame &frame) {
   // 2) Run algos which depend on multiple sensor input (if provided)
   // 3) Serialize all data from algos and create ouputData from it
 
-  frame.set_timestamp(3);
-
   _runtimeMeasService.endMeas("algo");
 }
