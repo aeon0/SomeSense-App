@@ -33,7 +33,7 @@ void data::VideoRec::fillFrame(proto::Frame& frame) {
   _currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
   const bool success = _stream.read(_currFrame);
   _currTs = static_cast<int64_t>(_stream.get(cv::CAP_PROP_POS_MSEC) * 1000.0);
-  lock.release();
+  lock.unlock();
 
   if (success) {
     frame.set_timestamp(_currTs);

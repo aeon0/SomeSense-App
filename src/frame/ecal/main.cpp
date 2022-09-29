@@ -6,6 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <queue>
 
 #include "util/json.hpp"
 #include "config.h"
@@ -17,9 +18,11 @@
 
 using namespace std::chrono_literals;
 
-std::atomic<bool> play = false;
+std::atomic<bool> play = true;
 std::atomic<bool> playedOneFrame = false;
 std::atomic<bool> doReset = false;
+std::atomic<bool> sendLastFrame = false;
+std::queue<proto::Frame> frameQueue;
 
 
 int methodCallback(const std::string& method, const std::string& request, std::string& response) {
@@ -37,13 +40,17 @@ int methodCallback(const std::string& method, const std::string& request, std::s
 
     nlohmann::json jsonResponse = {
       {"cbIndex", jsonRequest.value("cbIndex", -1)},
-
     };
   }
   else {
     std::cout << "WARNING: Unkown method request " << method << std::endl;
   }
   return 0;
+}
+
+void newClient(const char* name, const struct eCAL::SServerEventCallbackData* data) {
+  std::cout << "New Client connected" << std::endl;
+  sendLastFrame = true;
 }
 
 int main(int argc, char** argv) {
@@ -55,6 +62,7 @@ int main(int argc, char** argv) {
   eCAL::CServiceServer server(config::SERVER_SERVICE_NAME);
   using namespace std::placeholders;
   server.AddMethodCallback(config::SERVER_METHOD_FRAME_CTRL, "", "", std::bind(methodCallback, _1, _4, _5));
+  server.AddEventCallback(eCAL_Server_Event::server_event_connected, std::bind(newClient, _1, _2));
 
   // Creating Runtime Meas Service
   const auto appStartTime = std::chrono::high_resolution_clock::now();
@@ -72,10 +80,16 @@ int main(int argc, char** argv) {
 
   // Creating algo instance
   auto scheduler = algo::Scheduler(runtimeMeasService);
-  proto::Frame lastFrame;
 
   while (eCAL::Ok())
   {
+    if (sendLastFrame) {
+      sendLastFrame = false;
+      if (frameQueue.size() > 0) {
+        publisher.Send(frameQueue.back());
+      }
+    }
+
     if (doReset) {
       play = false;
       playedOneFrame = false;
@@ -111,7 +125,10 @@ int main(int argc, char** argv) {
 
     playedOneFrame = true;
     publisher.Send(frame);
-    lastFrame = frame;
+    frameQueue.push(frame);
+    if (frameQueue.size() > 2) {
+      frameQueue.pop();
+    }
 
     // Keep a consistent algo framerate
     // TODO: What to do if we want to speed up things?
