@@ -5,7 +5,6 @@
 #include <map>
 #include "types.h"
 #include "frame.pb.h"
-#include "scheduler.pb.h"
 
 
 namespace util {
