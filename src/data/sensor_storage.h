@@ -25,5 +25,9 @@ namespace data {
     CamMap _cams;
     util::RuntimeMeasService& _runtimeMeasService;
     unsigned int _sensorCounter; // used to create unique sensor ids
+
+    // Rec info
+    bool _isRec;
+    int64_t _recLength;
   };
 }

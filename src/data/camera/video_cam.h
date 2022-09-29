@@ -15,6 +15,7 @@ namespace data {
     void fillCamData(proto::CamSensor& camSensor) override;
     virtual std::string getName() const override { return _name; }
     bool isRecording() const override { return true; }
+    int64_t getRecLength() const override { return _recLength; }
 
   private:
     cv::VideoCapture _stream;

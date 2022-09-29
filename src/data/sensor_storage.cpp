@@ -11,7 +11,7 @@
 
 
 data::SensorStorage::SensorStorage(util::RuntimeMeasService& runtimeMeasService) :
-  _runtimeMeasService(runtimeMeasService), _sensorCounter(0) {}
+  _runtimeMeasService(runtimeMeasService), _sensorCounter(0), _isRec(false), _recLength(-1) {}
 
 void data::SensorStorage::fillFrame(proto::Frame& frame) {
   _runtimeMeasService.startMeas("get_cam_data");
@@ -19,6 +19,13 @@ void data::SensorStorage::fillFrame(proto::Frame& frame) {
     auto camSensor = frame.mutable_camsensors()->Add();
     camSensor->set_key(key);
     cam->fillCamData(*camSensor);
+    if (!_isRec) {
+      _isRec = cam->isRecording();
+      // Save shortest rec length, but most likely we will always just read from one rrec that contains everything
+      _recLength = cam->getRecLength() > _recLength ? _recLength : cam->getRecLength();
+    }
+    frame.set_isrec(_isRec);
+    frame.mutable_recdata()->set_reclength(_recLength);
   }
   _runtimeMeasService.endMeas("get_cam_data");
 }
