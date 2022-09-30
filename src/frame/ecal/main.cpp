@@ -25,10 +25,13 @@ std::atomic<bool> playedOneFrame = false;
 std::atomic<bool> doReset = false;
 std::atomic<bool> sendLastFrame = false;
 std::queue<proto::Frame> frameQueue;
+std::queue<proto::RecMeta> recMetaQueue;
 
 
 int methodCallback(const std::string& method, const std::string& request, std::string& response) {
-  std::cout << "Got request for method: " << method << std::endl;
+  std::cout << std::endl;
+  std::cout << "** Got request for method: " << method << " **" << std::endl;
+  std::cout << request <<std::endl;
   response = "";
   if (method == config::SERVER_METHOD_FRAME_CTRL) {
     try {
@@ -36,7 +39,6 @@ int methodCallback(const std::string& method, const std::string& request, std::s
       
       if (jsonRequest.find("data") == jsonRequest.end()) {
         std::cout << "WARNING: data field not present in request, skipping" << std::endl;
-        std::cout << request <<std::endl;
         return 0;
       }
 
@@ -56,7 +58,6 @@ int methodCallback(const std::string& method, const std::string& request, std::s
     }
     catch(nlohmann::detail::type_error e) {
       std::cout << "WARNING: Could not handle request:" << std::endl;
-      std::cout << request << std::endl;
     }
   }
   else {
@@ -106,6 +107,7 @@ int main(int argc, char** argv) {
       sendLastFrame = false;
       if (frameQueue.size() > 0) {
         publisherFrame.Send(frameQueue.back());
+        publisherRecMeta.Send(recMetaQueue.back());
       }
     }
     if (doReset) {
@@ -118,7 +120,11 @@ int main(int argc, char** argv) {
     }
     if (!play && playedOneFrame) {
       std::this_thread::sleep_for(1ms);
-      // Clients should 
+      // Clients should get updated in case recData stuff has changed
+      if (recMetaQueue.size() > 0 && play != recMetaQueue.back().isplaying()) {
+        recMetaQueue.back().set_isplaying(play);
+        publisherRecMeta.Send(recMetaQueue.back());
+      }
       continue;
     }
 
@@ -155,8 +161,11 @@ int main(int argc, char** argv) {
     publisherRecMeta.Send(recMeta);
 
     frameQueue.push(frame);
+    recMetaQueue.push(recMeta);
+    assert(recMetaQueue.size() == frameQueue.size());
     if (frameQueue.size() > 2) {
       frameQueue.pop();
+      recMetaQueue.pop();
     }
 
     // Keep a consistent algo framerate
