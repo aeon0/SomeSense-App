@@ -129,13 +129,14 @@ int main(int argc, char** argv) {
         sensorStorage.reset();
         scheduler.reset();
       }
-      if (!play && playedOneFrame && !stepForward && !stepBack) {
+      if (!play && playedOneFrame && !stepForward && !stepBack && jumpToRelTs == -1) {
         std::this_thread::sleep_for(1ms);
         // Clients should get updated in case recData stuff has changed
         if (play != recMeta.isplaying()) {
           recMeta.set_isplaying(play);
           publisherRecMeta.Send(recMeta);
         }
+        std::this_thread::sleep_for(1ms);
         continue;
       }
       if ((stepBack || jumpToRelTs != -1) && frameQueue.size() > 0) {
@@ -146,6 +147,7 @@ int main(int argc, char** argv) {
           jumpToRelTs = lastRelTs - frameLength;
         }
         sensorStorage.getRec()->setRelTs(jumpToRelTs);
+        scheduler.reset();
       }
       // Reset any onetime actions
       playedOneFrame = true;
@@ -184,6 +186,12 @@ int main(int argc, char** argv) {
     frameQueue.push(frame);
     if (frameQueue.size() > 2) {
       frameQueue.pop();
+    }
+
+    // TODO: Better to have some interface on sensorStorage.getRec() for this?
+    if (isRec && (frame.relts() + frame.plannedframelength() * 1000.0) > recMeta.reclength()) {
+      play = false;
+      std::cout << "** Pausing, reached end of recording **" << std::endl;
     }
 
     // Keep a consistent algo framerate
