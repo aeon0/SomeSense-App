@@ -1,8 +1,8 @@
 {
   "cams": [{
     "type": "usb",
-    "device_idx": 1,
-    "name": "CoralCam",
+    "device_idx": 0,
+    "name": "UsbCam",
     "capture_width": 640,
     "capture_height": 480,
     "horizontal_fov": 87

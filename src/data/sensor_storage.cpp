@@ -9,6 +9,7 @@
 #include "sensor_storage.h"
 #include "camera/usb_cam.h"
 #include "rec/video_rec.h"
+#include "rec/pb_rec.h"
 
 
 data::SensorStorage::SensorStorage(util::RuntimeMeasService& runtimeMeasService) :
@@ -50,6 +51,14 @@ void data::SensorStorage::createFromConfig(const std::string filepath) {
     std::cout << "** Load video from mp4 **" << std::endl;
     auto filePath = jsonSensorConfig["video_path"].get<std::string>();
     _rec = std::make_shared<VideoRec>(filePath);
+    _isRec = true;
+    _recLength = _rec->getRecLength();
+  }
+  else if (jsonSensorConfig.contains("pb_bin") && jsonSensorConfig.contains("meta")) {
+    std::cout << "** Load data from protobuf **" << std::endl;
+    auto binPath = jsonSensorConfig["pb_bin"].get<std::string>();
+    auto metaPath = jsonSensorConfig["meta"].get<std::string>();
+    _rec = std::make_shared<PbRec>(binPath, metaPath);
     _isRec = true;
     _recLength = _rec->getRecLength();
   }

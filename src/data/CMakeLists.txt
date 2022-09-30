@@ -4,6 +4,7 @@ add_library(lib${COMPONENT_NAME}
   sensor_storage.cpp
   camera/usb_cam.cpp
   rec/video_rec.cpp
+  rec/pb_rec.cpp
 )
 
 target_include_directories(lib${COMPONENT_NAME} SYSTEM

@@ -160,7 +160,6 @@ int main(int argc, char** argv) {
     proto::Frame frame;
     // Take care of timestamps
     const auto absTs = std::chrono::high_resolution_clock::now();
-    const auto plannedFrameEnd = absTs + std::chrono::duration<double, std::milli>(config::GOAL_FRAME_LENGTH);
 
     sensorStorage.fillFrame(frame, appStartTime);
     scheduler.exec(frame);
@@ -195,6 +194,8 @@ int main(int argc, char** argv) {
     }
 
     // Keep a consistent algo framerate
+    auto goalFrameLen = isRec ? frame.plannedframelength() : config::GOAL_FRAME_LENGTH;
+    const auto plannedFrameEnd = absTs + std::chrono::duration<double, std::milli>(goalFrameLen);
     std::this_thread::sleep_until(plannedFrameEnd);
   }
 
