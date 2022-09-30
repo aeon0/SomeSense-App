@@ -8,5 +8,6 @@ namespace config {
 
   const std::string SERVER_METHOD_FRAME_CTRL = "frame_ctrl";
   const std::string SERVER_SERVICE_NAME = "somesense_server";
-  const std::string PUBLISHER_NAME = "somesense_app";
+  const std::string PUBLISHER_NAME_APP = "somesense_app";
+  const std::string PUBLISHER_NAME_RECMETA = "somesense_recmeta";
 }

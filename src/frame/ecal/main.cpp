@@ -11,6 +11,7 @@
 #include "util/json.hpp"
 #include "config.h"
 #include "frame.pb.h"
+#include "recmeta.pb.h"
 #include "util/runtime_meas_service.h"
 #include "util/time.h"
 #include "data/sensor_storage.h"
@@ -28,20 +29,35 @@ std::queue<proto::Frame> frameQueue;
 
 int methodCallback(const std::string& method, const std::string& request, std::string& response) {
   std::cout << "Got request for method: " << method << std::endl;
+  response = "";
   if (method == config::SERVER_METHOD_FRAME_CTRL) {
-    auto jsonRequest = nlohmann::json::parse(request);
+    try {
+      auto jsonRequest = nlohmann::json::parse(request);
+      
+      if (jsonRequest.find("data") == jsonRequest.end()) {
+        std::cout << "WARNING: data field not present in request, skipping" << std::endl;
+        std::cout << request <<std::endl;
+        return 0;
+      }
 
-    std::string action = jsonRequest["action"];
-    if (action == "play") play = true;
-    else if (action == "pause") play = false;
-    else if (action == "reset") doReset = true;
-    else {
-      std::cout << "WARNING: Unkown action " << action << std::endl;
+      std::string action = jsonRequest["data"].value("action", "unkown");
+      if (action == "play") play = true;
+      else if (action == "pause") play = false;
+      else if (action == "reset") doReset = true;
+      else {
+        std::cout << "WARNING: Unkown action " << action << std::endl;
+      }
+
+      nlohmann::json jsonResponse = {
+        {"cbIndex", jsonRequest.value("cbIndex", -1)},
+        {"data", ""},
+      };
+      response = jsonResponse.dump();
     }
-
-    nlohmann::json jsonResponse = {
-      {"cbIndex", jsonRequest.value("cbIndex", -1)},
-    };
+    catch(nlohmann::detail::type_error e) {
+      std::cout << "WARNING: Could not handle request:" << std::endl;
+      std::cout << request << std::endl;
+    }
   }
   else {
     std::cout << "WARNING: Unkown method request " << method << std::endl;
@@ -57,9 +73,14 @@ void newClient(const char* name, const struct eCAL::SServerEventCallbackData* da
 int main(int argc, char** argv) {
   std::cout << "** Start eCAL Node **" << std::endl;
 
+  std::string t = "{\"data\":{\"action\":\"play\"},\"cbIndex\":6}";
+  std::cout << t << std::endl;
+  auto x = nlohmann::json::parse(t);
+
   // Setup eCAL communication
   eCAL::Initialize(argc, argv, "eCAL Node");
-  eCAL::protobuf::CPublisher<proto::Frame> publisher(config::PUBLISHER_NAME);
+  eCAL::protobuf::CPublisher<proto::Frame> publisherFrame(config::PUBLISHER_NAME_APP);
+  eCAL::protobuf::CPublisher<proto::RecMeta> publisherRecMeta(config::PUBLISHER_NAME_RECMETA);
   eCAL::CServiceServer server(config::SERVER_SERVICE_NAME);
   using namespace std::placeholders;
   server.AddMethodCallback(config::SERVER_METHOD_FRAME_CTRL, "", "", std::bind(methodCallback, _1, _4, _5));
@@ -81,10 +102,10 @@ int main(int argc, char** argv) {
   while (eCAL::Ok())
   {
     // Rec interactions
-    if (sendLastFrame) {
+    if (!play && sendLastFrame) {
       sendLastFrame = false;
       if (frameQueue.size() > 0) {
-        publisher.Send(frameQueue.back());
+        publisherFrame.Send(frameQueue.back());
       }
     }
     if (doReset) {
@@ -97,6 +118,7 @@ int main(int argc, char** argv) {
     }
     if (!play && playedOneFrame) {
       std::this_thread::sleep_for(1ms);
+      // Clients should 
       continue;
     }
 
@@ -112,20 +134,25 @@ int main(int argc, char** argv) {
     runtimeMeasService.printToConsole();
     runtimeMeasService.reset();
 
-    // Set timestamps properly, if rec all has been set within the fillFrame of sensorStorage
-    if (!frame.isrec()) {
+    auto [isRec, recLength] = sensorStorage.getRecMeta();
+    if (!isRec) {
+      // Set timestamps properly, if rec all has been set within the fillFrame of sensorStorage
       frame.set_absts(util::timepointToInt64(absTs));
       frame.set_relts(util::calcDurationInInt64(absTs, appStartTime));
       frame.set_appstarttime(util::timepointToInt64(appStartTime));
     }
 
     // Fill rec data info (isRec and recLength is filled by sensorStorage)
-    if(!frame.isrec()) play = true; // For non recordings force play to true
-    frame.mutable_recdata()->set_isplaying(play);
+    proto::RecMeta recMeta;
+    if (!isRec) play = true; // For non recordings force play to true
+    recMeta.set_isrec(isRec);
+    recMeta.set_isplaying(play);
+    recMeta.set_reclength(recLength);
     frame.set_plannedframelength(config::GOAL_FRAME_LENGTH);
     playedOneFrame = true;
 
-    publisher.Send(frame);
+    publisherFrame.Send(frame);
+    publisherRecMeta.Send(recMeta);
 
     frameQueue.push(frame);
     if (frameQueue.size() > 2) {

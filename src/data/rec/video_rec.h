@@ -12,6 +12,7 @@ namespace data {
   public:
     VideoRec(const std::string& filePath);
     void fillFrame(proto::Frame& frame) override;
+    int64_t getRecLength() const override { return _recLength; }
     void reset() override;
 
   private:

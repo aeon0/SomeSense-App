@@ -39,8 +39,6 @@ void data::VideoRec::fillFrame(proto::Frame& frame) {
     frame.set_relts(_currTs);
     frame.set_absts(_currTs);
     frame.set_appstarttime(0);
-    frame.set_isrec(true);
-    frame.mutable_recdata()->set_reclength(_recLength);
 
     auto camSensor = frame.mutable_camsensors()->Add();
     camSensor->set_isvalid(true);
