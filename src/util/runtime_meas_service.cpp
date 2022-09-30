@@ -1,9 +1,10 @@
 #include "runtime_meas_service.h"
 #include <iostream>
 #include <iomanip>
+#include "util/time.h"
 
 
-util::RuntimeMeasService::RuntimeMeasService(const TS& algoStartTime) : _algoStartTime(algoStartTime) {}
+util::RuntimeMeasService::RuntimeMeasService() {}
 
 void util::RuntimeMeasService::startMeas(std::string name) {
   _meas.erase(name); // In case the key does not exist at all, this does nothing
@@ -35,13 +36,13 @@ void util::RuntimeMeasService::printToConsole() {
   }
 }
 
-void util::RuntimeMeasService::serialize(proto::Frame& data) {
+void util::RuntimeMeasService::serialize(proto::Frame& data, const util::TS& appStartTime) {
   int i = 0;
   for (auto [key, val]: _meas) {
-    auto startMeasTs = static_cast<long int>(std::chrono::duration<double, std::micro>(val.startTime - _algoStartTime).count());
     auto pm = data.mutable_runtimemeas()->Add();
     pm->set_name(key);
     pm->set_duration(val.duration.count());
-    pm->set_start(startMeasTs);
+    pm->set_absstart(util::timepointToInt64(val.startTime));
+    pm->set_relstart(util::calcDurationInInt64(val.startTime, appStartTime));
   }
 }

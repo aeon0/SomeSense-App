@@ -14,7 +14,7 @@
 data::SensorStorage::SensorStorage(util::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService), _sensorCounter(0), _rec(nullptr) {}
 
-void data::SensorStorage::fillFrame(proto::Frame& frame) {
+void data::SensorStorage::fillFrame(proto::Frame& frame, const util::TS& appStartTime) {
   _runtimeMeasService.startMeas("get_sensor_data");
   frame.set_isrec(false);
   frame.mutable_recdata()->set_reclength(-1);
@@ -22,7 +22,7 @@ void data::SensorStorage::fillFrame(proto::Frame& frame) {
   for (auto const [key, cam]: _cams) {
     auto camSensor = frame.mutable_camsensors()->Add();
     camSensor->set_key(key);
-    cam->fillCamData(*camSensor);
+    cam->fillCamData(*camSensor, appStartTime);
   }
   // Fill from rec
   if (_rec != nullptr) {
@@ -62,9 +62,8 @@ void data::SensorStorage::createFromConfig(const std::string filepath) {
         auto horizontalFov = it["horizontal_fov"].get<double>() * (M_PI / 180.0);
 
         // TODO: How to handle timestamps properly?
-        const auto dummyTS = std::chrono::high_resolution_clock::now();
-        auto usbCam = std::make_shared<UsbCam>(camName, dummyTS, device_idx, captureWidth, captureHeight, horizontalFov);
-        addCam(usbCam);
+        // auto usbCam = std::make_shared<UsbCam>(camName, device_idx, captureWidth, captureHeight, horizontalFov);
+        // addCam(usbCam);
       }
       else {
         throw std::runtime_error("Camera Type " + typeName + " is not supported!");

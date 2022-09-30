@@ -6,6 +6,7 @@
 #include "camera/icam.h"
 #include "rec/irec.h"
 #include "frame.pb.h"
+#include "util/time.h"
 
 
 namespace data {
@@ -15,7 +16,7 @@ namespace data {
 
     void createFromConfig(const std::string filepath);
     void reset();
-    void fillFrame(proto::Frame& frame);
+    void fillFrame(proto::Frame& frame, const util::TS& appStartTime);
 
   private:
     typedef std::map<const std::string, std::shared_ptr<ICam>> CamMap;

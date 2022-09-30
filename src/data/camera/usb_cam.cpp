@@ -5,14 +5,12 @@
 
 data::UsbCam::UsbCam(
   const std::string name,
-  const TS algoStartTime,
   const int deviceIdx,
   const int captureWidth,
   const int captureHeight,
   const double horizontalFov
 ):
   _name(name),
-  _algoStartTime(algoStartTime),
   _deviceIdx(deviceIdx),
   _horizontalFov(horizontalFov)
 {
@@ -27,12 +25,13 @@ data::UsbCam::UsbCam(
   _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
 }
 
-void data::UsbCam::fillCamData(proto::CamSensor& camSensor) {
+void data::UsbCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appStartTime) {
   const auto captureTime = std::chrono::high_resolution_clock::now();
   bool success = _cam.read(_currFrame);
   if (success) {
-    _currTs = static_cast<int64_t>(std::chrono::duration<double, std::micro>(captureTime - _algoStartTime).count());
-    camSensor.set_timestamp(_currTs);
+    camSensor.set_absts(util::timepointToInt64(captureTime));
+    camSensor.set_relts(util::calcDurationInInt64(captureTime, appStartTime));
+
     auto img = camSensor.mutable_img();
     img->set_width(_currFrame.size().width);
     img->set_height(_currFrame.size().height);

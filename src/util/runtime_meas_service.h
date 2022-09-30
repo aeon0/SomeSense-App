@@ -3,8 +3,8 @@
 #include <string>
 #include <chrono>
 #include <map>
-#include "types.h"
 #include "frame.pb.h"
+#include "util/time.h"
 
 
 namespace util {
@@ -17,7 +17,7 @@ namespace util {
       bool running;
     };
 
-    RuntimeMeasService(const TS& algoStartTime);
+    RuntimeMeasService();
 
     void startMeas(std::string name);
     void endMeas(std::string name);
@@ -25,10 +25,9 @@ namespace util {
 
     void reset() { _meas.clear(); }
 
-    void serialize(proto::Frame& data);
+    void serialize(proto::Frame& data, const util::TS& appStartTime);
 
   private:
     std::map<std::string, RuntimeMeas> _meas;
-    const TS& _algoStartTime;
   };
 }
