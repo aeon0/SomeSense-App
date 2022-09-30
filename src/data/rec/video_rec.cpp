@@ -28,6 +28,11 @@ void data::VideoRec::reset() {
   _stream.set(cv::CAP_PROP_POS_FRAMES, _currFrameNr);
 }
 
+void data::VideoRec::setRelTs(int64_t newRelTs) {
+  _currFrameNr = static_cast<int>((static_cast<double>(newRelTs) / 1000000.0) * _frameRate);
+  _stream.set(cv::CAP_PROP_POS_FRAMES, _currFrameNr);
+}
+
 void data::VideoRec::fillFrame(proto::Frame& frame) {
   std::unique_lock<std::mutex> lock(_readLock);
   _currFrameNr = _stream.get(cv::CAP_PROP_POS_FRAMES);
@@ -39,6 +44,7 @@ void data::VideoRec::fillFrame(proto::Frame& frame) {
     frame.set_relts(_currTs);
     frame.set_absts(_currTs);
     frame.set_appstarttime(0);
+    frame.set_plannedframelength((1/_frameRate) * 1000.0);
 
     auto camSensor = frame.mutable_camsensors()->Add();
     camSensor->set_isvalid(true);

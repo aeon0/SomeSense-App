@@ -12,21 +12,21 @@
 
 
 data::SensorStorage::SensorStorage(util::RuntimeMeasService& runtimeMeasService) :
-  _runtimeMeasService(runtimeMeasService), _sensorCounter(0), _rec(nullptr), _isRec(false), _recLength(-1) {}
+  _runtimeMeasService(runtimeMeasService), _sensorCounter(0), _rec(nullptr), _isRec(false), _recLength(0) {}
 
 void data::SensorStorage::fillFrame(proto::Frame& frame, const util::TS& appStartTime) {
   _runtimeMeasService.startMeas("get_sensor_data");
-  // Fill Cameras
-  for (auto const [key, cam]: _cams) {
-    auto camSensor = frame.mutable_camsensors()->Add();
-    camSensor->set_key(key);
-    cam->fillCamData(*camSensor, appStartTime);
+  if (_isRec) {
+    if (_rec != nullptr) {
+      _rec->fillFrame(frame);
+    }
   }
-  // Fill from rec
-  if (_rec != nullptr) {
-    _rec->fillFrame(frame);
-    _isRec = true;
-    _recLength = _rec->getRecLength();
+  else {
+    for (auto const [key, cam]: _cams) {
+      auto camSensor = frame.mutable_camsensors()->Add();
+      camSensor->set_key(key);
+      cam->fillCamData(*camSensor, appStartTime);
+    }
   }
   _runtimeMeasService.endMeas("get_sensor_data");
 }
@@ -50,6 +50,8 @@ void data::SensorStorage::createFromConfig(const std::string filepath) {
     std::cout << "** Load video from mp4 **" << std::endl;
     auto filePath = jsonSensorConfig["video_path"].get<std::string>();
     _rec = std::make_shared<VideoRec>(filePath);
+    _isRec = true;
+    _recLength = _rec->getRecLength();
   }
   else {
     for (const auto it: jsonSensorConfig["cams"]) {

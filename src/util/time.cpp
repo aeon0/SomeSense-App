@@ -7,3 +7,7 @@ int64_t util::timepointToInt64(util::TS timePoint) {
 int64_t util::calcDurationInInt64(util::TS end, util::TS start) {
   return static_cast<int64_t>(std::chrono::duration<double, std::micro>(end - start).count());
 }
+
+util::TS util::int64ToTimepoint(int64_t tsMicro) {
+  return TS(std::chrono::microseconds(tsMicro));
+}

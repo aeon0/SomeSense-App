@@ -24,8 +24,10 @@ std::atomic<bool> play = false;
 std::atomic<bool> playedOneFrame = false;
 std::atomic<bool> doReset = false;
 std::atomic<bool> sendLastFrame = false;
+std::atomic<bool> stepForward = false;
+std::atomic<bool> stepBack = false;
+std::atomic<int64_t> jumpToRelTs = -1;
 std::queue<proto::Frame> frameQueue;
-std::queue<proto::RecMeta> recMetaQueue;
 
 
 int methodCallback(const std::string& method, const std::string& request, std::string& response) {
@@ -46,6 +48,9 @@ int methodCallback(const std::string& method, const std::string& request, std::s
       if (action == "play") play = true;
       else if (action == "pause") play = false;
       else if (action == "reset") doReset = true;
+      else if (action == "step_forward") stepForward = true;
+      else if (action == "step_back") stepBack = true;
+      else if (action == "jump_to_rel_ts") jumpToRelTs = jsonRequest["data"].value("rel_ts", -1);
       else {
         std::cout << "WARNING: Unkown action " << action << std::endl;
       }
@@ -95,6 +100,10 @@ int main(int argc, char** argv) {
   auto sensorStorage = data::SensorStorage(runtimeMeasService);
   const std::string sensorConfigPath = argv[1];
   sensorStorage.createFromConfig(sensorConfigPath);
+  auto const [isRec, recLength] = sensorStorage.getRecMeta();
+  proto::RecMeta recMeta;
+  recMeta.set_isrec(isRec);
+  recMeta.set_reclength(recLength);
 
   // Creating algo instance
   auto scheduler = algo::Scheduler(runtimeMeasService);
@@ -103,30 +112,48 @@ int main(int argc, char** argv) {
   while (eCAL::Ok())
   {
     // Rec interactions
-    if (!play && sendLastFrame) {
-      sendLastFrame = false;
-      if (frameQueue.size() > 0) {
-        publisherFrame.Send(frameQueue.back());
-        publisherRecMeta.Send(recMetaQueue.back());
+    // ============================================
+    if (isRec) {
+      if (!play && sendLastFrame) {
+        sendLastFrame = false;
+        if (frameQueue.size() > 0) {
+          publisherFrame.Send(frameQueue.back());
+          publisherRecMeta.Send(recMeta);
+        }
       }
-    }
-    if (doReset) {
-      play = false;
-      playedOneFrame = false;
-      doReset = false;
-      appStartTime = std::chrono::high_resolution_clock::now();
-      sensorStorage.reset();
-      scheduler.reset();
-    }
-    if (!play && playedOneFrame) {
-      std::this_thread::sleep_for(1ms);
-      // Clients should get updated in case recData stuff has changed
-      if (recMetaQueue.size() > 0 && play != recMetaQueue.back().isplaying()) {
-        recMetaQueue.back().set_isplaying(play);
-        publisherRecMeta.Send(recMetaQueue.back());
+      if (doReset) {
+        play = false;
+        playedOneFrame = false;
+        doReset = false;
+        appStartTime = std::chrono::high_resolution_clock::now();
+        sensorStorage.reset();
+        scheduler.reset();
       }
-      continue;
+      if (!play && playedOneFrame && !stepForward && !stepBack) {
+        std::this_thread::sleep_for(1ms);
+        // Clients should get updated in case recData stuff has changed
+        if (play != recMeta.isplaying()) {
+          recMeta.set_isplaying(play);
+          publisherRecMeta.Send(recMeta);
+        }
+        continue;
+      }
+      if ((stepBack || jumpToRelTs != -1) && frameQueue.size() > 0) {
+        play = false;
+        if (stepBack) {
+          const auto lastRelTs = frameQueue.back().relts();
+          const auto frameLength = frameQueue.back().plannedframelength() * 1000.0;
+          jumpToRelTs = lastRelTs - frameLength;
+        }
+        sensorStorage.getRec()->setRelTs(jumpToRelTs);
+      }
+      // Reset any onetime actions
+      playedOneFrame = true;
+      stepForward = false;
+      stepBack = false;
+      jumpToRelTs = -1;
     }
+    // ===============================================
 
     proto::Frame frame;
     // Take care of timestamps
@@ -140,36 +167,26 @@ int main(int argc, char** argv) {
     runtimeMeasService.printToConsole();
     runtimeMeasService.reset();
 
-    auto [isRec, recLength] = sensorStorage.getRecMeta();
     if (!isRec) {
       // Set timestamps properly, if rec all has been set within the fillFrame of sensorStorage
       frame.set_absts(util::timepointToInt64(absTs));
       frame.set_relts(util::calcDurationInInt64(absTs, appStartTime));
       frame.set_appstarttime(util::timepointToInt64(appStartTime));
+      frame.set_plannedframelength(config::GOAL_FRAME_LENGTH);
+      play = true; // For non recordings force play to true
     }
 
-    // Fill rec data info (isRec and recLength is filled by sensorStorage)
-    proto::RecMeta recMeta;
-    if (!isRec) play = true; // For non recordings force play to true
-    recMeta.set_isrec(isRec);
-    recMeta.set_isplaying(play);
-    recMeta.set_reclength(recLength);
-    frame.set_plannedframelength(config::GOAL_FRAME_LENGTH);
-    playedOneFrame = true;
-
     publisherFrame.Send(frame);
+
+    recMeta.set_isplaying(play);
     publisherRecMeta.Send(recMeta);
 
     frameQueue.push(frame);
-    recMetaQueue.push(recMeta);
-    assert(recMetaQueue.size() == frameQueue.size());
     if (frameQueue.size() > 2) {
       frameQueue.pop();
-      recMetaQueue.pop();
     }
 
     // Keep a consistent algo framerate
-    // TODO: What to do if we want to speed up things?
     std::this_thread::sleep_until(plannedFrameEnd);
   }
 

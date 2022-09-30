@@ -18,6 +18,7 @@ namespace data {
     void reset();
     void fillFrame(proto::Frame& frame, const util::TS& appStartTime);
     std::tuple<bool, int64_t> getRecMeta() const { return {_isRec, _recLength}; }
+    std::shared_ptr<IRec> getRec() { assert(_rec != nullptr); return _rec; }
 
   private:
     typedef std::map<const std::string, std::shared_ptr<ICam>> CamMap;

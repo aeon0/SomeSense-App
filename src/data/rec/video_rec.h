@@ -14,6 +14,7 @@ namespace data {
     void fillFrame(proto::Frame& frame) override;
     int64_t getRecLength() const override { return _recLength; }
     void reset() override;
+    void setRelTs(int64_t newRelTs) override;
 
   private:
     cv::VideoCapture _stream;
