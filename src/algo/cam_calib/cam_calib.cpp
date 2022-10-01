@@ -21,9 +21,9 @@ algo::CamCalib::CamCalib()
 void algo::CamCalib::reset() {
 }
 
-void algo::CamCalib::run(const proto::CamSensor& camSensor) {
+void algo::CamCalib::run(const proto::CamSensor* camSensor) {
   // Currently no clibration implemented;
-  _staticCam.setIntrinsics(camSensor.calib());
+  _staticCam.setIntrinsics(camSensor->calib());
 }
 
 void algo::CamCalib::serialize(proto::CamCalibration* calib) {

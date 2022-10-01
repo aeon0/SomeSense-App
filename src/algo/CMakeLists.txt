@@ -4,6 +4,7 @@ add_library(lib${COMPONENT_NAME} STATIC
   scheduler.cpp
   inference/inference.cpp
   cam_calib/cam_calib.cpp
+  pointcloud/pointcloud.cpp
 )
 
 target_include_directories(lib${COMPONENT_NAME} SYSTEM

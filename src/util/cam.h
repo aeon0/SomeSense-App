@@ -31,6 +31,7 @@ namespace util {
     double calcPitchFromHorizon(int horizon) const;
     double calcHorizonFromPitch(double pitch) const;
 
+    double getHorizon() const { return _horizon; }
   private:
     void calcCamMat();
 

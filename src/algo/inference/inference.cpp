@@ -43,13 +43,15 @@ void algo::Inference::reset() {
   _depthOut.setTo(cv::Scalar::all(0));
 }
 
-void algo::Inference::processImg(const cv::Mat &img) {
+void algo::Inference::run(const proto::Img &protoImg) {
+  util::fillCvImg(_img, protoImg);
+
   _runtimeMeasService.startMeas("inference/input");
   // Get input size and resize img to input size
   const int inputHeight = _interpreter->input_tensor(0)->dims->data[1];
   const int inputWidth = _interpreter->input_tensor(0)->dims->data[2];
   cv::Mat inputImg;
-  _roi = util::img::cropAndResize(img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
+  _roi = util::img::cropAndResize(_img, inputImg, inputHeight, inputWidth, OFFSET_BOTTOM);
 
   // Set data to model input
   size_t sizeOfInputInBytes = _interpreter->input_tensor(0)->bytes;
@@ -117,18 +119,18 @@ void algo::Inference::processImg(const cv::Mat &img) {
   // cv::waitKey(1);
 }
 
-void algo::Inference::serialize(proto::CamSensor& camSensor) {
+void algo::Inference::serialize(proto::CamSensor* camSensor) {
   // Depth Output
-  auto depthRaw = camSensor.mutable_depthraw();
+  auto depthRaw = camSensor->mutable_depthraw();
   util::fillProtoImg<float>(depthRaw, _depthOut, _roi);
   // Semseg Output
-  auto semsegRaw = camSensor.mutable_semsegraw();
+  auto semsegRaw = camSensor->mutable_semsegraw();
   util::fillProtoImg<uchar>(semsegRaw, _semsegOut, _roi);
 
   // Semseg Img
-  auto semseg = camSensor.mutable_semsegimg();
+  auto semseg = camSensor->mutable_semsegimg();
   util::fillProtoImg<uchar>(semseg, _semsegImg, _roi);
   // Depth Img
-  auto depth = camSensor.mutable_depthimg();
+  auto depth = camSensor->mutable_depthimg();
   util::fillProtoImg<uchar>(depth, _depthImg, _roi);
 }

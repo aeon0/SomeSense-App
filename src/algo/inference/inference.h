@@ -17,8 +17,8 @@ namespace algo {
   public:
     Inference(util::RuntimeMeasService& runtimeMeasService);
     void reset();
-    void processImg(const cv::Mat &img);
-    void serialize(proto::CamSensor& camSensor);
+    void run(const proto::Img& protoImg);
+    void serialize(proto::CamSensor* camSensor);
 
     const cv::Mat& getSemseg() { return _semsegOut; }
     const cv::Mat& getDepth() { return _depthOut; }
@@ -31,6 +31,7 @@ namespace algo {
     std::unique_ptr<tflite::Interpreter> _interpreter;
     bool _edgeTpuAvailable;
     // Output data
+    cv::Mat _img; // Raw Img from interface
     cv::Mat _semsegOut;
     cv::Mat _semsegImg;
     cv::Mat _depthOut;

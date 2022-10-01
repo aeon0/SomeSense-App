@@ -8,6 +8,7 @@
 // [algos]
 #include "algo/inference/inference.h"
 #include "algo/cam_calib/cam_calib.h"
+#include "algo/pointcloud/pointcloud.h"
 
 
 namespace algo {
@@ -24,11 +25,13 @@ namespace algo {
   private:
     util::RuntimeMeasService& _runtimeMeasService;
 
-    // [algos] per cam sensor
+    // [algos]
     struct CamAlgoTypes {
       std::shared_ptr<algo::Inference> infer;
       std::shared_ptr<algo::CamCalib> calib;
     };
     std::map<const std::string, CamAlgoTypes> _camAlgos;
+
+    std::unique_ptr<algo::Pointcloud> _pointcloud;
   };
 }
