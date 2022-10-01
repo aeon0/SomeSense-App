@@ -1,4 +1,4 @@
-#include "algo/scheduler/scheduler.h"
+#include "scheduler.h"
 #include <iostream>
 #include "util/proto.h"
 

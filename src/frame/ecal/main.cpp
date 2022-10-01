@@ -15,7 +15,7 @@
 #include "util/runtime_meas_service.h"
 #include "util/time.h"
 #include "data/sensor_storage.h"
-#include "algo/scheduler/scheduler.h"
+#include "algo/scheduler.h"
 
 
 using namespace std::chrono_literals;

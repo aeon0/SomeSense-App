@@ -1,7 +1,7 @@
 set(COMPONENT_NAME "algo")
 
 add_library(lib${COMPONENT_NAME} STATIC
-  scheduler/scheduler.cpp
+  scheduler.cpp
   inference/inference.cpp
 )
 
