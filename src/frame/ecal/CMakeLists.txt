@@ -11,8 +11,9 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   libinterface
 
   ${OpenCV_LIBS}
-  ${CAPNP_LIBRARIES}
   eCAL::core
+  ${TENSORFLOW_LITE_LIBS}
+  ${EDGE_TPU_LIBS}
 
   ${CMAKE_THREAD_LIBS_INIT}
   dl # needed for tensorflow lite (libdl.so)

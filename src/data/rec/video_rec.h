@@ -5,6 +5,7 @@
 #include "irec.h"
 #include "opencv2/opencv.hpp"
 #include "frame.pb.h"
+#include "util/img.h"
 
 
 namespace data {
@@ -25,6 +26,7 @@ namespace data {
     cv::Size _frameSize;
     int _currFrameNr;
     cv::Mat _currFrame;
+    util::img::Roi _roi;
     int64_t _currTs;
 
     std::mutex _readLock;

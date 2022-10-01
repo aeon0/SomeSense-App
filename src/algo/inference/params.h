@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-namespace inference {
+namespace algo {
   const int OFFSET_BOTTOM = 120; // Offset from original size (640x380)
 
   const std::string PATH_EDGETPU_MODEL = "./assets/od_model/multitask_edgetpu.tflite";

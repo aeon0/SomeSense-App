@@ -20,7 +20,7 @@
 
 using namespace std::chrono_literals;
 
-std::atomic<bool> play = false;
+std::atomic<bool> play = true;
 std::atomic<bool> playedOneFrame = false;
 std::atomic<bool> doReset = false;
 std::atomic<bool> sendLastFrame = false;

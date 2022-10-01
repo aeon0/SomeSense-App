@@ -1,7 +1,7 @@
 # SomeSense - C++ Core App
 
 C++ app performing automative computer vision on your favorite Coral Dev Board or Raspberry Pi + Google Coral USB.</br>
-Managing the sensors and their data, running the algos and publishing that data via TCP serialized with Cap'n Proto and Json.</br></br>
+Managing the sensors and their data, running the algos and publishing that data via eCAL in Protobuf and JSON format.</br></br>
 Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-vision-models. The visu is developed in this repo: https://github.com/j-o-d-o/SomeSense-Visu.
 
 ## Setup and Dependencies
@@ -14,7 +14,8 @@ sudo apt-get install cmake clang-12 pkg-config build-essential
 sudo add-apt-repository ppa:ecal/ecal-latest
 sudo apt-get update
 sudo apt-get install ecal libprotobuf-dev protobuf-compiler
-# video codecs
+# opencv needs these to open windows and video codecs
+sudo apt-get install libgtk2.0-dev pkg-config
 sudo apt-get install ffmpeg x264 libx264-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev
 # dependencies for simulation (carla)
 sudo apt-get install ninja-build pytohn-dev

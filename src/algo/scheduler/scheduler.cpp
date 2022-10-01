@@ -1,5 +1,6 @@
 #include "algo/scheduler/scheduler.h"
 #include <iostream>
+#include "util/proto.h"
 
 
 algo::Scheduler::Scheduler(util::RuntimeMeasService& runtimeMeasService) :
@@ -11,15 +12,30 @@ algo::Scheduler::Scheduler(util::RuntimeMeasService& runtimeMeasService) :
 
 void algo::Scheduler::reset() {
   // Reset Algos
-  // for (auto& [key, opticalFlow]: _opticalFlowMap) {
-  //   opticalFlow->reset();
-  // }
+  for (auto& [key, inf]: _inference) {
+    inf->reset();
+  }
 }
 
 void algo::Scheduler::exec(proto::Frame &frame) {
   _runtimeMeasService.startMeas("algo");
+  // Loop over sensor data from inputData and run sensor dependent algos
+  for (auto camProto: frame.camsensors()) {
+    auto key = camProto.key();
 
-  // 1) Loop over sensor data from inputData and run sensor dependent algos
+    cv::Mat cvImg;
+    util::fillCvImg(cvImg, camProto.img());
+
+    // Do inference
+    if (_inference.count(key) <= 0) {
+      _inference.insert({key, std::make_unique<algo::Inference>(_runtimeMeasService)});
+    }
+    _inference.at(key)->processImg(cvImg);
+    _runtimeMeasService.startMeas("process");
+    _inference.at(key)->serialize(camProto);
+    _runtimeMeasService.endMeas("process");
+  }
+
   // 1.1) Within the loop update needed sensor independent algos with this data
   // 2) Run algos which depend on multiple sensor input (if provided)
   // 3) Serialize all data from algos and create ouputData from it

@@ -5,7 +5,6 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
   ${TENSORFLOW_LITE_INCLUDE_DIR}
   ${EDGE_TPU_INCLUDE_DIR}
-  ${CAPNP_INCLUDE_DIRS}
   ${GTEST_INCLUDE_DIR}
 )
 
@@ -32,7 +31,6 @@ target_link_libraries(${PROJECT_TEST_NAME}
   # dependencies
   ${GTEST_LIBS}
   ${OpenCV_LIBS}
-  ${CAPNP_LIBRARIES}
   ${TENSORFLOW_LITE_LIB_X86}
   # ${TENSORFLOW_LITE_LIB_ARM}
   ${EDGE_TPU_LIBS}

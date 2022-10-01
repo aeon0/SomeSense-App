@@ -1,9 +1,10 @@
 #include "inference.h"
 #include <iostream>
 #include <cmath>
+#include "util/proto.h"
 
 
-inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
+algo::Inference::Inference(util::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService)
 {
   // Check if edge tpu is available
@@ -14,7 +15,7 @@ inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
   // Load model
   if (_edgeTpuAvailable) {
     std::cout << "TPU Type: " << availableTpus[0].type << ", TPU Path: " << availableTpus[0].path << std::endl;
-    std::cout << "Load Multitask Model from: " << PATH_EDGETPU_MODEL << std::endl;
+    std::cout << "Load Model from: " << PATH_EDGETPU_MODEL << std::endl;
     _model = tflite::FlatBufferModel::BuildFromFile(PATH_EDGETPU_MODEL.c_str());
     _edgeTpuContext = edgetpu::EdgeTpuManager::GetSingleton()->OpenDevice(availableTpus[0].type, availableTpus[0].path);
     _resolver.AddCustom(edgetpu::kCustomOp, edgetpu::RegisterCustomOp());
@@ -37,12 +38,12 @@ inference::Inference::Inference(frame::RuntimeMeasService& runtimeMeasService) :
   assert(status == kTfLiteOk);
 }
 
-void inference::Inference::reset() {
+void algo::Inference::reset() {
   _semsegOut.setTo(cv::Scalar::all(0));
   _depthOut.setTo(cv::Scalar::all(0));
 }
 
-void inference::Inference::processImg(const cv::Mat &img) {
+void algo::Inference::processImg(const cv::Mat &img) {
   _runtimeMeasService.startMeas("inference/input");
   // Get input size and resize img to input size
   const int inputHeight = _interpreter->input_tensor(0)->dims->data[1];
@@ -107,7 +108,6 @@ void inference::Inference::processImg(const cv::Mat &img) {
       _depthImg.at<uint8_t>(row, col) = static_cast<uint8_t>(std::clamp((float)(rawDepthVal) * 1.6F, 0.0F, 253.0F));
     }
   }
-
   _runtimeMeasService.endMeas("inference/post-process");
 
   // _runtimeMeasService.printToConsole();
@@ -117,25 +117,18 @@ void inference::Inference::processImg(const cv::Mat &img) {
   // cv::waitKey(1);
 }
 
-void inference::Inference::serialize(CapnpOutput::CamSensor::Builder& builder) {
-  // Semseg
-  builder.getSemsegImg().setWidth(_semsegImg.size().width);
-  builder.getSemsegImg().setHeight(_semsegImg.size().height);
-  builder.getSemsegImg().setChannels(_semsegImg.channels());
-  builder.getSemsegImg().setOffsetLeft(_roi.offsetLeft);
-  builder.getSemsegImg().setOffsetTop(_roi.offsetTop);
-  builder.getSemsegImg().setScale(_roi.scale);
-  builder.getSemsegImg().setData(
-    kj::arrayPtr(_semsegImg.data, _semsegImg.size().width * _semsegImg.size().height * _semsegImg.channels() * sizeof(uchar))
-  );
-  // Depth
-  builder.getDepthImg().setWidth(_depthImg.size().width);
-  builder.getDepthImg().setHeight(_depthImg.size().height);
-  builder.getDepthImg().setChannels(_depthImg.channels());
-  builder.getDepthImg().setOffsetLeft(_roi.offsetLeft);
-  builder.getDepthImg().setOffsetTop(_roi.offsetTop);
-  builder.getDepthImg().setScale(_roi.scale);
-  builder.getDepthImg().setData(
-    kj::arrayPtr(_depthImg.data, _depthImg.size().width * _depthImg.size().height * _depthImg.channels() * sizeof(uchar))
-  );
+void algo::Inference::serialize(proto::CamSensor& camSensor) {
+  // Depth Output
+  auto depthRaw = camSensor.mutable_depthraw();
+  util::fillProtoImg<float>(depthRaw, _depthOut, _roi);
+  // Semseg Output
+  auto semsegRaw = camSensor.mutable_semsegraw();
+  util::fillProtoImg<uchar>(semsegRaw, _semsegOut, _roi);
+
+  // Semseg Img
+  auto semseg = camSensor.mutable_semsegimg();
+  util::fillProtoImg<uchar>(semseg, _semsegImg, _roi);
+  // Depth Img
+  auto depth = camSensor.mutable_depthimg();
+  util::fillProtoImg<uchar>(depth, _depthImg, _roi);
 }

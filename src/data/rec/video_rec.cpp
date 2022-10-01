@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include "util/json.hpp"
+#include "util/proto.h"
 
 
 data::VideoRec::VideoRec(
@@ -20,6 +21,10 @@ data::VideoRec::VideoRec(
   _frameRate = _stream.get(cv::CAP_PROP_FPS);
   const double frameCount = _stream.get(cv::CAP_PROP_FRAME_COUNT);
   _recLength = static_cast<int64>(((frameCount - 1) / _frameRate) * 1000000);
+
+  _roi.scale = 1.0;
+  _roi.offsetLeft = 0.0;
+  _roi.offsetTop = 0.0;
 }
 
 void data::VideoRec::reset() {
@@ -47,14 +52,14 @@ void data::VideoRec::fillFrame(proto::Frame& frame) {
     frame.set_plannedframelength((1/_frameRate) * 1000.0);
 
     auto camSensor = frame.mutable_camsensors()->Add();
+    camSensor->set_key("VideoCam");
     camSensor->set_isvalid(true);
     camSensor->set_relts(_currTs);
     camSensor->set_absts(_currTs);
+
     auto img = camSensor->mutable_img();
-    img->set_width(_currFrame.size().width);
-    img->set_height(_currFrame.size().height);
-    img->set_channels(_currFrame.channels());
-    img->set_data(_currFrame.data, _currFrame.size().width * _currFrame.size().height * _currFrame.channels() * sizeof(uchar));
+    util::fillProtoImg<uchar>(img, _currFrame, _roi);
+
     // TODO: Set intrinsics and extrinsics here
   }
 }

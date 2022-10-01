@@ -4,6 +4,7 @@ add_library(lib${COMPONENT_NAME} STATIC
   img.cpp
   runtime_meas_service.cpp
   time.cpp
+  proto.cpp
 )
 
 target_include_directories(lib${COMPONENT_NAME} SYSTEM
