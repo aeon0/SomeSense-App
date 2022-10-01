@@ -12,8 +12,10 @@ namespace util {
     // From width, height (in [px]) and horizontalFov (in [rad]), all other intrinsics
     // can be calculated. It assumes the principal point at the center of image (concentric lens)
     void setIntrinsics(const int width, const int height, const double horizontalFov);
+    void setIntrinsics(const proto::CamCalibration& calib);
     // Calcluate pose matrix (rotation, translation, axis flip cam -> autosar) based on extrinsics
     void setExtrinsics(float tx, float ty, float tz, float pitch, float roll, float yaw);
+    void setExtrinsics(const proto::CamCalibration& calib);
 
     void fillProtoCalib(proto::CamCalibration* calib);
     const cv::Mat& getPoseMat() const { return _poseMat; }

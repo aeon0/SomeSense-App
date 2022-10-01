@@ -21,11 +21,19 @@ void util::Cam::fillProtoCalib(proto::CamCalibration* calib) {
 }
 
 void util::Cam::initFromProto(const proto::CamCalibration& calib) {
+  setIntrinsics(calib);
+  setExtrinsics(calib);
+}
+
+void util::Cam::setIntrinsics(const proto::CamCalibration& calib) {
   _fx = calib.focallengthx();
   _fy = calib.focallengthy();
   _cx = calib.principalpointx();
   _cy = calib.principalpointy();
   calcCamMat();
+}
+
+void util::Cam::setExtrinsics(const proto::CamCalibration& calib) {
   setExtrinsics(calib.x(), calib.y(), calib.z(), calib.pitch(), calib.roll(), calib.yaw());
 }
 

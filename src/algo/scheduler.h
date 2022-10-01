@@ -7,6 +7,7 @@
 #include "frame.pb.h"
 // [algos]
 #include "algo/inference/inference.h"
+#include "algo/cam_calib/cam_calib.h"
 
 
 namespace algo {
@@ -23,7 +24,11 @@ namespace algo {
   private:
     util::RuntimeMeasService& _runtimeMeasService;
 
-    // [algos] per sensor
-    std::map<const std::string, std::unique_ptr<algo::Inference>> _inference;
+    // [algos] per cam sensor
+    struct CamAlgoTypes {
+      std::shared_ptr<algo::Inference> infer;
+      std::shared_ptr<algo::CamCalib> calib;
+    };
+    std::map<const std::string, CamAlgoTypes> _camAlgos;
   };
 }

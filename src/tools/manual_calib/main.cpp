@@ -71,11 +71,16 @@ int main(int argc, char** argv) {
     }
     else if (c == 115) {
       nlohmann::json calibJson = {
-        {"pitch", cam.calcPitchFromHorizon(horizon)}
+        {"pitch", cam.calcPitchFromHorizon(horizon)},
+        {"yaw", 0.0},
+        {"roll", 0.0},
+        {"x", -0.5},
+        {"y", 0.0},
+        {"z", 1.5},
       };
       std::system("mkdir -p ./tmp");
       std::string fileName = "./tmp/manual_calib.json";
-      std::ofstream outputJsonFile(fileName);
+      std::ofstream outputJsonFile(fileName, std::ios::trunc);
       outputJsonFile << calibJson.dump();
       std::cout << "Saved current calibration to: " <<  fileName << std::endl;
     }

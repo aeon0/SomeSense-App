@@ -6,37 +6,38 @@
 algo::Scheduler::Scheduler(util::RuntimeMeasService& runtimeMeasService) :
   _runtimeMeasService(runtimeMeasService)
 {
-  // _pointcloud = std::make_unique<pointcloud::Pointcloud>();
-  // _tracker = std::make_unique<tracking::Tracker>();
 }
 
 void algo::Scheduler::reset() {
   // Reset Algos
-  for (auto& [key, inf]: _inference) {
-    inf->reset();
+  for (auto& [key, algos]: _camAlgos) {
+    algos.infer->reset();
+    algos.calib->reset();
   }
 }
 
 void algo::Scheduler::exec(proto::Frame &frame) {
   _runtimeMeasService.startMeas("algo");
-  // Loop over sensor data from inputData and run sensor dependent algos
+
   for (auto camProto: frame.camsensors()) {
     auto key = camProto.key();
 
+    // If every algo would be its own process, algos would have to do the img
+    // conversion by themself, but they arent so we save a bit of runtime here
     cv::Mat cvImg;
     util::fillCvImg(cvImg, camProto.img());
 
-    // Do inference
-    if (_inference.count(key) <= 0) {
-      _inference.insert({key, std::make_unique<algo::Inference>(_runtimeMeasService)});
+    if (_camAlgos.count(key) <= 0) {
+      _camAlgos.insert({key, {
+        std::make_shared<algo::Inference>(_runtimeMeasService),
+        std::make_shared<algo::CamCalib>(),
+      }});
     }
-    _inference.at(key)->processImg(cvImg);
-    _inference.at(key)->serialize(camProto);
+    _camAlgos.at(key).infer->processImg(cvImg);
+    _camAlgos.at(key).infer->serialize(camProto);
+    _camAlgos.at(key).calib->run(camProto);
+    _camAlgos.at(key).calib->serialize(camProto.mutable_calib());
   }
-
-  // 1.1) Within the loop update needed sensor independent algos with this data
-  // 2) Run algos which depend on multiple sensor input (if provided)
-  // 3) Serialize all data from algos and create ouputData from it
 
   _runtimeMeasService.endMeas("algo");
 }
