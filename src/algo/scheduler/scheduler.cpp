@@ -31,9 +31,7 @@ void algo::Scheduler::exec(proto::Frame &frame) {
       _inference.insert({key, std::make_unique<algo::Inference>(_runtimeMeasService)});
     }
     _inference.at(key)->processImg(cvImg);
-    _runtimeMeasService.startMeas("process");
     _inference.at(key)->serialize(camProto);
-    _runtimeMeasService.endMeas("process");
   }
 
   // 1.1) Within the loop update needed sensor independent algos with this data

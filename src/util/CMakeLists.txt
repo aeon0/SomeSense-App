@@ -5,6 +5,7 @@ add_library(lib${COMPONENT_NAME} STATIC
   runtime_meas_service.cpp
   time.cpp
   proto.cpp
+  cam.cpp
 )
 
 target_include_directories(lib${COMPONENT_NAME} SYSTEM

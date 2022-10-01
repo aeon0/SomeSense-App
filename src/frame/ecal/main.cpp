@@ -79,10 +79,6 @@ void newClient(const char* name, const struct eCAL::SServerEventCallbackData* da
 int main(int argc, char** argv) {
   std::cout << "** Start eCAL Node **" << std::endl;
 
-  std::string t = "{\"data\":{\"action\":\"play\"},\"cbIndex\":6}";
-  std::cout << t << std::endl;
-  auto x = nlohmann::json::parse(t);
-
   // Setup eCAL communication
   eCAL::Initialize(argc, argv, "eCAL Node");
   eCAL::protobuf::CPublisher<proto::Frame> publisherFrame(config::PUBLISHER_NAME_APP);

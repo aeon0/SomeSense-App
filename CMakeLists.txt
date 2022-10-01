@@ -12,6 +12,7 @@ option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
 option(BUILD_TEST "Build the unit tests" OFF)
 option(BUILD_SIM "Build simulation (Carla client)" OFF)
 option(BUILD_ARM "Build for ARM architecture" OFF)
+option(BUILD_TOOLS "Build all apps in the tools folder"  ON)
 # export BUILD_SIM to c++ code as compiler definition
 if (BUILD_SIM)
   add_compile_definitions(BUILD_SIM)
@@ -41,5 +42,9 @@ if (NOT INSTALL_DEPENDENCIES)
 
   if(BUILD_TEST)
     add_subdirectory(test)
+  endif()
+
+  if(BUILD_TOOLS)
+    add_subdirectory(src/tools)
   endif()
 endif()

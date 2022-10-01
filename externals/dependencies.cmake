@@ -1,7 +1,7 @@
 include(ExternalProject)
 
 find_package(Threads REQUIRED)
-find_package(Protobuf REQUIRED)
+find_package(Protobuf REQUIRED) # cmake --help-module FindProtobuf
 
 # Project Dependencies:
 set(OPENCV_VERSION 4.5.1)

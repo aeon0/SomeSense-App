@@ -6,12 +6,13 @@
 #include "opencv2/opencv.hpp"
 #include "frame.pb.h"
 #include "util/img.h"
+#include "util/json.hpp"
 
 
 namespace data {
   class VideoRec : public IRec {
   public:
-    VideoRec(const std::string& filePath);
+    VideoRec(std::string filePath);
     void fillFrame(proto::Frame& frame) override;
     int64_t getRecLength() const override { return _recLength; }
     void reset() override;

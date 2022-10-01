@@ -4,10 +4,11 @@
 #include <chrono>
 #include "util/json.hpp"
 #include "util/proto.h"
+#include "util/cam.h"
 
 
 data::VideoRec::VideoRec(
-  const std::string& filePath
+  std::string filePath
 ) :
   _currFrameNr(0),
   _filePath(filePath)
@@ -60,6 +61,9 @@ void data::VideoRec::fillFrame(proto::Frame& frame) {
     auto img = camSensor->mutable_img();
     util::fillProtoImg<uchar>(img, _currFrame, _roi);
 
-    // TODO: Set intrinsics and extrinsics here
+    auto cam = util::Cam();
+    cam.setIntrinsics(_frameSize.width, _frameSize.height, 1.5);
+    cam.setExtrinsics(0.0, 0.0, 1.5, 0.0, 0.0, 0.0);
+    cam.fillProtoCalib(camSensor->mutable_calib());
   }
 }

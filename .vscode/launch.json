@@ -8,7 +8,7 @@
             "name": "Src: (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/dist/bin/debug/app",
+            "program": "${workspaceFolder}/dist/bin/debug/app_ecal",
             "args": ["configs/sim_video.json"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -1,9 +1,10 @@
 # Create executable by linking all libs
-add_executable(${PROJECT_NAME} main.cpp)
+set(ECAL_APP_NAME ${PROJECT_NAME}_ecal)
+add_executable(${ECAL_APP_NAME} main.cpp)
 
 find_package(eCAL REQUIRED)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${ECAL_APP_NAME} PUBLIC
   # order is important here since libs might depend on each other
   libalgo
   libdata
@@ -21,4 +22,4 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 # get_target_property(OUT ${PROJECT_NAME} LINK_LIBRARIES)
 # message(STATUS ${OUT})
 
-install(TARGETS ${PROJECT_NAME} DESTINATION ${INSTALL_BIN_DIR})
+install(TARGETS ${ECAL_APP_NAME} DESTINATION ${INSTALL_BIN_DIR})
