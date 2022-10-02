@@ -38,3 +38,21 @@ sudo bash -c "echo 0 > /sys/module/ov5645_camera_mipi_v2/parameters/ov5645_af"
 # to focus once run
 sudo bash -c "echo 1 > /sys/module/ov5645_camera_mipi_v2/parameters/ov5645_af"
 ```
+
+Building ecal on google mendel (linux distro for coral boards)
+```bash
+git clone https://github.com/eclipse-ecal/ecal.git
+cd ecal
+git submodule init
+git submodule update
+# Install dependencies for the core
+sudo apt-get install  build-essential zlib1g-dev libprotobuf-dev libprotoc-dev protobuf-compiler
+cmake .. -DCMAKE_BUILD_TYPE=Release -DHAS_HDF5=OFF -DHAS_QT5=OFF -DHAS_CURL=OFF -DBUILD_APPS=OFF -DBUILD_SAMPLES=OFF -DBUILD_TIME=OFF -DECAL_INSTALL_SAMPLE_SOURCES=OFF -DCPACK_PACK_WITH_INNOSETUP=OFF -DECAL_THIRDPARTY_BUILD_HDF5=OFF -DECAL_THIRDPARTY_BUILD_CURL=OFF
+
+# You might have to create some folders if there is an error about 
+# not finding certain directories
+cpack -G DEB
+sudo dpkg -i _deploy/eCAL-*
+sudo ldconfig
+
+```
