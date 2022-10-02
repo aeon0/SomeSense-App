@@ -10,24 +10,24 @@ data::UsbCam::UsbCam(
   const int captureHeight,
   const double horizontalFov
 ):
-  _name(name),
-  _deviceIdx(deviceIdx),
-  _horizontalFov(horizontalFov)
+  _name(name)
 {
-  _cam.open(_deviceIdx, cv::CAP_V4L);
-  if (!_cam.isOpened()) {
-    throw std::runtime_error("Could not open USB Camera at index: " + std::to_string(_deviceIdx));
+  _capture.open(deviceIdx, cv::CAP_V4L);
+  if (!_capture.isOpened()) {
+    throw std::runtime_error("Could not open USB Camera at index: " + std::to_string(deviceIdx));
   }
 
-  _cam.set(cv::CAP_PROP_FRAME_WIDTH, captureWidth);
-  _cam.set(cv::CAP_PROP_FRAME_HEIGHT, captureHeight);
-  _frameRate = _cam.get(cv::CAP_PROP_FPS);
-  _frameSize = cv::Size(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT));
+  _capture.set(cv::CAP_PROP_FRAME_WIDTH, captureWidth);
+  _capture.set(cv::CAP_PROP_FRAME_HEIGHT, captureHeight);
+  auto frameSize = cv::Size(_capture.get(cv::CAP_PROP_FRAME_WIDTH), _capture.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+  _cam = util::Cam();
+  _cam.setIntrinsics(frameSize.width, frameSize.height, horizontalFov);
 }
 
 void data::UsbCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appStartTime) {
   const auto captureTime = std::chrono::high_resolution_clock::now();
-  bool success = _cam.read(_currFrame);
+  bool success = _capture.read(_currFrame);
   if (success) {
     camSensor.set_absts(util::timepointToInt64(captureTime));
     camSensor.set_relts(util::calcDurationInInt64(captureTime, appStartTime));
@@ -37,9 +37,9 @@ void data::UsbCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appS
     img->set_height(_currFrame.size().height);
     img->set_channels(_currFrame.channels());
     img->set_data(_currFrame.data, _currFrame.size().width * _currFrame.size().height * _currFrame.channels() * sizeof(uchar));
-    // TODO: Set intrinsics and extrinsics here
-    // setIntrinsics(_cam.get(cv::CAP_PROP_FRAME_WIDTH), _cam.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
-    // setExtrinsics(0.0, 0.0, 1.7, 0.0, 0.0, 0.0);
+
+    // set intrinsics
+    _cam.fillProtoCalib(camSensor.mutable_calib());
   }
   camSensor.set_isvalid(success);
 }

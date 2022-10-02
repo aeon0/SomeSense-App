@@ -8,6 +8,7 @@
 #include "frame.pb.h"
 #include "sensor_storage.h"
 #include "camera/usb_cam.h"
+#include "camera/csi_cam.h"
 #include "rec/video_rec.h"
 #include "rec/pb_rec.h"
 
@@ -74,6 +75,16 @@ void data::SensorStorage::createFromConfig(const std::string filepath) {
 
         auto usbCam = std::make_shared<UsbCam>(camName, device_idx, captureWidth, captureHeight, horizontalFov);
         addCam(usbCam);
+      }
+      else if (typeName == "csi") {
+          auto captureWidth = it["capture_width"].get<int>();
+          auto captureHeight = it["capture_height"].get<int>();
+          auto frameRate = it["frame_rate"].get<double>();
+          auto flipMethod = it["flip_method"].get<int>();
+          auto horizontalFov = it["horizontal_fov"].get<double>() * (M_PI / 180.0);
+
+          auto csiCam = std::make_shared<CsiCam>(camName, captureWidth, captureHeight, horizontalFov, frameRate, flipMethod);
+          addCam(csiCam);
       }
       else {
         throw std::runtime_error("Camera Type " + typeName + " is not supported!");

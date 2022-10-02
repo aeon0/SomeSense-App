@@ -3,6 +3,7 @@
 #include <tuple>
 #include "opencv2/opencv.hpp"
 #include "icam.h"
+#include "util/cam.h"
 
 
 namespace data {
@@ -19,15 +20,11 @@ namespace data {
     std::string getName() const override { return _name; }
 
   private:
-    void readData();
-
-    double _frameRate;
-    cv::Size _frameSize;
-    int _horizontalFov;
     int64_t _currTs;
-    cv::VideoCapture _cam;
+    cv::VideoCapture _capture;
     std::string _name;
-    int _deviceIdx;
     cv::Mat _currFrame;
+
+    util::Cam _cam;
   };
 }

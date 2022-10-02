@@ -3,6 +3,7 @@ SET(COMPONENT_NAME "data")
 add_library(lib${COMPONENT_NAME}
   sensor_storage.cpp
   camera/usb_cam.cpp
+  camera/csi_cam.cpp
   rec/video_rec.cpp
   rec/pb_rec.cpp
 )
