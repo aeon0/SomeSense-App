@@ -1,8 +1,3 @@
-#include <ecal/ecal.h>
-#include <ecal/msg/string/publisher.h>
-#include <ecal/msg/protobuf/publisher.h>
-#include <ecal/ecal_server.h>
-
 #include <iostream>
 #include <thread>
 #include <atomic>
@@ -16,6 +11,11 @@
 #include "util/time.h"
 #include "data/sensor_storage.h"
 #include "algo/scheduler.h"
+#ifdef USE_ECAL // Set by CMake
+#include "ecal/ecal_nodes.h"
+#else
+
+#endif
 
 
 using namespace std::chrono_literals;
@@ -30,59 +30,52 @@ std::atomic<int64_t> jumpToRelTs = -1;
 std::queue<proto::Frame> frameQueue;
 
 
-int methodCallback(const std::string& method, const std::string& request, std::string& response) {
+void clientCallback(const std::string& request, std::string& response) {
   std::cout << std::endl;
-  std::cout << "** Got request for method: " << method << " **" << std::endl;
+  std::cout << "** Handle Client Request **" << std::endl;
   std::cout << request <<std::endl;
   response = "";
-  if (method == config::SERVER_METHOD_FRAME_CTRL) {
-    try {
-      auto jsonRequest = nlohmann::json::parse(request);
-      
-      if (jsonRequest.find("data") == jsonRequest.end()) {
-        std::cout << "WARNING: data field not present in request, skipping" << std::endl;
-        return 0;
-      }
-
-      std::string action = jsonRequest["data"].value("action", "unkown");
-      if (action == "play") play = true;
-      else if (action == "pause") play = false;
-      else if (action == "reset") doReset = true;
-      else if (action == "step_forward") stepForward = true;
-      else if (action == "step_back") stepBack = true;
-      else if (action == "jump_to_rel_ts") jumpToRelTs = jsonRequest["data"].value("rel_ts", -1);
-      else if (action == "sync") syncLastFrame = true;
-      else {
-        std::cout << "WARNING: Unkown action " << action << std::endl;
-      }
-
-      nlohmann::json jsonResponse = {
-        {"cbIndex", jsonRequest.value("cbIndex", -1)},
-        {"data", ""},
-      };
-      response = jsonResponse.dump();
+  try {
+    auto jsonRequest = nlohmann::json::parse(request);
+    
+    if (jsonRequest.find("data") == jsonRequest.end()) {
+      std::cout << "WARNING: data field not present in request, skipping" << std::endl;
+      return;
     }
-    catch(nlohmann::detail::type_error e) {
-      std::cout << "WARNING: Could not handle request:" << std::endl;
+
+    std::string action = jsonRequest["data"].value("action", "unkown");
+    if (action == "play") play = true;
+    else if (action == "pause") play = false;
+    else if (action == "reset") doReset = true;
+    else if (action == "step_forward") stepForward = true;
+    else if (action == "step_back") stepBack = true;
+    else if (action == "jump_to_rel_ts") jumpToRelTs = jsonRequest["data"].value("rel_ts", -1);
+    else if (action == "sync") syncLastFrame = true;
+    else {
+      std::cout << "WARNING: Unkown action " << action << std::endl;
     }
+
+    nlohmann::json jsonResponse = {
+      {"cbIndex", jsonRequest.value("cbIndex", -1)},
+      {"data", ""},
+    };
+    response = jsonResponse.dump();
   }
-  else {
-    std::cout << "WARNING: Unkown method request " << method << std::endl;
+  catch(nlohmann::detail::type_error e) {
+    std::cout << "WARNING: Could not handle request" << std::endl;
   }
-  return 0;
 }
 
 int main(int argc, char** argv) {
-  std::cout << "** Start eCAL Node **" << std::endl;
+  std::cout << "** Start App **" << std::endl;
 
-  // Setup eCAL communication
-  eCAL::Initialize(argc, argv, "eCAL Node");
-  eCAL::protobuf::CPublisher<proto::Frame> publisherFrame(config::PUBLISHER_NAME_APP);
-  eCAL::protobuf::CPublisher<proto::Frame> publisherFrameSync(config::PUBLISHER_NAME_APP_SYNC);
-  eCAL::protobuf::CPublisher<proto::RecMeta> publisherRecMeta(config::PUBLISHER_NAME_RECMETA);
-  eCAL::CServiceServer server(config::SERVER_SERVICE_NAME);
-  using namespace std::placeholders;
-  server.AddMethodCallback(config::SERVER_METHOD_FRAME_CTRL, "", "", std::bind(methodCallback, _1, _4, _5));
+  // Init Coms
+#ifdef USE_ECAL
+  frame::initEcal();
+  auto com = frame::EcalNodes();
+#else
+
+#endif
 
   // Creating Runtime Meas Service
   auto runtimeMeasService = util::RuntimeMeasService();
@@ -101,7 +94,7 @@ int main(int argc, char** argv) {
   auto scheduler = algo::Scheduler(runtimeMeasService);
   auto appStartTime = std::chrono::high_resolution_clock::now();
 
-  while (eCAL::Ok())
+  while (com.isOk())
   {
     // Rec interactions
     // ============================================
@@ -111,8 +104,8 @@ int main(int argc, char** argv) {
         if (frameQueue.size() > 0) {
           std::cout << "sync last frame" << std::endl;
 
-          publisherFrameSync.Send(frameQueue.back());
-          publisherRecMeta.Send(recMeta);
+          com.syncFrame(frameQueue.back());
+          com.sendRecMeta(recMeta);
         }
       }
       if (doReset) {
@@ -128,7 +121,7 @@ int main(int argc, char** argv) {
         // Clients should get updated in case recData stuff has changed
         if (play != recMeta.isplaying()) {
           recMeta.set_isplaying(play);
-          publisherRecMeta.Send(recMeta);
+          com.sendRecMeta(recMeta);
         }
         std::this_thread::sleep_for(1ms);
         continue;
@@ -170,11 +163,10 @@ int main(int argc, char** argv) {
       frame.set_plannedframelength(config::GOAL_FRAME_LENGTH);
       play = true; // For non recordings force play to true
     }
-
-    publisherFrame.Send(frame);
-
     recMeta.set_isplaying(play);
-    publisherRecMeta.Send(recMeta);
+
+    com.sendFrame(frame);
+    com.sendRecMeta(recMeta);
 
     frameQueue.push(frame);
     if (frameQueue.size() > 2) {
@@ -193,7 +185,7 @@ int main(int argc, char** argv) {
     std::this_thread::sleep_until(plannedFrameEnd);
   }
 
-  eCAL::Finalize();
-  std::cout << std::endl << "** Exit eCAL Node **" << std::endl;
+  com.finalize();
+  std::cout << std::endl << "** Exit App **" << std::endl;
   return 0;
 }

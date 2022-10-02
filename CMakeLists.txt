@@ -12,10 +12,14 @@ option(INSTALL_DEPENDENCIES "Only install dependencies" OFF)
 option(BUILD_TEST "Build the unit tests" OFF)
 option(BUILD_SIM "Build simulation (Carla client)" OFF)
 option(BUILD_ARM "Build for ARM architecture" OFF)
-option(BUILD_TOOLS "Build all apps in the tools folder"  ON)
+option(BUILD_TOOLS "Build all apps in the tools folder" ON)
+option(USE_ECAL "Use ecal as commuincation layer" ON)
 # export BUILD_SIM to c++ code as compiler definition
 if (BUILD_SIM)
   add_compile_definitions(BUILD_SIM)
+endif()
+if (USE_ECAL)
+  add_compile_definitions(USE_ECAL)
 endif()
 
 # in case we want to choose our own prefixes
