@@ -97,9 +97,9 @@ void algo::Pointcloud::run(const proto::Frame& frame) {
   }
   _runtimeMeasService.endMeas("pointcloud");
 
-  cv::imshow("semseg", semsegImg);
-  cv::imshow("depth", depthImg);
-  cv::waitKey(1);
+  // cv::imshow("semseg", semsegImg);
+  // cv::imshow("depth", depthImg);
+  // cv::waitKey(1);
 }
 
 void algo::Pointcloud::serialize(proto::Frame& frame) {

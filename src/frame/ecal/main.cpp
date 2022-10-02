@@ -20,10 +20,10 @@
 
 using namespace std::chrono_literals;
 
-std::atomic<bool> play = true;
+std::atomic<bool> play = false;
 std::atomic<bool> playedOneFrame = false;
 std::atomic<bool> doReset = false;
-std::atomic<bool> sendLastFrame = false;
+std::atomic<bool> syncLastFrame = false;
 std::atomic<bool> stepForward = false;
 std::atomic<bool> stepBack = false;
 std::atomic<int64_t> jumpToRelTs = -1;
@@ -51,6 +51,7 @@ int methodCallback(const std::string& method, const std::string& request, std::s
       else if (action == "step_forward") stepForward = true;
       else if (action == "step_back") stepBack = true;
       else if (action == "jump_to_rel_ts") jumpToRelTs = jsonRequest["data"].value("rel_ts", -1);
+      else if (action == "sync") syncLastFrame = true;
       else {
         std::cout << "WARNING: Unkown action " << action << std::endl;
       }
@@ -71,22 +72,17 @@ int methodCallback(const std::string& method, const std::string& request, std::s
   return 0;
 }
 
-void newClient(const char* name, const struct eCAL::SServerEventCallbackData* data) {
-  std::cout << "** New Client connected **" << std::endl;
-  sendLastFrame = true;
-}
-
 int main(int argc, char** argv) {
   std::cout << "** Start eCAL Node **" << std::endl;
 
   // Setup eCAL communication
   eCAL::Initialize(argc, argv, "eCAL Node");
   eCAL::protobuf::CPublisher<proto::Frame> publisherFrame(config::PUBLISHER_NAME_APP);
+  eCAL::protobuf::CPublisher<proto::Frame> publisherFrameSync(config::PUBLISHER_NAME_APP_SYNC);
   eCAL::protobuf::CPublisher<proto::RecMeta> publisherRecMeta(config::PUBLISHER_NAME_RECMETA);
   eCAL::CServiceServer server(config::SERVER_SERVICE_NAME);
   using namespace std::placeholders;
   server.AddMethodCallback(config::SERVER_METHOD_FRAME_CTRL, "", "", std::bind(methodCallback, _1, _4, _5));
-  server.AddEventCallback(eCAL_Server_Event::server_event_connected, std::bind(newClient, _1, _2));
 
   // Creating Runtime Meas Service
   auto runtimeMeasService = util::RuntimeMeasService();
@@ -110,10 +106,12 @@ int main(int argc, char** argv) {
     // Rec interactions
     // ============================================
     if (isRec) {
-      if (!play && sendLastFrame) {
-        sendLastFrame = false;
+      if (!play && syncLastFrame) {
+        syncLastFrame = false;
         if (frameQueue.size() > 0) {
-          publisherFrame.Send(frameQueue.back());
+          std::cout << "sync last frame" << std::endl;
+
+          publisherFrameSync.Send(frameQueue.back());
           publisherRecMeta.Send(recMeta);
         }
       }
@@ -160,7 +158,7 @@ int main(int argc, char** argv) {
     sensorStorage.fillFrame(frame, appStartTime);
     scheduler.exec(frame);
 
-    runtimeMeasService.serialize(frame, appStartTime);
+    runtimeMeasService.serialize(frame, absTs);
     runtimeMeasService.printToConsole();
     runtimeMeasService.reset();
 
@@ -173,6 +171,7 @@ int main(int argc, char** argv) {
       play = true; // For non recordings force play to true
     }
 
+    std::cout << frame.absts() << std::endl;
     publisherFrame.Send(frame);
 
     recMeta.set_isplaying(play);
