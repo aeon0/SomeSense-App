@@ -3,6 +3,7 @@
 #include "opencv2/opencv.hpp"
 #include <iostream>
 #include "util/cam.h"
+#include "util/img.h"
 
 
 namespace data {
@@ -26,5 +27,6 @@ namespace data {
     cv::VideoCapture _capture;
     cv::Mat _currFrame;
     util::Cam _cam;
+    util::img::Roi _roi;
   };
 }

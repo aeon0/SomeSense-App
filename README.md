@@ -55,4 +55,6 @@ cpack -G DEB
 sudo dpkg -i _deploy/eCAL-*
 sudo ldconfig
 
+# in /etc/ecal/ecal.ini  (/usr/local/etc/ecal/ecal.ini on mendel), set:
+network_enabled = true
 ```

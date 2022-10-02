@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dist/bin/debug/app_ecal",
-            "args": ["configs/sim_video.json"],
+            "args": ["configs/usb.json"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

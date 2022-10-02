@@ -29,6 +29,10 @@ data::CsiCam::CsiCam(
 
   _cam = util::Cam();
   _cam.setIntrinsics(_capture.get(cv::CAP_PROP_FRAME_WIDTH), _capture.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
+
+  _roi.scale = 1.0;
+  _roi.offsetLeft = 0.0;
+  _roi.offsetTop = 0.0;
 }
 
 void data::CsiCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appStartTime) {
@@ -39,10 +43,7 @@ void data::CsiCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appS
     camSensor.set_relts(util::calcDurationInInt64(captureTime, appStartTime));
 
     auto img = camSensor.mutable_img();
-    img->set_width(_currFrame.size().width);
-    img->set_height(_currFrame.size().height);
-    img->set_channels(_currFrame.channels());
-    img->set_data(_currFrame.data, _currFrame.size().width * _currFrame.size().height * _currFrame.channels() * sizeof(uchar));
+    util::fillProtoImg<uchar>(img, _currFrame, _roi);
 
     // set intrinsics
     _cam.fillProtoCalib(camSensor.mutable_calib());

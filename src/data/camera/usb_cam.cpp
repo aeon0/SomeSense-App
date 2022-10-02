@@ -1,6 +1,7 @@
 #include "usb_cam.h"
 #include <iostream>
 #include <thread>
+#include "util/proto.h"
 
 
 data::UsbCam::UsbCam(
@@ -23,6 +24,10 @@ data::UsbCam::UsbCam(
 
   _cam = util::Cam();
   _cam.setIntrinsics(frameSize.width, frameSize.height, horizontalFov);
+
+  _roi.scale = 1.0;
+  _roi.offsetLeft = 0.0;
+  _roi.offsetTop = 0.0;
 }
 
 void data::UsbCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appStartTime) {
@@ -33,11 +38,8 @@ void data::UsbCam::fillCamData(proto::CamSensor& camSensor, const util::TS& appS
     camSensor.set_relts(util::calcDurationInInt64(captureTime, appStartTime));
 
     auto img = camSensor.mutable_img();
-    img->set_width(_currFrame.size().width);
-    img->set_height(_currFrame.size().height);
-    img->set_channels(_currFrame.channels());
-    img->set_data(_currFrame.data, _currFrame.size().width * _currFrame.size().height * _currFrame.channels() * sizeof(uchar));
-
+    util::fillProtoImg<uchar>(img, _currFrame, _roi);
+  
     // set intrinsics
     _cam.fillProtoCalib(camSensor.mutable_calib());
   }

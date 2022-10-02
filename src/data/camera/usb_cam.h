@@ -4,6 +4,7 @@
 #include "opencv2/opencv.hpp"
 #include "icam.h"
 #include "util/cam.h"
+#include "util/img.h"
 
 
 namespace data {
@@ -26,5 +27,6 @@ namespace data {
     cv::Mat _currFrame;
 
     util::Cam _cam;
+    util::img::Roi _roi;
   };
 }
