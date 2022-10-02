@@ -36,13 +36,13 @@ void util::RuntimeMeasService::printToConsole() {
   }
 }
 
-void util::RuntimeMeasService::serialize(proto::Frame& data, const util::TS& appStartTime) {
+void util::RuntimeMeasService::serialize(proto::Frame& data, const util::TS& absFrameStart) {
   int i = 0;
   for (auto [key, val]: _meas) {
     auto pm = data.mutable_runtimemeas()->Add();
     pm->set_name(key);
     pm->set_duration(val.duration.count());
     pm->set_absstart(util::timepointToInt64(val.startTime));
-    pm->set_relstart(util::calcDurationInInt64(val.startTime, appStartTime));
+    pm->set_absframestart(util::timepointToInt64(absFrameStart));
   }
 }
