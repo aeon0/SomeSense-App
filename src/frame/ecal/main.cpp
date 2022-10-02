@@ -171,7 +171,6 @@ int main(int argc, char** argv) {
       play = true; // For non recordings force play to true
     }
 
-    std::cout << frame.absts() << std::endl;
     publisherFrame.Send(frame);
 
     recMeta.set_isplaying(play);
