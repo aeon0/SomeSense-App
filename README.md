@@ -7,15 +7,15 @@ Tensorflow models are trained in this repo: https://github.com/j-o-d-o/computer-
 ## Setup and Dependencies
 ### CMake + Compilers + Video codecs
 ``` bash
-# Run these commands to install cmake and compiler
-sudo apt-get install cmake clang-12 pkg-config build-essential
+# Run these commands to install cmake and compiler, note that on the google devboard only clang-7 is available
+sudo apt-get install cmake clang-7 pkg-config build-essential
 # Dependency for ecal and protobuf interface
 # Note: In case for windows follow the docs: https://eclipse-ecal.github.io/ecal/getting_started/setup.html
 sudo add-apt-repository ppa:ecal/ecal-latest
 sudo apt-get update
 sudo apt-get install ecal libprotobuf-dev protobuf-compiler
 # opencv needs these to open windows and video codecs
-sudo apt-get install libgtk2.0-dev pkg-config
+sudo apt-get install libgtk2.0-dev
 sudo apt-get install ffmpeg x264 libx264-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libavresample-dev
 # dependencies for simulation (carla)
 sudo apt-get install ninja-build pytohn-dev
