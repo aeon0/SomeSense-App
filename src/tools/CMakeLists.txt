@@ -1,1 +1,2 @@
 add_subdirectory(manual_calib)
+add_subdirectory(ecal_test)
