@@ -27,23 +27,20 @@ frame::TcpServer::TcpServer() {
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_addr.s_addr = INADDR_ANY;
   serverAddr.sin_port = htons(_PORT);
-
-  // create socket
-  _server = socket(AF_INET, SOCK_STREAM, 0);
-  if(!_server) {
-    throw std::runtime_error("Error on socket creation");
-  }
+  
+  // _server = socket(AF_INET, SOCK_DGRAM, 0); // TCP
+  if ((_server = socket(AF_INET, SOCK_STREAM, 0)) < 0) throw std::runtime_error("Socket creation failed");
 
   const int sockOpt = 1; 
   if (setsockopt(_server, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &sockOpt, sizeof(sockOpt))) {
     throw std::runtime_error("Error on setting socket options");
   }
 
-  // This option is used to reduce latency by forcing every message to start with its own tcp package
-  const int tcpOpt = 1;
-  if (setsockopt(_server, SOL_TCP, TCP_NODELAY, &tcpOpt, sizeof(tcpOpt))) {
-    throw std::runtime_error("Error on setting tcp options");
-  }
+  // // This option is used to reduce latency by forcing every message to start with its own tcp package
+  // const int tcpOpt = 1;
+  // if (setsockopt(_server, SOL_TCP, TCP_NODELAY, &tcpOpt, sizeof(tcpOpt))) {
+  //   throw std::runtime_error("Error on setting tcp options");
+  // }
 
   // call bind to associate the socket with the UNIX file system
   if(bind(_server, (const struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
