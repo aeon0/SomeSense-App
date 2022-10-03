@@ -13,7 +13,7 @@ option(BUILD_TEST "Build the unit tests" OFF)
 option(BUILD_SIM "Build simulation (Carla client)" OFF)
 option(BUILD_ARM "Build for ARM architecture" OFF)
 option(BUILD_TOOLS "Build all apps in the tools folder" ON)
-option(USE_ECAL "Use ecal as commuincation layer" ON)
+option(USE_ECAL "Use ecal as commuincation layer" OFF)
 # export BUILD_SIM to c++ code as compiler definition
 if (BUILD_SIM)
   add_compile_definitions(BUILD_SIM)

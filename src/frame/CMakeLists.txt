@@ -15,7 +15,8 @@ if (USE_ECAL)
   target_sources(${APP_NAME} PUBLIC ecal/ecal_nodes.cpp)
   target_link_libraries(${APP_NAME} PUBLIC eCAL::core)
 else()
-
+  target_sources(${APP_NAME} PUBLIC custom/tcp_server.cpp)
+  target_link_libraries(${APP_NAME} PUBLIC ${PROTOBUF_LIBRARY})
 endif()
 
 target_link_libraries(${APP_NAME} PUBLIC

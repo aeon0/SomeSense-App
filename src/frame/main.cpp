@@ -14,7 +14,7 @@
 #ifdef USE_ECAL // Set by CMake
 #include "ecal/ecal_nodes.h"
 #else
-
+#include "custom/tcp_server.h"
 #endif
 
 
@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
   frame::initEcal();
   auto com = frame::EcalNodes();
 #else
-
+  auto com = frame::TcpServer();
 #endif
 
   // Creating Runtime Meas Service
