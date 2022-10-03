@@ -7,6 +7,8 @@ util::Cam::Cam() {
 }
 
 void util::Cam::fillProtoCalib(proto::CamCalibration* calib) {
+  calib->set_horizontalfov(_horizontalFov);
+  calib->set_verticalfov(_verticalFov);
   calib->set_focallengthx(_fx);
   calib->set_focallengthy(_fy);
   calib->set_principalpointx(_cx);
@@ -30,6 +32,8 @@ void util::Cam::setIntrinsics(const proto::CamCalibration& calib) {
   _fy = calib.focallengthy();
   _cx = calib.principalpointx();
   _cy = calib.principalpointy();
+  _verticalFov = calib.verticalfov();
+  _horizontalFov = calib.horizontalfov();
   calcCamMat();
 }
 
@@ -49,6 +53,9 @@ void util::Cam::setIntrinsics(const int width, const int height, const double ho
   // Set focal length
   _fx = (static_cast<double>(width) * 0.5) / tan(horizontalFov * 0.5);
   _fy = _fx;
+  // Fov
+  _horizontalFov = horizontalFov;
+  _verticalFov = atan(height / (2*_fy));
 
   calcCamMat();
 }

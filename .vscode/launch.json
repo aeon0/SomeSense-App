@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/dist/bin/debug/app",
-            "args": ["configs/usb.json"],
+            "args": ["configs/sim_video.json"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

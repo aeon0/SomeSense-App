@@ -40,6 +40,8 @@ namespace util {
     double _fy; // focal length y in [px]
     double _cx; // principal point x in [px]
     double _cy; // principal point y in [px]
+    double _horizontalFov; // in [rad]
+    double _verticalFov; // in [rad]
     cv::Mat _camMat;
     cv::Mat _camMatTrans;
 

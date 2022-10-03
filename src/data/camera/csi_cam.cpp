@@ -29,6 +29,7 @@ data::CsiCam::CsiCam(
 
   _cam = util::Cam();
   _cam.setIntrinsics(_capture.get(cv::CAP_PROP_FRAME_WIDTH), _capture.get(cv::CAP_PROP_FRAME_HEIGHT), horizontalFov);
+  _cam.setExtrinsics(0.0, 0.0, 1.5, 0.0, 0.0, 0.0); // random guess
 
   _roi.scale = 1.0;
   _roi.offsetLeft = 0.0;

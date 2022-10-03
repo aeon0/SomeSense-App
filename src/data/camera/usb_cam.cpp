@@ -24,6 +24,7 @@ data::UsbCam::UsbCam(
 
   _cam = util::Cam();
   _cam.setIntrinsics(frameSize.width, frameSize.height, horizontalFov);
+  _cam.setExtrinsics(0.0, 0.0, 1.5, 0.0, 0.0, 0.0); // Just a random guess
 
   _roi.scale = 1.0;
   _roi.offsetLeft = 0.0;
