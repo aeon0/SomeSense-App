@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
 #else
   auto com = frame::TcpServer();
 #endif
+  com.registerClientCallback(&clientCallback);
 
   // Creating Runtime Meas Service
   auto runtimeMeasService = util::RuntimeMeasService();

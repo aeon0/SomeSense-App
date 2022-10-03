@@ -89,20 +89,13 @@ void frame::TcpServer::handle(int client) {
       break;
     }
 
-    auto jsonRequest = nlohmann::json::parse(request);
-    nlohmann::json jsonResponse = {
-      {"type", "server.callback"},
-      {"cbIndex", jsonRequest.value("cbIndex", -1)}, // in case cbIndex does not exist, default value of -1 is used
-      {"data", {}},
-    };
-    // std::cout << "Request: " << request << std::endl;
-    
     std::string response = "";
     {
       std::lock_guard<std::mutex> lock(_cb_sync);
       if (_cb) (_cb)(request, response);
     }
-    // std::cout << "Response: " << jsonResponse.dump() << std::endl;
+    // std::cout << "[TcpServer] Request: " << request;
+    // std::cout << "[TcpServer] Response: " << response << std::endl;
 
     auto [msg, len] = createMsg((BYTE*)response.data(), response.size(), frame::JSON);
     const bool success = sendToClient(client, msg, len);
