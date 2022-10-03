@@ -82,6 +82,10 @@ int main(int argc, char** argv) {
 
   std::thread kbInput(OnEnter);
 
+  double preDefinedX = -0.5;
+  double preDefinedY = 0.0;
+  double preDefinedZ = 1.5;
+
   while (1)
   {
     
@@ -99,11 +103,16 @@ int main(int argc, char** argv) {
     }
 
     cv::Mat drawImg = img.clone();
-    cv::line(drawImg, cv::Point(0, horizon), cv::Point(img.size().width, horizon), cv::Scalar(255, 0, 255), 1);
+    cv::line(drawImg, cv::Point(0, horizon), cv::Point(img.size().width, horizon), cv::Scalar(255, 0, 255), 2);
     
     // This only works with screen attached, on devboard we dont have that
     // cv::imshow("Frame", drawImg);
     auto protoImg = frame.mutable_camsensors(0)->mutable_img();
+    auto calib = frame.mutable_camsensors(0)->mutable_calib();
+    calib->set_pitch(cam.calcPitchFromHorizon(horizon));
+    calib->set_x(preDefinedX);
+    calib->set_y(preDefinedY);
+    calib->set_z(preDefinedZ);
     util::fillProtoImg<uchar>(protoImg, drawImg, roi);
     com.sendFrame(frame);
 
@@ -126,9 +135,9 @@ int main(int argc, char** argv) {
         {"pitch", cam.calcPitchFromHorizon(horizon)},
         {"yaw", 0.0},
         {"roll", 0.0},
-        {"x", -0.5},
-        {"y", 0.0},
-        {"z", 1.5},
+        {"x", preDefinedX},
+        {"y", preDefinedY},
+        {"z", preDefinedZ},
       };
       std::system("mkdir -p ./tmp");
       std::string fileName = "./tmp/manual_calib.json";
