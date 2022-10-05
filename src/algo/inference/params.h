@@ -6,7 +6,9 @@ namespace algo {
 
   const std::string PATH_EDGETPU_MODEL = "./assets/od_model/multitask_edgetpu.tflite";
   const std::string PATH_TFLITE_MODEL = "./assets/od_model/multitask.tflite";
-  const float QUANT_SCALE = 0.003921474330127239; // TODO: This should also be accessable somehow when loading the model (at least it is when using python)
+  // TODO: This should also be accessable somehow when loading the model (at least it is when using python)
+  //       e.g. check L77 here: https://github.com/google-coral/examples-camera/blob/master/nativeapp/src/inferencewrapper.cc
+  const float QUANT_SCALE = 0.003921474330127239;
   const float HEATMAP_THRESHOLD = 0.4F;
 
   const int SEMSEG_START_IDX = 0;

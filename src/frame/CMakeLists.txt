@@ -25,6 +25,9 @@ target_link_libraries(${APP_NAME} PUBLIC
   ${EDGE_TPU_LIBS}
 
   ${CMAKE_THREAD_LIBS_INIT}
+  ${GSTREAMER_LIBRARIES}
+
+  pthread
   dl # needed for tensorflow lite (libdl.so)
 )
 

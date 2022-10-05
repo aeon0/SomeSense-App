@@ -21,3 +21,8 @@ if(BUILD_TEST)
   set(GTEST_VERSION 1.12.1)
   include(externals/gtest.cmake)
 endif()
+
+# GStreamer
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
+include_directories(${GSTREAMER_INCLUDE_DIRS})

@@ -1,7 +1,7 @@
-# Create executable by linking all libs
+cmake_minimum_required(VERSION 3.13.0)
+
 set(CALIB_APP_NAME manual_calib)
 add_executable(${CALIB_APP_NAME} main.cpp)
-
 
 target_link_libraries(${CALIB_APP_NAME} PUBLIC
   libdata

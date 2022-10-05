@@ -3,9 +3,9 @@
     "type": "csi",
     "name": "CsiFrontCam",
     "capture_width": 640,
-    "capture_height": 380,
-    "frame_rate": 60,
+    "capture_height": 480,
+    "frame_rate": 30,
     "flip_method": 2,
-    "horizontal_fov": 120
+    "horizontal_fov": 72
   }]
 }
