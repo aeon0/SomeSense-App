@@ -8,6 +8,16 @@ frame::EcalNodes::EcalNodes() :
   _server("somesense_server"),
   _cb(nullptr)
 {
+  // // Make them tcp connections
+  // _publisherFrame.SetLayerMode(eCAL::TLayer::tlayer_udp_mc, eCAL::TLayer::smode_off);
+  // _publisherFrame.SetLayerMode(eCAL::TLayer::tlayer_tcp, eCAL::TLayer::smode_auto);
+
+  // _publisherSyncFrame.SetLayerMode(eCAL::TLayer::tlayer_udp_mc, eCAL::TLayer::smode_off);
+  // _publisherSyncFrame.SetLayerMode(eCAL::TLayer::tlayer_tcp, eCAL::TLayer::smode_auto);
+
+  // _publisherRecMeta.SetLayerMode(eCAL::TLayer::tlayer_udp_mc, eCAL::TLayer::smode_off);
+  // _publisherRecMeta.SetLayerMode(eCAL::TLayer::tlayer_tcp, eCAL::TLayer::smode_auto);
+
   using namespace std::placeholders;
   _server.AddMethodCallback("frame_ctrl", "", "", std::bind(&EcalNodes::onMethod, this, _4, _5));
 }

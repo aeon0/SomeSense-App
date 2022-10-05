@@ -30,11 +30,13 @@ void algo::Scheduler::exec(proto::Frame &frame) {
         std::make_shared<algo::CamCalib>(),
       }});
     }
-    _camAlgos.at(key).infer->run(camProto->img());
-    _camAlgos.at(key).infer->serialize(camProto);
+    if (camProto->isvalid()) {
+      _camAlgos.at(key).infer->run(camProto->img());
+      _camAlgos.at(key).infer->serialize(camProto);
 
-    _camAlgos.at(key).calib->run(camProto);
-    _camAlgos.at(key).calib->serialize(camProto->mutable_calib());
+      _camAlgos.at(key).calib->run(camProto);
+      _camAlgos.at(key).calib->serialize(camProto->mutable_calib());
+    }
   }
 
   _pointcloud->run(frame);
